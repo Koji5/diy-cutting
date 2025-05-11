@@ -5,6 +5,7 @@ FROM ruby:3.3-alpine
 RUN apk add --no-cache \
       build-base \
       postgresql-dev \
+      postgresql-client \
       yaml-dev \
       tzdata \
       nodejs \

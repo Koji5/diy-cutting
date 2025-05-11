@@ -38,5 +38,8 @@ module App
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # マイグレーション実行後に生成されるスキーマ定義が schema.rb（Ruby DSL） ではなく structure.sql（生 SQL） になる設定
+    config.active_record.schema_format = :sql
   end
 end
