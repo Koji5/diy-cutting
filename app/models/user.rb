@@ -8,7 +8,7 @@ class User < ApplicationRecord
   # Enum: 役割
   # ------------------------------------------------------------
   # ActiveStorage の ActiveHash 版を使うなら外部クラスで管理してもOK
-  enum role: {
+  enum :role, {
     member:    0,
     vendor:    1,
     admin:     2,
