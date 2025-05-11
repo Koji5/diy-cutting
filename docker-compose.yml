@@ -8,16 +8,16 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-      - REDIS_URL=redis://redis:6379/1
+      - DATABASE_URL=postgres://postgres:password@db:5432/diy_cutting_dev
+      #- REDIS_URL=redis://redis:6379/1
       - SECRET_KEY_BASE=changeme
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
+      #redis:
+      #  condition: service_started
 
   db:
     image: postgres:16-alpine
@@ -28,5 +28,5 @@ services:
       interval: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
+  #redis:
+  #  image: redis:7-alpine

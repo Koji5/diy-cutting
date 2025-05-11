@@ -26,7 +26,10 @@ Rails.application.configure do
   end
 
   # Change to :null_store to avoid any caching.
-  config.cache_store = :memory_store
+  # 後から切り替えられるようにコメントアウト
+  # config.cache_store = :memory_store
+  config.cache_store = :null_store
+  config.action_cable.mount_path = nil   # or disable request forgery
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
