@@ -88,6 +88,84 @@ CREATE TABLE public.m_prefectures (
 
 
 --
+-- Name: member_details; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.member_details (
+    user_id bigint NOT NULL,
+    nickname character varying(50),
+    icon_url character varying,
+    legal_type smallint NOT NULL,
+    legal_name character varying NOT NULL,
+    legal_name_kana character varying,
+    birthday date,
+    gender character varying(1),
+    billing_postal_code character varying(20),
+    billing_prefecture_code character varying(2),
+    billing_city_code character varying(5) NOT NULL,
+    billing_address_line character varying(200) NOT NULL,
+    billing_department character varying(100),
+    billing_phone_number character varying(30),
+    primary_shipping_id bigint,
+    role smallint DEFAULT 4 NOT NULL,
+    stripe_customer_id character varying,
+    registered_affiliate_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_member_role CHECK ((role = 4))
+);
+
+
+--
+-- Name: member_shipping_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.member_shipping_addresses (
+    id bigint NOT NULL,
+    member_id bigint NOT NULL,
+    label character varying(50),
+    recipient_name character varying(100) NOT NULL,
+    postal_code character varying(8) NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
+    city_code character varying(5) NOT NULL,
+    address_line character varying(200) NOT NULL,
+    phone_number character varying(20),
+    is_default boolean DEFAULT false NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: member_shipping_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.member_shipping_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: member_shipping_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.member_shipping_addresses_id_seq OWNED BY public.member_shipping_addresses.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -190,6 +268,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: member_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses ALTER COLUMN id SET DEFAULT nextval('public.member_shipping_addresses_id_seq'::regclass);
+
+
+--
 -- Name: user_authorities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -209,6 +294,22 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: member_details member_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT member_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: member_shipping_addresses member_shipping_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT member_shipping_addresses_pkey PRIMARY KEY (id);
 
 
 --
@@ -268,6 +369,13 @@ CREATE INDEX index_m_authorities_on_deleted_by_id ON public.m_authorities USING 
 --
 
 CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_cities_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_cities_on_code ON public.m_cities USING btree (code);
 
 
 --
@@ -331,6 +439,69 @@ CREATE UNIQUE INDEX index_m_prefectures_on_name_ja ON public.m_prefectures USING
 --
 
 CREATE INDEX index_m_prefectures_on_updated_by_id ON public.m_prefectures USING btree (updated_by_id);
+
+
+--
+-- Name: index_member_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_details_on_created_by_id ON public.member_details USING btree (created_by_id);
+
+
+--
+-- Name: index_member_details_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_details_on_deleted_by_id ON public.member_details USING btree (deleted_by_id);
+
+
+--
+-- Name: index_member_details_on_registered_affiliate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_details_on_registered_affiliate_id ON public.member_details USING btree (registered_affiliate_id);
+
+
+--
+-- Name: index_member_details_on_stripe_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_details_on_stripe_customer_id ON public.member_details USING btree (stripe_customer_id);
+
+
+--
+-- Name: index_member_details_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_details_on_updated_by_id ON public.member_details USING btree (updated_by_id);
+
+
+--
+-- Name: index_member_shipping_addresses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_shipping_addresses_on_created_by_id ON public.member_shipping_addresses USING btree (created_by_id);
+
+
+--
+-- Name: index_member_shipping_addresses_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_shipping_addresses_on_deleted_by_id ON public.member_shipping_addresses USING btree (deleted_by_id);
+
+
+--
+-- Name: index_member_shipping_addresses_on_member_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_shipping_addresses_on_member_id ON public.member_shipping_addresses USING btree (member_id);
+
+
+--
+-- Name: index_member_shipping_addresses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_shipping_addresses_on_updated_by_id ON public.member_shipping_addresses USING btree (updated_by_id);
 
 
 --
@@ -404,11 +575,50 @@ CREATE INDEX index_users_on_updated_by_id ON public.users USING btree (updated_b
 
 
 --
+-- Name: uq_member_default_address; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_member_default_address ON public.member_shipping_addresses USING btree (member_id) WHERE (is_default = true);
+
+
+--
+-- Name: member_details fk_rails_08851c9c2d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_08851c9c2d FOREIGN KEY (primary_shipping_id) REFERENCES public.member_shipping_addresses(id);
+
+
+--
+-- Name: member_details fk_rails_0e90e2812a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_0e90e2812a FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: users fk_rails_205180732b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT fk_rails_205180732b FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_shipping_addresses fk_rails_2997f898f1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_2997f898f1 FOREIGN KEY (member_id) REFERENCES public.member_details(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: member_shipping_addresses fk_rails_32761ffe09; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_32761ffe09 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
 
 
 --
@@ -460,11 +670,43 @@ ALTER TABLE ONLY public.m_authorities
 
 
 --
+-- Name: member_details fk_rails_55b88e8f8b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_55b88e8f8b FOREIGN KEY (registered_affiliate_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_shipping_addresses fk_rails_63f1c23650; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_63f1c23650 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: member_details fk_rails_64afa3893c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_64afa3893c FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_authorities fk_rails_64f628bee7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_authorities
     ADD CONSTRAINT fk_rails_64f628bee7 FOREIGN KEY (authority_code) REFERENCES public.m_authorities(code);
+
+
+--
+-- Name: member_shipping_addresses fk_rails_66cc3b7a7e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_66cc3b7a7e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -476,11 +718,27 @@ ALTER TABLE ONLY public.user_authorities
 
 
 --
+-- Name: member_details fk_rails_6cfc776564; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_6cfc776564 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_prefectures fk_rails_79951cc512; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_prefectures
     ADD CONSTRAINT fk_rails_79951cc512 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_shipping_addresses fk_rails_99ee2a7033; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_99ee2a7033 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -492,11 +750,35 @@ ALTER TABLE ONLY public.m_cities
 
 
 --
+-- Name: member_shipping_addresses fk_rails_aad71f9b0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_rails_aad71f9b0c FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_details fk_rails_aeb287d4a2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_aeb287d4a2 FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: m_cities fk_rails_b2a090b409; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_b2a090b409 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_details fk_rails_c2cdeb6f7c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_c2cdeb6f7c FOREIGN KEY (billing_prefecture_code) REFERENCES public.m_prefectures(code);
 
 
 --
@@ -524,12 +806,25 @@ ALTER TABLE ONLY public.m_authorities
 
 
 --
+-- Name: member_details fk_rails_f1af1cd707; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_rails_f1af1cd707 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512015122'),
+('20250512012901'),
+('20250512012515'),
+('20250512012112'),
+('20250512011943'),
 ('20250512010104'),
 ('20250512005804'),
 ('20250512005526'),
