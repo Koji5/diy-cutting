@@ -27,6 +27,25 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: m_authorities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_authorities (
+    code character varying(30) NOT NULL,
+    name_ja character varying(60) NOT NULL,
+    default_roles jsonb,
+    active_flag boolean DEFAULT true NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -124,6 +143,34 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: index_m_authorities_on_active_flag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_authorities_on_active_flag ON public.m_authorities USING btree (active_flag);
+
+
+--
+-- Name: index_m_authorities_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_authorities_on_created_by_id ON public.m_authorities USING btree (created_by_id);
+
+
+--
+-- Name: index_m_authorities_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_authorities_on_deleted_by_id ON public.m_authorities USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_authorities_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING btree (updated_by_id);
+
+
+--
 -- Name: index_users_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -196,11 +243,35 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_authorities fk_rails_44f5207aff; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_authorities
+    ADD CONSTRAINT fk_rails_44f5207aff FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: users fk_rails_45307c95a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT fk_rails_45307c95a3 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_authorities fk_rails_5230eda4ef; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_authorities
+    ADD CONSTRAINT fk_rails_5230eda4ef FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_authorities fk_rails_e964d916b9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_authorities
+    ADD CONSTRAINT fk_rails_e964d916b9 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -210,6 +281,7 @@ ALTER TABLE ONLY public.users
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512001232'),
 ('20250511072257'),
 ('20250511064450');
 
