@@ -350,6 +350,18 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: vendor_capabilities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_capabilities (
+    vendor_id bigint NOT NULL,
+    capability_code character varying(16) NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: vendor_details; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -382,6 +394,31 @@ CREATE TABLE public.vendor_details (
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: vendor_materials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_materials (
+    vendor_id bigint NOT NULL,
+    material_code character varying(16) NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: vendor_service_areas; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_service_areas (
+    vendor_id bigint NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
+    city_code character varying(5) NOT NULL,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -470,6 +507,38 @@ ALTER TABLE ONLY public.user_authorities
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vendor_capabilities vendor_capabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_capabilities
+    ADD CONSTRAINT vendor_capabilities_pkey PRIMARY KEY (vendor_id, capability_code);
+
+
+--
+-- Name: vendor_details vendor_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_details
+    ADD CONSTRAINT vendor_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: vendor_materials vendor_materials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_materials
+    ADD CONSTRAINT vendor_materials_pkey PRIMARY KEY (vendor_id, material_code);
+
+
+--
+-- Name: vendor_service_areas vendor_service_areas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_areas
+    ADD CONSTRAINT vendor_service_areas_pkey PRIMARY KEY (vendor_id, prefecture_code, city_code);
 
 
 --
@@ -865,6 +934,20 @@ CREATE INDEX index_users_on_updated_by_id ON public.users USING btree (updated_b
 
 
 --
+-- Name: index_vendor_capabilities_on_capability_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_capabilities_on_capability_code ON public.vendor_capabilities USING btree (capability_code);
+
+
+--
+-- Name: index_vendor_capabilities_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_capabilities_on_vendor_id ON public.vendor_capabilities USING btree (vendor_id);
+
+
+--
 -- Name: index_vendor_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -900,6 +983,41 @@ CREATE INDEX index_vendor_details_on_updated_by_id ON public.vendor_details USIN
 
 
 --
+-- Name: index_vendor_materials_on_material_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_materials_on_material_code ON public.vendor_materials USING btree (material_code);
+
+
+--
+-- Name: index_vendor_materials_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_materials_on_vendor_id ON public.vendor_materials USING btree (vendor_id);
+
+
+--
+-- Name: index_vendor_service_areas_on_city_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_service_areas_on_city_code ON public.vendor_service_areas USING btree (city_code);
+
+
+--
+-- Name: index_vendor_service_areas_on_prefecture_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_service_areas_on_prefecture_code ON public.vendor_service_areas USING btree (prefecture_code);
+
+
+--
+-- Name: index_vendor_service_areas_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_service_areas_on_vendor_id ON public.vendor_service_areas USING btree (vendor_id);
+
+
+--
 -- Name: uq_member_default_address; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -931,6 +1049,14 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: vendor_service_areas fk_rails_1d5998f1d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_areas
+    ADD CONSTRAINT fk_rails_1d5998f1d2 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: users fk_rails_205180732b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -944,6 +1070,14 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_2486576561 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_materials fk_rails_24b9aa6af6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_materials
+    ADD CONSTRAINT fk_rails_24b9aa6af6 FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
 
 
 --
@@ -1099,6 +1233,14 @@ ALTER TABLE ONLY public.user_authorities
 
 
 --
+-- Name: vendor_materials fk_rails_651d8515a7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_materials
+    ADD CONSTRAINT fk_rails_651d8515a7 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
 -- Name: member_shipping_addresses fk_rails_66cc3b7a7e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1112,6 +1254,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 ALTER TABLE ONLY public.user_authorities
     ADD CONSTRAINT fk_rails_6a8b2647b8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_service_areas fk_rails_6af0406fe8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_areas
+    ADD CONSTRAINT fk_rails_6af0406fe8 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
 
 
 --
@@ -1152,6 +1302,14 @@ ALTER TABLE ONLY public.stripe_accounts
 
 ALTER TABLE ONLY public.m_prefectures
     ADD CONSTRAINT fk_rails_79951cc512 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_service_areas fk_rails_7fc7dfd7b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_areas
+    ADD CONSTRAINT fk_rails_7fc7dfd7b8 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
 
 
 --
@@ -1211,11 +1369,27 @@ ALTER TABLE ONLY public.m_process_types
 
 
 --
+-- Name: vendor_capabilities fk_rails_9f0bc3a1c3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_capabilities
+    ADD CONSTRAINT fk_rails_9f0bc3a1c3 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
 -- Name: m_materials fk_rails_9fd91eeecc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_9fd91eeecc FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_capabilities fk_rails_a23e589077; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_capabilities
+    ADD CONSTRAINT fk_rails_a23e589077 FOREIGN KEY (capability_code) REFERENCES public.m_process_types(code);
 
 
 --
@@ -1321,6 +1495,10 @@ ALTER TABLE ONLY public.m_categories
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512082145'),
+('20250512081632'),
+('20250512081107'),
+('20250512075710'),
 ('20250512040328'),
 ('20250512035203'),
 ('20250512030903'),
