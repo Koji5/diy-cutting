@@ -46,6 +46,26 @@ CREATE TABLE public.m_authorities (
 
 
 --
+-- Name: m_prefectures; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_prefectures (
+    code character(1) NOT NULL,
+    name_ja character varying(10) NOT NULL,
+    name_en character varying(20) NOT NULL,
+    kana character varying(20) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT m_prefectures_code_chk CHECK (((code >= '01'::bpchar) AND (code <= '47'::bpchar)))
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -229,6 +249,34 @@ CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING 
 
 
 --
+-- Name: index_m_prefectures_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_prefectures_on_created_by_id ON public.m_prefectures USING btree (created_by_id);
+
+
+--
+-- Name: index_m_prefectures_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_prefectures_on_deleted_by_id ON public.m_prefectures USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_prefectures_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_prefectures_on_name_ja ON public.m_prefectures USING btree (name_ja);
+
+
+--
+-- Name: index_m_prefectures_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_prefectures_on_updated_by_id ON public.m_prefectures USING btree (updated_by_id);
+
+
+--
 -- Name: index_user_authorities_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -315,6 +363,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_prefectures fk_rails_4364687b87; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_prefectures
+    ADD CONSTRAINT fk_rails_4364687b87 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_authorities fk_rails_44f5207aff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -355,6 +411,22 @@ ALTER TABLE ONLY public.user_authorities
 
 
 --
+-- Name: m_prefectures fk_rails_79951cc512; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_prefectures
+    ADD CONSTRAINT fk_rails_79951cc512 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_prefectures fk_rails_ce3acd64e5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_prefectures
+    ADD CONSTRAINT fk_rails_ce3acd64e5 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_authorities fk_rails_e964d916b9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -369,6 +441,7 @@ ALTER TABLE ONLY public.m_authorities
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512004856'),
 ('20250512002340'),
 ('20250512002015'),
 ('20250512001232'),
