@@ -46,11 +46,33 @@ CREATE TABLE public.m_authorities (
 
 
 --
+-- Name: m_cities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_cities (
+    code character varying(5) NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
+    name_ja character varying(100) NOT NULL,
+    name_kana character varying(100),
+    name_en character varying(100),
+    sort_no smallint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT m_cities_code_len_chk CHECK ((char_length((code)::text) = 5))
+);
+
+
+--
 -- Name: m_prefectures; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.m_prefectures (
-    code character(1) NOT NULL,
+    code character varying(2) NOT NULL,
     name_ja character varying(10) NOT NULL,
     name_en character varying(20) NOT NULL,
     kana character varying(20) NOT NULL,
@@ -61,7 +83,7 @@ CREATE TABLE public.m_prefectures (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT m_prefectures_code_chk CHECK (((code >= '01'::bpchar) AND (code <= '47'::bpchar)))
+    CONSTRAINT m_prefectures_code_chk CHECK ((((code)::text >= '01'::text) AND ((code)::text <= '47'::text)))
 );
 
 
@@ -249,6 +271,41 @@ CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING 
 
 
 --
+-- Name: index_m_cities_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_cities_on_created_by_id ON public.m_cities USING btree (created_by_id);
+
+
+--
+-- Name: index_m_cities_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_cities_on_deleted_by_id ON public.m_cities USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_cities_on_prefecture_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_cities_on_prefecture_code ON public.m_cities USING btree (prefecture_code);
+
+
+--
+-- Name: index_m_cities_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_cities_on_updated_by_id ON public.m_cities USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_prefectures_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_prefectures_on_code ON public.m_prefectures USING btree (code);
+
+
+--
 -- Name: index_m_prefectures_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -363,6 +420,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_cities fk_rails_42109644b2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_cities
+    ADD CONSTRAINT fk_rails_42109644b2 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: m_prefectures fk_rails_4364687b87; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -419,6 +484,30 @@ ALTER TABLE ONLY public.m_prefectures
 
 
 --
+-- Name: m_cities fk_rails_9bbab727a4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_cities
+    ADD CONSTRAINT fk_rails_9bbab727a4 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_cities fk_rails_b2a090b409; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_cities
+    ADD CONSTRAINT fk_rails_b2a090b409 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_cities fk_rails_c47d959888; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_cities
+    ADD CONSTRAINT fk_rails_c47d959888 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_prefectures fk_rails_ce3acd64e5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -441,6 +530,9 @@ ALTER TABLE ONLY public.m_authorities
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512010104'),
+('20250512005804'),
+('20250512005526'),
 ('20250512004856'),
 ('20250512002340'),
 ('20250512002015'),
