@@ -46,6 +46,24 @@ CREATE TABLE public.m_authorities (
 
 
 --
+-- Name: m_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_categories (
+    code character varying(10) NOT NULL,
+    name_ja character varying(20) NOT NULL,
+    name_en character varying(20) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: m_cities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -68,6 +86,29 @@ CREATE TABLE public.m_cities (
 
 
 --
+-- Name: m_materials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_materials (
+    code character varying(16) NOT NULL,
+    category_code character varying(10) NOT NULL,
+    name_ja character varying(40) NOT NULL,
+    name_en character varying(40) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    jis_iso character varying(12),
+    density_kg_per_m3 numeric(8,2) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: m_prefectures; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -84,6 +125,28 @@ CREATE TABLE public.m_prefectures (
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT m_prefectures_code_chk CHECK ((((code)::text >= '01'::text) AND ((code)::text <= '47'::text)))
+);
+
+
+--
+-- Name: m_process_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_process_types (
+    code character varying(10) NOT NULL,
+    category_code character varying(10) NOT NULL,
+    name_ja character varying(40) NOT NULL,
+    name_en character varying(40) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    jis_iso character varying(12),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
@@ -354,6 +417,22 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: m_materials m_materials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT m_materials_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_process_types m_process_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_process_types
+    ADD CONSTRAINT m_process_types_pkey PRIMARY KEY (code);
+
+
+--
 -- Name: member_details member_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -429,6 +508,48 @@ CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING 
 
 
 --
+-- Name: index_m_categories_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_categories_on_code ON public.m_categories USING btree (code);
+
+
+--
+-- Name: index_m_categories_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_categories_on_created_by_id ON public.m_categories USING btree (created_by_id);
+
+
+--
+-- Name: index_m_categories_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_categories_on_deleted_by_id ON public.m_categories USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_categories_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_categories_on_name_en ON public.m_categories USING btree (name_en);
+
+
+--
+-- Name: index_m_categories_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_categories_on_name_ja ON public.m_categories USING btree (name_ja);
+
+
+--
+-- Name: index_m_categories_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_categories_on_updated_by_id ON public.m_categories USING btree (updated_by_id);
+
+
+--
 -- Name: index_m_cities_on_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -464,6 +585,48 @@ CREATE INDEX index_m_cities_on_updated_by_id ON public.m_cities USING btree (upd
 
 
 --
+-- Name: index_m_materials_on_category_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_materials_on_category_code ON public.m_materials USING btree (category_code);
+
+
+--
+-- Name: index_m_materials_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_materials_on_created_by_id ON public.m_materials USING btree (created_by_id);
+
+
+--
+-- Name: index_m_materials_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_materials_on_deleted_by_id ON public.m_materials USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_materials_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_materials_on_name_en ON public.m_materials USING btree (name_en);
+
+
+--
+-- Name: index_m_materials_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_materials_on_name_ja ON public.m_materials USING btree (name_ja);
+
+
+--
+-- Name: index_m_materials_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_materials_on_updated_by_id ON public.m_materials USING btree (updated_by_id);
+
+
+--
 -- Name: index_m_prefectures_on_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -496,6 +659,48 @@ CREATE UNIQUE INDEX index_m_prefectures_on_name_ja ON public.m_prefectures USING
 --
 
 CREATE INDEX index_m_prefectures_on_updated_by_id ON public.m_prefectures USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_process_types_on_category_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_process_types_on_category_code ON public.m_process_types USING btree (category_code);
+
+
+--
+-- Name: index_m_process_types_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_process_types_on_created_by_id ON public.m_process_types USING btree (created_by_id);
+
+
+--
+-- Name: index_m_process_types_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_process_types_on_deleted_by_id ON public.m_process_types USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_process_types_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_process_types_on_name_en ON public.m_process_types USING btree (name_en);
+
+
+--
+-- Name: index_m_process_types_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_process_types_on_name_ja ON public.m_process_types USING btree (name_ja);
+
+
+--
+-- Name: index_m_process_types_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_process_types_on_updated_by_id ON public.m_process_types USING btree (updated_by_id);
 
 
 --
@@ -734,6 +939,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_materials fk_rails_2486576561; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_rails_2486576561 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_2997f898f1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -782,6 +995,14 @@ ALTER TABLE ONLY public.m_authorities
 
 
 --
+-- Name: m_categories fk_rails_451e72c106; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_categories
+    ADD CONSTRAINT fk_rails_451e72c106 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: users fk_rails_45307c95a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -790,11 +1011,27 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_materials fk_rails_48223032c7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_rails_48223032c7 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: stripe_accounts fk_rails_5022b25805; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stripe_accounts
     ADD CONSTRAINT fk_rails_5022b25805 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_process_types fk_rails_50d97028ce; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_process_types
+    ADD CONSTRAINT fk_rails_50d97028ce FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -822,11 +1059,27 @@ ALTER TABLE ONLY public.stripe_accounts
 
 
 --
+-- Name: m_materials fk_rails_5e5fc68929; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_rails_5e5fc68929 FOREIGN KEY (category_code) REFERENCES public.m_categories(code);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_63f1c23650; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_rails_63f1c23650 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: m_categories fk_rails_63fc147c9a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_categories
+    ADD CONSTRAINT fk_rails_63fc147c9a FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -926,11 +1179,43 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: m_process_types fk_rails_9a94eea366; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_process_types
+    ADD CONSTRAINT fk_rails_9a94eea366 FOREIGN KEY (category_code) REFERENCES public.m_categories(code);
+
+
+--
+-- Name: m_process_types fk_rails_9ae1a206fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_process_types
+    ADD CONSTRAINT fk_rails_9ae1a206fd FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_cities fk_rails_9bbab727a4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_9bbab727a4 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_process_types fk_rails_9c515c2693; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_process_types
+    ADD CONSTRAINT fk_rails_9c515c2693 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_materials fk_rails_9fd91eeecc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_rails_9fd91eeecc FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1022,12 +1307,24 @@ ALTER TABLE ONLY public.member_details
 
 
 --
+-- Name: m_categories fk_rails_f95fffab61; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_categories
+    ADD CONSTRAINT fk_rails_f95fffab61 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512040328'),
+('20250512035203'),
+('20250512030903'),
+('20250512030428'),
 ('20250512025318'),
 ('20250512025235'),
 ('20250512020944'),
