@@ -15,6 +15,60 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: admin_details; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.admin_details (
+    user_id bigint NOT NULL,
+    nickname character varying(50),
+    icon_url character varying(255),
+    department character varying(100),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: affiliate_details; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.affiliate_details (
+    user_id bigint NOT NULL,
+    name character varying(100) NOT NULL,
+    name_kana character varying(255),
+    postal_code character varying(8) NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
+    city_code character varying(5) NOT NULL,
+    address_line character varying(200) NOT NULL,
+    phone_number character varying(30),
+    invoice_number character varying(20),
+    bank_name character varying(100),
+    account_type smallint,
+    account_number character varying(30),
+    account_holder character varying(100),
+    commission_rate numeric(5,2) DEFAULT 3.0 NOT NULL,
+    payout_threshold numeric(18,4) DEFAULT 5000.0 NOT NULL,
+    unpaid_balance numeric(18,4) DEFAULT 0.0 NOT NULL,
+    last_paid_at timestamp(6) without time zone,
+    stripe_account_id character varying(255) NOT NULL,
+    charges_enabled boolean DEFAULT false NOT NULL,
+    payouts_enabled boolean DEFAULT false NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -446,6 +500,22 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: admin_details admin_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_details
+    ADD CONSTRAINT admin_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: affiliate_details affiliate_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT affiliate_details_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -539,6 +609,69 @@ ALTER TABLE ONLY public.vendor_materials
 
 ALTER TABLE ONLY public.vendor_service_areas
     ADD CONSTRAINT vendor_service_areas_pkey PRIMARY KEY (vendor_id, prefecture_code, city_code);
+
+
+--
+-- Name: index_admin_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_details_on_created_by_id ON public.admin_details USING btree (created_by_id);
+
+
+--
+-- Name: index_admin_details_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_details_on_deleted_by_id ON public.admin_details USING btree (deleted_by_id);
+
+
+--
+-- Name: index_admin_details_on_nickname; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_admin_details_on_nickname ON public.admin_details USING btree (nickname);
+
+
+--
+-- Name: index_admin_details_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_details_on_updated_by_id ON public.admin_details USING btree (updated_by_id);
+
+
+--
+-- Name: index_affiliate_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_details_on_created_by_id ON public.affiliate_details USING btree (created_by_id);
+
+
+--
+-- Name: index_affiliate_details_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_details_on_deleted_by_id ON public.affiliate_details USING btree (deleted_by_id);
+
+
+--
+-- Name: index_affiliate_details_on_invoice_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_affiliate_details_on_invoice_number ON public.affiliate_details USING btree (invoice_number);
+
+
+--
+-- Name: index_affiliate_details_on_stripe_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_details_on_stripe_account_id ON public.affiliate_details USING btree (stripe_account_id);
+
+
+--
+-- Name: index_affiliate_details_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_details_on_updated_by_id ON public.affiliate_details USING btree (updated_by_id);
 
 
 --
@@ -1025,6 +1158,14 @@ CREATE UNIQUE INDEX uq_member_default_address ON public.member_shipping_addresse
 
 
 --
+-- Name: admin_details fk_rails_0434f99b3a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_details
+    ADD CONSTRAINT fk_rails_0434f99b3a FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_details fk_rails_08851c9c2d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1038,6 +1179,14 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_0e90e2812a FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_details fk_rails_1250f45d05; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_1250f45d05 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
 
 
 --
@@ -1145,11 +1294,27 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: admin_details fk_rails_45d29e92b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_details
+    ADD CONSTRAINT fk_rails_45d29e92b6 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_materials fk_rails_48223032c7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_48223032c7 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: admin_details fk_rails_4fcb60b766; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_details
+    ADD CONSTRAINT fk_rails_4fcb60b766 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1182,6 +1347,14 @@ ALTER TABLE ONLY public.m_authorities
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_55b88e8f8b FOREIGN KEY (registered_affiliate_id) REFERENCES public.users(id);
+
+
+--
+-- Name: admin_details fk_rails_560f5098d3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_details
+    ADD CONSTRAINT fk_rails_560f5098d3 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1281,6 +1454,22 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: affiliate_details fk_rails_70a6bce611; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_70a6bce611 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_details fk_rails_711468941e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_711468941e FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
+
+
+--
 -- Name: vendor_details fk_rails_74ee2893b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1305,6 +1494,14 @@ ALTER TABLE ONLY public.m_prefectures
 
 
 --
+-- Name: affiliate_details fk_rails_7c046c89f6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_7c046c89f6 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: vendor_service_areas fk_rails_7fc7dfd7b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1318,6 +1515,14 @@ ALTER TABLE ONLY public.vendor_service_areas
 
 ALTER TABLE ONLY public.stripe_accounts
     ADD CONSTRAINT fk_rails_7feb656bba FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_details fk_rails_8b1030bd18; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_8b1030bd18 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1417,6 +1622,14 @@ ALTER TABLE ONLY public.m_cities
 
 
 --
+-- Name: affiliate_details fk_rails_b810b35d18; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_b810b35d18 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_details fk_rails_c2cdeb6f7c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1438,6 +1651,14 @@ ALTER TABLE ONLY public.m_cities
 
 ALTER TABLE ONLY public.m_prefectures
     ADD CONSTRAINT fk_rails_ce3acd64e5 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_details fk_rails_ce9ab7214f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_rails_ce9ab7214f FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1495,6 +1716,9 @@ ALTER TABLE ONLY public.m_categories
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512085725'),
+('20250512085335'),
+('20250512084948'),
 ('20250512082145'),
 ('20250512081632'),
 ('20250512081107'),
