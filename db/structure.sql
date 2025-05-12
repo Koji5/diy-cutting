@@ -55,6 +55,42 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: user_authorities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_authorities (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    authority_code character varying(30) NOT NULL,
+    grant_state smallint DEFAULT 1 NOT NULL,
+    valid_from timestamp(6) without time zone,
+    valid_to timestamp(6) without time zone,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT user_authorities_grant_state_chk CHECK ((grant_state = ANY (ARRAY[0, 1])))
+);
+
+
+--
+-- Name: user_authorities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_authorities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_authorities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_authorities_id_seq OWNED BY public.user_authorities.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -112,6 +148,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: user_authorities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authorities ALTER COLUMN id SET DEFAULT nextval('public.user_authorities_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -135,6 +178,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: user_authorities user_authorities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authorities
+    ADD CONSTRAINT user_authorities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -147,6 +198,13 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE INDEX index_m_authorities_on_active_flag ON public.m_authorities USING btree (active_flag);
+
+
+--
+-- Name: index_m_authorities_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_authorities_on_code ON public.m_authorities USING btree (code);
 
 
 --
@@ -168,6 +226,20 @@ CREATE INDEX index_m_authorities_on_deleted_by_id ON public.m_authorities USING 
 --
 
 CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING btree (updated_by_id);
+
+
+--
+-- Name: index_user_authorities_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_authorities_on_user_id ON public.user_authorities USING btree (user_id);
+
+
+--
+-- Name: index_user_authorities_on_user_id_and_authority_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_authorities_on_user_id_and_authority_code ON public.user_authorities USING btree (user_id, authority_code);
 
 
 --
@@ -267,6 +339,22 @@ ALTER TABLE ONLY public.m_authorities
 
 
 --
+-- Name: user_authorities fk_rails_64f628bee7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authorities
+    ADD CONSTRAINT fk_rails_64f628bee7 FOREIGN KEY (authority_code) REFERENCES public.m_authorities(code);
+
+
+--
+-- Name: user_authorities fk_rails_6a8b2647b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authorities
+    ADD CONSTRAINT fk_rails_6a8b2647b8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_authorities fk_rails_e964d916b9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -281,6 +369,8 @@ ALTER TABLE ONLY public.m_authorities
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250512002340'),
+('20250512002015'),
 ('20250512001232'),
 ('20250511072257'),
 ('20250511064450');
