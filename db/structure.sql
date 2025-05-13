@@ -732,6 +732,107 @@ CREATE TABLE public.stripe_accounts (
 
 
 --
+-- Name: stripe_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stripe_events (
+    event_id character varying(255) NOT NULL,
+    account_id character varying(255) NOT NULL,
+    type character varying(64) NOT NULL,
+    payload jsonb NOT NULL,
+    received_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    processed_at timestamp(6) without time zone,
+    status character varying(16)
+);
+
+
+--
+-- Name: stripe_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stripe_payments (
+    id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    payment_intent_id character varying(255) NOT NULL,
+    charge_id character varying(255) NOT NULL,
+    transfer_id character varying(255) NOT NULL,
+    application_fee_id character varying(255) NOT NULL,
+    amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    currency character varying(3) DEFAULT 'JPY'::character varying NOT NULL,
+    platform_fee numeric(18,4) DEFAULT 0.0 NOT NULL,
+    net_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    status character varying(32) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: stripe_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stripe_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stripe_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stripe_payments_id_seq OWNED BY public.stripe_payments.id;
+
+
+--
+-- Name: stripe_payouts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stripe_payouts (
+    payout_id character varying NOT NULL,
+    stripe_account_id character varying(255) NOT NULL,
+    amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    arrival_date date NOT NULL,
+    status character varying(16) NOT NULL,
+    failure_code character varying(32),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: stripe_refunds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stripe_refunds (
+    refund_id character varying(255) NOT NULL,
+    payment_intent_id character varying(255) NOT NULL,
+    amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    status character varying(16) NOT NULL,
+    reason character varying(32) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: user_authorities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -942,6 +1043,13 @@ ALTER TABLE ONLY public.quotes ALTER COLUMN id SET DEFAULT nextval('public.quote
 
 
 --
+-- Name: stripe_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments ALTER COLUMN id SET DEFAULT nextval('public.stripe_payments_id_seq'::regclass);
+
+
+--
 -- Name: user_authorities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1137,6 +1245,38 @@ ALTER TABLE ONLY public.quotes
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: stripe_events stripe_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_events
+    ADD CONSTRAINT stripe_events_pkey PRIMARY KEY (event_id);
+
+
+--
+-- Name: stripe_payments stripe_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments
+    ADD CONSTRAINT stripe_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stripe_payouts stripe_payouts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payouts
+    ADD CONSTRAINT stripe_payouts_pkey PRIMARY KEY (payout_id);
+
+
+--
+-- Name: stripe_refunds stripe_refunds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_refunds
+    ADD CONSTRAINT stripe_refunds_pkey PRIMARY KEY (refund_id);
 
 
 --
@@ -2091,6 +2231,118 @@ CREATE INDEX index_stripe_accounts_on_updated_by_id ON public.stripe_accounts US
 
 
 --
+-- Name: index_stripe_events_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_events_on_account_id ON public.stripe_events USING btree (account_id);
+
+
+--
+-- Name: index_stripe_events_on_processed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_events_on_processed_at ON public.stripe_events USING btree (processed_at);
+
+
+--
+-- Name: index_stripe_events_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_events_on_status ON public.stripe_events USING btree (status);
+
+
+--
+-- Name: index_stripe_payments_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payments_on_created_by_id ON public.stripe_payments USING btree (created_by_id);
+
+
+--
+-- Name: index_stripe_payments_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payments_on_deleted_by_id ON public.stripe_payments USING btree (deleted_by_id);
+
+
+--
+-- Name: index_stripe_payments_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stripe_payments_on_order_id ON public.stripe_payments USING btree (order_id);
+
+
+--
+-- Name: index_stripe_payments_on_payment_intent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stripe_payments_on_payment_intent_id ON public.stripe_payments USING btree (payment_intent_id);
+
+
+--
+-- Name: index_stripe_payments_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payments_on_updated_by_id ON public.stripe_payments USING btree (updated_by_id);
+
+
+--
+-- Name: index_stripe_payouts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payouts_on_created_by_id ON public.stripe_payouts USING btree (created_by_id);
+
+
+--
+-- Name: index_stripe_payouts_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payouts_on_deleted_by_id ON public.stripe_payouts USING btree (deleted_by_id);
+
+
+--
+-- Name: index_stripe_payouts_on_stripe_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payouts_on_stripe_account_id ON public.stripe_payouts USING btree (stripe_account_id);
+
+
+--
+-- Name: index_stripe_payouts_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_payouts_on_updated_by_id ON public.stripe_payouts USING btree (updated_by_id);
+
+
+--
+-- Name: index_stripe_refunds_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_refunds_on_created_by_id ON public.stripe_refunds USING btree (created_by_id);
+
+
+--
+-- Name: index_stripe_refunds_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_refunds_on_deleted_by_id ON public.stripe_refunds USING btree (deleted_by_id);
+
+
+--
+-- Name: index_stripe_refunds_on_payment_intent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_refunds_on_payment_intent_id ON public.stripe_refunds USING btree (payment_intent_id);
+
+
+--
+-- Name: index_stripe_refunds_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stripe_refunds_on_updated_by_id ON public.stripe_refunds USING btree (updated_by_id);
+
+
+--
 -- Name: index_user_authorities_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2266,6 +2518,14 @@ CREATE UNIQUE INDEX uq_quote_request_item ON public.quote_request_items USING bt
 
 
 --
+-- Name: stripe_payouts fk_rails_0164871fc3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payouts
+    ADD CONSTRAINT fk_rails_0164871fc3 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quotes fk_rails_02b555fb4d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2327,6 +2587,14 @@ ALTER TABLE ONLY public.quote_request_items
 
 ALTER TABLE ONLY public.m_corner_processes
     ADD CONSTRAINT fk_rails_0c41746295 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: stripe_payments fk_rails_0c6d02e37c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments
+    ADD CONSTRAINT fk_rails_0c6d02e37c FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2455,6 +2723,14 @@ ALTER TABLE ONLY public.vendor_materials
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT fk_rails_267c198c1b FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: stripe_refunds fk_rails_27113da1c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_refunds
+    ADD CONSTRAINT fk_rails_27113da1c6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2594,11 +2870,27 @@ ALTER TABLE ONLY public.admin_details
 
 
 --
+-- Name: stripe_payments fk_rails_47bb1f7459; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments
+    ADD CONSTRAINT fk_rails_47bb1f7459 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_materials fk_rails_48223032c7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_48223032c7 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: stripe_payments fk_rails_4b62aa0798; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments
+    ADD CONSTRAINT fk_rails_4b62aa0798 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2882,11 +3174,27 @@ ALTER TABLE ONLY public.m_prefectures
 
 
 --
+-- Name: stripe_refunds fk_rails_7b3495b678; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_refunds
+    ADD CONSTRAINT fk_rails_7b3495b678 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_details fk_rails_7c046c89f6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_7c046c89f6 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: stripe_payments fk_rails_7d60b0916f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payments
+    ADD CONSTRAINT fk_rails_7d60b0916f FOREIGN KEY (order_id) REFERENCES public.orders(id);
 
 
 --
@@ -2959,6 +3267,14 @@ ALTER TABLE ONLY public.quotes
 
 ALTER TABLE ONLY public.quote_items
     ADD CONSTRAINT fk_rails_97c8b4422c FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
+-- Name: stripe_payouts fk_rails_981e366b28; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payouts
+    ADD CONSTRAINT fk_rails_981e366b28 FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
 
 
 --
@@ -3042,6 +3358,14 @@ ALTER TABLE ONLY public.m_process_types
 
 
 --
+-- Name: stripe_refunds fk_rails_9e3b8e9a53; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_refunds
+    ADD CONSTRAINT fk_rails_9e3b8e9a53 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: vendor_capabilities fk_rails_9f0bc3a1c3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3119,6 +3443,14 @@ ALTER TABLE ONLY public.m_glosses
 
 ALTER TABLE ONLY public.quote_items
     ADD CONSTRAINT fk_rails_b48260cfd5 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
+
+
+--
+-- Name: stripe_refunds fk_rails_b61ac62e9e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_refunds
+    ADD CONSTRAINT fk_rails_b61ac62e9e FOREIGN KEY (payment_intent_id) REFERENCES public.stripe_payments(payment_intent_id) ON DELETE CASCADE;
 
 
 --
@@ -3210,6 +3542,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: stripe_payouts fk_rails_dc468b0d39; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payouts
+    ADD CONSTRAINT fk_rails_dc468b0d39 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quote_requests fk_rails_e2f2c314b6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3247,6 +3587,14 @@ ALTER TABLE ONLY public.quote_requests
 
 ALTER TABLE ONLY public.m_authorities
     ADD CONSTRAINT fk_rails_e964d916b9 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: stripe_payouts fk_rails_ec98cdcaa7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stripe_payouts
+    ADD CONSTRAINT fk_rails_ec98cdcaa7 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3304,6 +3652,12 @@ ALTER TABLE ONLY public.m_categories
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250513061725'),
+('20250513061417'),
+('20250513060950'),
+('20250513060650'),
+('20250513060220'),
+('20250513055846'),
 ('20250513045831'),
 ('20250513044308'),
 ('20250513041112'),
