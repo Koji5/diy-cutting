@@ -140,6 +140,108 @@ CREATE TABLE public.m_cities (
 
 
 --
+-- Name: m_corner_processes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_corner_processes (
+    code character varying(10) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    allow_corner_proc_json text[] DEFAULT '{}'::text[] NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_edge_processes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_edge_processes (
+    code character varying(10) NOT NULL,
+    name_ja character varying(20) NOT NULL,
+    name_en character varying(10) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_glosses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_glosses (
+    code character varying(6) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    gloss_pct smallint NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_gloss_pct CHECK (((gloss_pct >= 0) AND (gloss_pct <= 100)))
+);
+
+
+--
+-- Name: m_grain_finishes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_grain_finishes (
+    code character varying(6) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_hole_diameters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_hole_diameters (
+    code character varying(10) NOT NULL,
+    hole_mm numeric(8,2) NOT NULL,
+    name_ja character varying(20) NOT NULL,
+    name_en character varying(6) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: m_materials; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -152,6 +254,67 @@ CREATE TABLE public.m_materials (
     description_en character varying(80),
     jis_iso character varying(12),
     density_kg_per_m3 numeric(8,2) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_paint_colors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_paint_colors (
+    code character varying(6) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_paint_surfaces; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_paint_surfaces (
+    code character varying(6) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_paint_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_paint_types (
+    code character varying(10) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    allow_paint_json text[] DEFAULT '{}'::text[] NOT NULL,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_flag boolean DEFAULT false NOT NULL,
@@ -194,6 +357,29 @@ CREATE TABLE public.m_process_types (
     description_ja character varying(80),
     description_en character varying(80),
     jis_iso character varying(12),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: m_shapes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_shapes (
+    code character varying(10) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    allow_shape_json text[] DEFAULT '{}'::text[] NOT NULL,
+    allow_corner_json text[] DEFAULT '{}'::text[] NOT NULL,
+    allow_edge_json text[] DEFAULT '{}'::text[] NOT NULL,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_flag boolean DEFAULT false NOT NULL,
@@ -280,6 +466,241 @@ CREATE SEQUENCE public.member_shipping_addresses_id_seq
 --
 
 ALTER SEQUENCE public.member_shipping_addresses_id_seq OWNED BY public.member_shipping_addresses.id;
+
+
+--
+-- Name: orders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.orders (
+    id bigint NOT NULL,
+    quote_id bigint NOT NULL,
+    quote_request_id bigint,
+    user_id bigint NOT NULL,
+    vendor_id bigint NOT NULL,
+    affiliate_id bigint,
+    status smallint DEFAULT 0 NOT NULL,
+    total_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    shipping_address_id bigint NOT NULL,
+    shipping_method smallint DEFAULT 0 NOT NULL,
+    shipping_size_class smallint,
+    paid_at timestamp(6) without time zone,
+    shipped_at timestamp(6) without time zone,
+    delivered_at timestamp(6) without time zone,
+    shipping_tracking_no character varying(50),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: orders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.orders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: orders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
+
+
+--
+-- Name: quote_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quote_items (
+    id bigint NOT NULL,
+    quote_id bigint NOT NULL,
+    line_no smallint NOT NULL,
+    material_category_code character varying(10) NOT NULL,
+    material_code character varying(16) NOT NULL,
+    shape_code character varying(10) NOT NULL,
+    paint_type_code character varying(10),
+    thickness_mm numeric(8,2) NOT NULL,
+    width1_mm numeric(8,2) NOT NULL,
+    width2_mm numeric(8,2),
+    length_mm numeric(8,2) NOT NULL,
+    shape_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    corner_proc_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    hole_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    sqhole_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    edge_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    paint_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    quantity integer NOT NULL,
+    shipping_size_class smallint,
+    note text,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_positive_dims CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND (length_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (quantity > 0)))
+);
+
+
+--
+-- Name: quote_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.quote_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quote_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.quote_items_id_seq OWNED BY public.quote_items.id;
+
+
+--
+-- Name: quote_request_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quote_request_items (
+    id bigint NOT NULL,
+    quote_request_id bigint NOT NULL,
+    quote_item_id bigint NOT NULL,
+    unit_price numeric(18,4) DEFAULT 0.0 NOT NULL,
+    amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    memo text,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_amount_non_negative CHECK ((amount >= (0)::numeric))
+);
+
+
+--
+-- Name: quote_request_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.quote_request_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quote_request_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.quote_request_items_id_seq OWNED BY public.quote_request_items.id;
+
+
+--
+-- Name: quote_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quote_requests (
+    id bigint NOT NULL,
+    quote_id bigint NOT NULL,
+    vendor_id bigint NOT NULL,
+    status smallint DEFAULT 0 NOT NULL,
+    items_subtotal numeric(18,4) DEFAULT 0.0 NOT NULL,
+    shipping_fee numeric(18,4) DEFAULT 0.0 NOT NULL,
+    tax_rate_pct numeric(4,2) DEFAULT 10.0 NOT NULL,
+    tax_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    total_estimate numeric(18,4) DEFAULT 0.0 NOT NULL,
+    answered_at timestamp(6) without time zone,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: quote_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.quote_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quote_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.quote_requests_id_seq OWNED BY public.quote_requests.id;
+
+
+--
+-- Name: quotes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quotes (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status smallint DEFAULT 0 NOT NULL,
+    shipping_address_id bigint NOT NULL,
+    ship_prefecture_code character varying(2) DEFAULT ''::character varying NOT NULL,
+    ship_city_code character varying(5),
+    global_requirements text,
+    deadline date,
+    remarks text,
+    accepted_request_id bigint,
+    accepted_at timestamp(6) without time zone,
+    total_estimate numeric(18,4) DEFAULT 0.0 NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: quotes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.quotes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quotes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.quotes_id_seq OWNED BY public.quotes.id;
 
 
 --
@@ -486,6 +907,41 @@ ALTER TABLE ONLY public.member_shipping_addresses ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: orders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.orders_id_seq'::regclass);
+
+
+--
+-- Name: quote_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items ALTER COLUMN id SET DEFAULT nextval('public.quote_items_id_seq'::regclass);
+
+
+--
+-- Name: quote_request_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items ALTER COLUMN id SET DEFAULT nextval('public.quote_request_items_id_seq'::regclass);
+
+
+--
+-- Name: quote_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests ALTER COLUMN id SET DEFAULT nextval('public.quote_requests_id_seq'::regclass);
+
+
+--
+-- Name: quotes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes ALTER COLUMN id SET DEFAULT nextval('public.quotes_id_seq'::regclass);
+
+
+--
 -- Name: user_authorities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -524,6 +980,54 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: m_categories m_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_categories
+    ADD CONSTRAINT m_categories_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_corner_processes m_corner_processes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_corner_processes
+    ADD CONSTRAINT m_corner_processes_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_edge_processes m_edge_processes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_edge_processes
+    ADD CONSTRAINT m_edge_processes_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_glosses m_glosses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_glosses
+    ADD CONSTRAINT m_glosses_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_grain_finishes m_grain_finishes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_grain_finishes
+    ADD CONSTRAINT m_grain_finishes_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_hole_diameters m_hole_diameters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_diameters
+    ADD CONSTRAINT m_hole_diameters_pkey PRIMARY KEY (code);
+
+
+--
 -- Name: m_materials m_materials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -532,11 +1036,43 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
+-- Name: m_paint_colors m_paint_colors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_colors
+    ADD CONSTRAINT m_paint_colors_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_paint_surfaces m_paint_surfaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_surfaces
+    ADD CONSTRAINT m_paint_surfaces_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_paint_types m_paint_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_types
+    ADD CONSTRAINT m_paint_types_pkey PRIMARY KEY (code);
+
+
+--
 -- Name: m_process_types m_process_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_process_types
     ADD CONSTRAINT m_process_types_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_shapes m_shapes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shapes
+    ADD CONSTRAINT m_shapes_pkey PRIMARY KEY (code);
 
 
 --
@@ -553,6 +1089,46 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT member_shipping_addresses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quote_items quote_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT quote_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quote_request_items quote_request_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT quote_request_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quote_requests quote_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT quote_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quotes quotes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT quotes_pkey PRIMARY KEY (id);
 
 
 --
@@ -787,6 +1363,125 @@ CREATE INDEX index_m_cities_on_updated_by_id ON public.m_cities USING btree (upd
 
 
 --
+-- Name: index_m_corner_processes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_corner_processes_on_created_by_id ON public.m_corner_processes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_corner_processes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_corner_processes_on_deleted_by_id ON public.m_corner_processes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_corner_processes_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_corner_processes_on_name_en ON public.m_corner_processes USING btree (name_en);
+
+
+--
+-- Name: index_m_corner_processes_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_corner_processes_on_name_ja ON public.m_corner_processes USING btree (name_ja);
+
+
+--
+-- Name: index_m_corner_processes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_corner_processes_on_updated_by_id ON public.m_corner_processes USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_edge_processes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_edge_processes_on_created_by_id ON public.m_edge_processes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_edge_processes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_edge_processes_on_deleted_by_id ON public.m_edge_processes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_edge_processes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_edge_processes_on_updated_by_id ON public.m_edge_processes USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_glosses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_glosses_on_created_by_id ON public.m_glosses USING btree (created_by_id);
+
+
+--
+-- Name: index_m_glosses_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_glosses_on_deleted_by_id ON public.m_glosses USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_glosses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_glosses_on_updated_by_id ON public.m_glosses USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_grain_finishes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_grain_finishes_on_created_by_id ON public.m_grain_finishes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_grain_finishes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_grain_finishes_on_deleted_by_id ON public.m_grain_finishes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_grain_finishes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_grain_finishes_on_updated_by_id ON public.m_grain_finishes USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_hole_diameters_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_hole_diameters_on_created_by_id ON public.m_hole_diameters USING btree (created_by_id);
+
+
+--
+-- Name: index_m_hole_diameters_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_hole_diameters_on_deleted_by_id ON public.m_hole_diameters USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_hole_diameters_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_hole_diameters_on_updated_by_id ON public.m_hole_diameters USING btree (updated_by_id);
+
+
+--
 -- Name: index_m_materials_on_category_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -826,6 +1521,111 @@ CREATE UNIQUE INDEX index_m_materials_on_name_ja ON public.m_materials USING btr
 --
 
 CREATE INDEX index_m_materials_on_updated_by_id ON public.m_materials USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_paint_colors_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_colors_on_created_by_id ON public.m_paint_colors USING btree (created_by_id);
+
+
+--
+-- Name: index_m_paint_colors_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_colors_on_deleted_by_id ON public.m_paint_colors USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_paint_colors_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_colors_on_name_en ON public.m_paint_colors USING btree (name_en);
+
+
+--
+-- Name: index_m_paint_colors_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_colors_on_name_ja ON public.m_paint_colors USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_colors_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_colors_on_updated_by_id ON public.m_paint_colors USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_paint_surfaces_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_surfaces_on_created_by_id ON public.m_paint_surfaces USING btree (created_by_id);
+
+
+--
+-- Name: index_m_paint_surfaces_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_surfaces_on_deleted_by_id ON public.m_paint_surfaces USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_paint_surfaces_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_surfaces_on_name_en ON public.m_paint_surfaces USING btree (name_en);
+
+
+--
+-- Name: index_m_paint_surfaces_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_surfaces_on_name_ja ON public.m_paint_surfaces USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_surfaces_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_surfaces_on_updated_by_id ON public.m_paint_surfaces USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_paint_types_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_types_on_created_by_id ON public.m_paint_types USING btree (created_by_id);
+
+
+--
+-- Name: index_m_paint_types_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_types_on_deleted_by_id ON public.m_paint_types USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_paint_types_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_types_on_name_en ON public.m_paint_types USING btree (name_en);
+
+
+--
+-- Name: index_m_paint_types_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_types_on_name_ja ON public.m_paint_types USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_types_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_types_on_updated_by_id ON public.m_paint_types USING btree (updated_by_id);
 
 
 --
@@ -906,6 +1706,41 @@ CREATE INDEX index_m_process_types_on_updated_by_id ON public.m_process_types US
 
 
 --
+-- Name: index_m_shapes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shapes_on_created_by_id ON public.m_shapes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_shapes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shapes_on_deleted_by_id ON public.m_shapes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_shapes_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_shapes_on_name_en ON public.m_shapes USING btree (name_en);
+
+
+--
+-- Name: index_m_shapes_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_shapes_on_name_ja ON public.m_shapes USING btree (name_ja);
+
+
+--
+-- Name: index_m_shapes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shapes_on_updated_by_id ON public.m_shapes USING btree (updated_by_id);
+
+
+--
 -- Name: index_member_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -966,6 +1801,265 @@ CREATE INDEX index_member_shipping_addresses_on_member_id ON public.member_shipp
 --
 
 CREATE INDEX index_member_shipping_addresses_on_updated_by_id ON public.member_shipping_addresses USING btree (updated_by_id);
+
+
+--
+-- Name: index_orders_on_affiliate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_affiliate_id ON public.orders USING btree (affiliate_id);
+
+
+--
+-- Name: index_orders_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_created_by_id ON public.orders USING btree (created_by_id);
+
+
+--
+-- Name: index_orders_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_deleted_by_id ON public.orders USING btree (deleted_by_id);
+
+
+--
+-- Name: index_orders_on_quote_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_quote_id ON public.orders USING btree (quote_id);
+
+
+--
+-- Name: index_orders_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_shipping_address_id ON public.orders USING btree (shipping_address_id);
+
+
+--
+-- Name: index_orders_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_updated_by_id ON public.orders USING btree (updated_by_id);
+
+
+--
+-- Name: index_orders_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
+
+
+--
+-- Name: index_orders_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_vendor_id ON public.orders USING btree (vendor_id);
+
+
+--
+-- Name: index_quote_items_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_corner_proc_json ON public.quote_items USING gin (corner_proc_json);
+
+
+--
+-- Name: index_quote_items_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_created_by_id ON public.quote_items USING btree (created_by_id);
+
+
+--
+-- Name: index_quote_items_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_deleted_by_id ON public.quote_items USING btree (deleted_by_id);
+
+
+--
+-- Name: index_quote_items_on_hole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_hole_json ON public.quote_items USING gin (hole_json);
+
+
+--
+-- Name: index_quote_items_on_material_category_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_material_category_code ON public.quote_items USING btree (material_category_code);
+
+
+--
+-- Name: index_quote_items_on_material_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_material_code ON public.quote_items USING btree (material_code);
+
+
+--
+-- Name: index_quote_items_on_paint_type_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_paint_type_code ON public.quote_items USING btree (paint_type_code);
+
+
+--
+-- Name: index_quote_items_on_quote_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_quote_id ON public.quote_items USING btree (quote_id);
+
+
+--
+-- Name: index_quote_items_on_quote_id_and_line_no; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_quote_items_on_quote_id_and_line_no ON public.quote_items USING btree (quote_id, line_no);
+
+
+--
+-- Name: index_quote_items_on_shape_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_shape_code ON public.quote_items USING btree (shape_code);
+
+
+--
+-- Name: index_quote_items_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_sqhole_json ON public.quote_items USING gin (sqhole_json);
+
+
+--
+-- Name: index_quote_items_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_items_on_updated_by_id ON public.quote_items USING btree (updated_by_id);
+
+
+--
+-- Name: index_quote_request_items_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_items_on_created_by_id ON public.quote_request_items USING btree (created_by_id);
+
+
+--
+-- Name: index_quote_request_items_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_items_on_deleted_by_id ON public.quote_request_items USING btree (deleted_by_id);
+
+
+--
+-- Name: index_quote_request_items_on_quote_item_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_items_on_quote_item_id ON public.quote_request_items USING btree (quote_item_id);
+
+
+--
+-- Name: index_quote_request_items_on_quote_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_items_on_quote_request_id ON public.quote_request_items USING btree (quote_request_id);
+
+
+--
+-- Name: index_quote_request_items_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_items_on_updated_by_id ON public.quote_request_items USING btree (updated_by_id);
+
+
+--
+-- Name: index_quote_requests_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_requests_on_created_by_id ON public.quote_requests USING btree (created_by_id);
+
+
+--
+-- Name: index_quote_requests_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_requests_on_deleted_by_id ON public.quote_requests USING btree (deleted_by_id);
+
+
+--
+-- Name: index_quote_requests_on_quote_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_requests_on_quote_id ON public.quote_requests USING btree (quote_id);
+
+
+--
+-- Name: index_quote_requests_on_quote_id_and_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_quote_requests_on_quote_id_and_vendor_id ON public.quote_requests USING btree (quote_id, vendor_id);
+
+
+--
+-- Name: index_quote_requests_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_requests_on_updated_by_id ON public.quote_requests USING btree (updated_by_id);
+
+
+--
+-- Name: index_quote_requests_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_requests_on_vendor_id ON public.quote_requests USING btree (vendor_id);
+
+
+--
+-- Name: index_quotes_on_accepted_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_quotes_on_accepted_request_id ON public.quotes USING btree (accepted_request_id);
+
+
+--
+-- Name: index_quotes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quotes_on_created_by_id ON public.quotes USING btree (created_by_id);
+
+
+--
+-- Name: index_quotes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quotes_on_deleted_by_id ON public.quotes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_quotes_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quotes_on_shipping_address_id ON public.quotes USING btree (shipping_address_id);
+
+
+--
+-- Name: index_quotes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quotes_on_updated_by_id ON public.quotes USING btree (updated_by_id);
+
+
+--
+-- Name: index_quotes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quotes_on_user_id ON public.quotes USING btree (user_id);
 
 
 --
@@ -1158,6 +2252,28 @@ CREATE UNIQUE INDEX uq_member_default_address ON public.member_shipping_addresse
 
 
 --
+-- Name: uq_orders_quote_request; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_orders_quote_request ON public.orders USING btree (quote_request_id);
+
+
+--
+-- Name: uq_quote_request_item; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_quote_request_item ON public.quote_request_items USING btree (quote_request_id, quote_item_id);
+
+
+--
+-- Name: quotes fk_rails_02b555fb4d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_02b555fb4d FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: admin_details fk_rails_0434f99b3a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1166,11 +2282,67 @@ ALTER TABLE ONLY public.admin_details
 
 
 --
+-- Name: m_paint_surfaces fk_rails_04940c0fa3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_surfaces
+    ADD CONSTRAINT fk_rails_04940c0fa3 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_glosses fk_rails_051c4b4700; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_glosses
+    ADD CONSTRAINT fk_rails_051c4b4700 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_request_items fk_rails_07572f2c8b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT fk_rails_07572f2c8b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_details fk_rails_08851c9c2d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_08851c9c2d FOREIGN KEY (primary_shipping_id) REFERENCES public.member_shipping_addresses(id);
+
+
+--
+-- Name: quote_request_items fk_rails_0ae9bad297; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT fk_rails_0ae9bad297 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id);
+
+
+--
+-- Name: m_corner_processes fk_rails_0c41746295; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_corner_processes
+    ADD CONSTRAINT fk_rails_0c41746295 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_edge_processes fk_rails_0e64fecc00; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_edge_processes
+    ADD CONSTRAINT fk_rails_0e64fecc00 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_paint_colors fk_rails_0e6e729dcb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_colors
+    ADD CONSTRAINT fk_rails_0e6e729dcb FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1190,11 +2362,59 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: m_paint_types fk_rails_12bace13d4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_types
+    ADD CONSTRAINT fk_rails_12bace13d4 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quotes fk_rails_145bf3d23c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_145bf3d23c FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_requests fk_rails_1466442f91; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT fk_rails_1466442f91 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_request_items fk_rails_14e4cbe138; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT fk_rails_14e4cbe138 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: vendor_details fk_rails_15b36fb913; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vendor_details
     ADD CONSTRAINT fk_rails_15b36fb913 FOREIGN KEY (office_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: quote_requests fk_rails_180f8788a0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT fk_rails_180f8788a0 FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_requests fk_rails_1b8890d53b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT fk_rails_1b8890d53b FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
 
 
 --
@@ -1230,11 +2450,35 @@ ALTER TABLE ONLY public.vendor_materials
 
 
 --
+-- Name: orders fk_rails_267c198c1b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_267c198c1b FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: orders fk_rails_27f9662e04; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_27f9662e04 FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_2997f898f1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_rails_2997f898f1 FOREIGN KEY (member_id) REFERENCES public.member_details(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: m_paint_surfaces fk_rails_2c0d76fe0e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_surfaces
+    ADD CONSTRAINT fk_rails_2c0d76fe0e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1254,11 +2498,59 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: m_shapes fk_rails_37e866bfd4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shapes
+    ADD CONSTRAINT fk_rails_37e866bfd4 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quotes fk_rails_386f544620; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_386f544620 FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: orders fk_rails_38adeaa02b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_38adeaa02b FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_glosses fk_rails_3dcf832460; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_glosses
+    ADD CONSTRAINT fk_rails_3dcf832460 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: orders fk_rails_40865df908; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_40865df908 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id) ON DELETE SET NULL;
+
+
+--
 -- Name: m_cities fk_rails_42109644b2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_42109644b2 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
+-- Name: m_hole_diameters fk_rails_42c61c1cc6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_diameters
+    ADD CONSTRAINT fk_rails_42c61c1cc6 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1307,6 +2599,30 @@ ALTER TABLE ONLY public.admin_details
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_48223032c7 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_shapes fk_rails_4b6bbd888d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shapes
+    ADD CONSTRAINT fk_rails_4b6bbd888d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_shapes fk_rails_4cab80b183; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shapes
+    ADD CONSTRAINT fk_rails_4cab80b183 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quotes fk_rails_4d07b0b28d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_4d07b0b28d FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1374,6 +2690,30 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
+-- Name: m_edge_processes fk_rails_608bdc2fe1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_edge_processes
+    ADD CONSTRAINT fk_rails_608bdc2fe1 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_paint_surfaces fk_rails_6273a3930b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_surfaces
+    ADD CONSTRAINT fk_rails_6273a3930b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_edge_processes fk_rails_632e7fe66e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_edge_processes
+    ADD CONSTRAINT fk_rails_632e7fe66e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_63f1c23650; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1414,11 +2754,35 @@ ALTER TABLE ONLY public.vendor_materials
 
 
 --
+-- Name: quote_items fk_rails_65a17dc088; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_65a17dc088 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_66cc3b7a7e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_rails_66cc3b7a7e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_hole_diameters fk_rails_68c00434d4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_diameters
+    ADD CONSTRAINT fk_rails_68c00434d4 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_items fk_rails_68df8d50c8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_68df8d50c8 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1454,6 +2818,22 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: m_paint_types fk_rails_6d6d56ac9b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_types
+    ADD CONSTRAINT fk_rails_6d6d56ac9b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_grain_finishes fk_rails_70079f0d12; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_grain_finishes
+    ADD CONSTRAINT fk_rails_70079f0d12 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_details fk_rails_70a6bce611; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1467,6 +2847,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_711468941e FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
+
+
+--
+-- Name: quote_items fk_rails_737aee6ef8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_737aee6ef8 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1526,11 +2914,67 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: m_grain_finishes fk_rails_8bfc7696b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_grain_finishes
+    ADD CONSTRAINT fk_rails_8bfc7696b8 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_items fk_rails_8d4554da01; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_8d4554da01 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
+
+
+--
+-- Name: quote_request_items fk_rails_8fe04c2eb3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT fk_rails_8fe04c2eb3 FOREIGN KEY (quote_item_id) REFERENCES public.quote_items(id);
+
+
+--
 -- Name: vendor_details fk_rails_9550a269e6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vendor_details
     ADD CONSTRAINT fk_rails_9550a269e6 FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
+
+
+--
+-- Name: quotes fk_rails_97a1fb3b7f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_97a1fb3b7f FOREIGN KEY (accepted_request_id) REFERENCES public.quote_requests(id);
+
+
+--
+-- Name: quote_items fk_rails_97c8b4422c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_97c8b4422c FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
+-- Name: m_paint_colors fk_rails_98b42979dc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_colors
+    ADD CONSTRAINT fk_rails_98b42979dc FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_hole_diameters fk_rails_98dcfdc04c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_diameters
+    ADD CONSTRAINT fk_rails_98dcfdc04c FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1542,6 +2986,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: orders fk_rails_9a312b3a4c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_9a312b3a4c FOREIGN KEY (affiliate_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_process_types fk_rails_9a94eea366; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1550,11 +3002,27 @@ ALTER TABLE ONLY public.m_process_types
 
 
 --
+-- Name: orders fk_rails_9ac523da23; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_9ac523da23 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_process_types fk_rails_9ae1a206fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_process_types
     ADD CONSTRAINT fk_rails_9ae1a206fd FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quotes fk_rails_9b3fa1819d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quotes
+    ADD CONSTRAINT fk_rails_9b3fa1819d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1582,11 +3050,27 @@ ALTER TABLE ONLY public.vendor_capabilities
 
 
 --
+-- Name: m_paint_colors fk_rails_9f7ace30eb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_colors
+    ADD CONSTRAINT fk_rails_9f7ace30eb FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_materials fk_rails_9fd91eeecc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_materials
     ADD CONSTRAINT fk_rails_9fd91eeecc FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_items fk_rails_a05653c402; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_a05653c402 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
 
 
 --
@@ -1622,11 +3106,43 @@ ALTER TABLE ONLY public.m_cities
 
 
 --
+-- Name: m_glosses fk_rails_b2e63cb87f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_glosses
+    ADD CONSTRAINT fk_rails_b2e63cb87f FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_items fk_rails_b48260cfd5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_b48260cfd5 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
+
+
+--
 -- Name: affiliate_details fk_rails_b810b35d18; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_b810b35d18 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_request_items fk_rails_bdc5d283e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_items
+    ADD CONSTRAINT fk_rails_bdc5d283e6 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_grain_finishes fk_rails_bf35672699; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_grain_finishes
+    ADD CONSTRAINT fk_rails_bf35672699 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1643,6 +3159,14 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_c47d959888 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_corner_processes fk_rails_cbf0dca52b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_corner_processes
+    ADD CONSTRAINT fk_rails_cbf0dca52b FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1670,11 +3194,51 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: quote_items fk_rails_d9bcd636be; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_items
+    ADD CONSTRAINT fk_rails_d9bcd636be FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
+
+
+--
+-- Name: orders fk_rails_dc1006bb54; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_dc1006bb54 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_requests fk_rails_e2f2c314b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT fk_rails_e2f2c314b6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: vendor_details fk_rails_e57cb87d98; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vendor_details
     ADD CONSTRAINT fk_rails_e57cb87d98 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_paint_types fk_rails_e8d8c7b2a3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_types
+    ADD CONSTRAINT fk_rails_e8d8c7b2a3 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_requests fk_rails_e95a37007e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_requests
+    ADD CONSTRAINT fk_rails_e95a37007e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -1694,11 +3258,35 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: m_corner_processes fk_rails_f029d371ff; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_corner_processes
+    ADD CONSTRAINT fk_rails_f029d371ff FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_details fk_rails_f1af1cd707; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_f1af1cd707 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: orders fk_rails_f6acf748cd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_f6acf748cd FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
+-- Name: orders fk_rails_f868b47f6a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_f868b47f6a FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1716,6 +3304,13 @@ ALTER TABLE ONLY public.m_categories
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250513045831'),
+('20250513044308'),
+('20250513041112'),
+('20250513032840'),
+('20250513032709'),
+('20250513024933'),
+('20250513023924'),
 ('20250512085725'),
 ('20250512085335'),
 ('20250512084948'),

@@ -12,6 +12,11 @@ class MCategory < ApplicationRecord
            foreign_key: :category_code,
            inverse_of:  :category
 
+  has_many :quote_items,
+           class_name:  'QuoteItem',
+           foreign_key: :material_category_code,
+           inverse_of:  :category
+
   # --- Validations ---
   validates :code,    presence: true, length: { maximum: 10 }
   validates :name_ja, presence: true, length: { maximum: 20 }, uniqueness: true
