@@ -10,6 +10,23 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: tg_h_error_logs_compress(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.tg_h_error_logs_compress() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  -- NEW.stacktrace はコントローラ側で text として渡す想定
+  NEW.stacktrace_compressed := compress(NEW.stacktrace);
+  NEW.stack_head            := left(NEW.stacktrace, 1024); -- 先頭 1 KB
+  NEW.stacktrace            := NULL;                       -- 不要なら NULL
+  RETURN NEW;
+END
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -359,6 +376,1027 @@ CREATE SEQUENCE public.h_affiliate_clicks_id_seq
 --
 
 ALTER SEQUENCE public.h_affiliate_clicks_id_seq OWNED BY public.h_affiliate_clicks.id;
+
+
+--
+-- Name: h_article_views; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views (
+    id bigint NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+)
+PARTITION BY RANGE (viewed_at);
+
+
+--
+-- Name: h_article_views_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_article_views_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_article_views_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_article_views_id_seq OWNED BY public.h_article_views.id;
+
+
+--
+-- Name: h_article_views_202505; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202505 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202506; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202506 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202507; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202507 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202508; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202508 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202509; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202509 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202510; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202510 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202511; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202511 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202512; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202512 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202601; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202601 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202602; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202602 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202603; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202603 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_article_views_202604; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_article_views_202604 (
+    id bigint DEFAULT nextval('public.h_article_views_id_seq'::regclass) NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint,
+    ip_address inet,
+    viewed_at timestamp with time zone NOT NULL,
+    ua_hash character(32),
+    processed_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_audit_trails; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_audit_trails (
+    id bigint NOT NULL,
+    table_name character varying(60) NOT NULL,
+    pk_value text NOT NULL,
+    action character(1) NOT NULL,
+    changed_by bigint,
+    before_json jsonb,
+    after_json jsonb,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT h_audit_trails_action_check CHECK ((action = ANY (ARRAY['I'::bpchar, 'U'::bpchar, 'D'::bpchar])))
+)
+PARTITION BY RANGE (changed_at);
+
+
+--
+-- Name: h_audit_trails_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_audit_trails_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_audit_trails_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_audit_trails_id_seq OWNED BY public.h_audit_trails.id;
+
+
+--
+-- Name: h_audit_trails_202505; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_audit_trails_202505 (
+    id bigint DEFAULT nextval('public.h_audit_trails_id_seq'::regclass) NOT NULL,
+    table_name character varying(60) NOT NULL,
+    pk_value text NOT NULL,
+    action character(1) NOT NULL,
+    changed_by bigint,
+    before_json jsonb,
+    after_json jsonb,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT h_audit_trails_action_check CHECK ((action = ANY (ARRAY['I'::bpchar, 'U'::bpchar, 'D'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs (
+    id bigint NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+)
+PARTITION BY RANGE (occurred_at);
+
+
+--
+-- Name: h_error_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_error_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_error_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_error_logs_id_seq OWNED BY public.h_error_logs.id;
+
+
+--
+-- Name: h_error_logs_202505; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202505 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202506; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202506 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202507; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202507 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202508; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202508 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202509; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202509 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202510; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202510 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202511; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202511 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202512; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202512 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202601; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202601 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202602; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202602 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202603; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202603 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_error_logs_202604; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_error_logs_202604 (
+    id bigint DEFAULT nextval('public.h_error_logs_id_seq'::regclass) NOT NULL,
+    error_class character varying(120) NOT NULL,
+    message text NOT NULL,
+    stacktrace_compressed bytea NOT NULL,
+    stack_head text,
+    request_path character varying(255),
+    http_method character(6),
+    status_code smallint DEFAULT 500 NOT NULL,
+    params_json jsonb,
+    user_id bigint,
+    request_id character(36),
+    ip_address inet,
+    user_agent character varying(255),
+    server_name character varying(60),
+    environment character(10) NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT h_error_logs_environment_check CHECK ((environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])))
+);
+
+
+--
+-- Name: h_login_attempts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_login_attempts (
+    id bigint NOT NULL,
+    user_id bigint,
+    email_tried character varying(255) NOT NULL,
+    ip_address inet NOT NULL,
+    user_agent text NOT NULL,
+    result smallint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_login_attempts_result_check CHECK ((result = ANY (ARRAY[0, 1, 2])))
+)
+PARTITION BY RANGE (created_at);
+
+
+--
+-- Name: h_login_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_login_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_login_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_login_attempts_id_seq OWNED BY public.h_login_attempts.id;
+
+
+--
+-- Name: h_login_attempts_202505; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_login_attempts_202505 (
+    id bigint DEFAULT nextval('public.h_login_attempts_id_seq'::regclass) NOT NULL,
+    user_id bigint,
+    email_tried character varying(255) NOT NULL,
+    ip_address inet NOT NULL,
+    user_agent text NOT NULL,
+    result smallint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_login_attempts_result_check CHECK ((result = ANY (ARRAY[0, 1, 2])))
+);
+
+
+--
+-- Name: h_payment_webhooks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks (
+    id bigint NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+)
+PARTITION BY RANGE (created_at);
+
+
+--
+-- Name: h_payment_webhooks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_payment_webhooks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_payment_webhooks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_payment_webhooks_id_seq OWNED BY public.h_payment_webhooks.id;
+
+
+--
+-- Name: h_payment_webhooks_202505; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202505 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202506; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202506 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202507; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202507 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202508; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202508 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202509; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202509 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202510; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202510 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202511; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202511 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202512; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202512 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202601; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202601 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202602; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202602 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202603; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202603 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payment_webhooks_202604; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payment_webhooks_202604 (
+    id bigint DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass) NOT NULL,
+    gateway character varying(30) NOT NULL,
+    event_id character varying(255) NOT NULL,
+    event_type character varying(50) NOT NULL,
+    http_status smallint NOT NULL,
+    signature character varying(255),
+    payload_json jsonb NOT NULL,
+    order_id bigint,
+    payout_id bigint,
+    processed_at timestamp with time zone,
+    processing_result smallint,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT h_payment_webhooks_processing_result_check CHECK (((processing_result IS NULL) OR (processing_result = ANY (ARRAY[0, 1, 2]))))
+);
+
+
+--
+-- Name: h_payout_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_payout_events (
+    id bigint NOT NULL,
+    payout_id bigint NOT NULL,
+    event character varying(30) NOT NULL,
+    meta_json jsonb,
+    occurred_at timestamp(6) without time zone NOT NULL,
+    logged_by_type character varying(20),
+    logged_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_hpe_logged_by_type CHECK ((((logged_by_type)::text = ANY ((ARRAY['System'::character varying, 'User'::character varying, 'Admin'::character varying])::text[])) OR (logged_by_type IS NULL)))
+);
+
+
+--
+-- Name: h_payout_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_payout_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_payout_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_payout_events_id_seq OWNED BY public.h_payout_events.id;
 
 
 --
@@ -1465,6 +2503,272 @@ CREATE TABLE public.vendor_service_areas (
 
 
 --
+-- Name: h_article_views_202505; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202505 FOR VALUES FROM ('2025-05-01 00:00:00+00') TO ('2025-06-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202506; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202506 FOR VALUES FROM ('2025-06-01 00:00:00+00') TO ('2025-07-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202507; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202507 FOR VALUES FROM ('2025-07-01 00:00:00+00') TO ('2025-08-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202508; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202508 FOR VALUES FROM ('2025-08-01 00:00:00+00') TO ('2025-09-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202509; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202509 FOR VALUES FROM ('2025-09-01 00:00:00+00') TO ('2025-10-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202510; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202510 FOR VALUES FROM ('2025-10-01 00:00:00+00') TO ('2025-11-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202511; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202511 FOR VALUES FROM ('2025-11-01 00:00:00+00') TO ('2025-12-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202512; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202512 FOR VALUES FROM ('2025-12-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202601; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202601 FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2026-02-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202602; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202602 FOR VALUES FROM ('2026-02-01 00:00:00+00') TO ('2026-03-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202603; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202603 FOR VALUES FROM ('2026-03-01 00:00:00+00') TO ('2026-04-01 00:00:00+00');
+
+
+--
+-- Name: h_article_views_202604; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ATTACH PARTITION public.h_article_views_202604 FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-05-01 00:00:00+00');
+
+
+--
+-- Name: h_audit_trails_202505; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_audit_trails ATTACH PARTITION public.h_audit_trails_202505 FOR VALUES FROM ('2025-05-01 00:00:00+00') TO ('2025-06-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202505; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202505 FOR VALUES FROM ('2025-05-01 00:00:00+00') TO ('2025-06-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202506; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202506 FOR VALUES FROM ('2025-06-01 00:00:00+00') TO ('2025-07-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202507; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202507 FOR VALUES FROM ('2025-07-01 00:00:00+00') TO ('2025-08-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202508; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202508 FOR VALUES FROM ('2025-08-01 00:00:00+00') TO ('2025-09-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202509; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202509 FOR VALUES FROM ('2025-09-01 00:00:00+00') TO ('2025-10-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202510; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202510 FOR VALUES FROM ('2025-10-01 00:00:00+00') TO ('2025-11-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202511; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202511 FOR VALUES FROM ('2025-11-01 00:00:00+00') TO ('2025-12-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202512; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202512 FOR VALUES FROM ('2025-12-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202601; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202601 FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2026-02-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202602; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202602 FOR VALUES FROM ('2026-02-01 00:00:00+00') TO ('2026-03-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202603; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202603 FOR VALUES FROM ('2026-03-01 00:00:00+00') TO ('2026-04-01 00:00:00+00');
+
+
+--
+-- Name: h_error_logs_202604; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ATTACH PARTITION public.h_error_logs_202604 FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-05-01 00:00:00+00');
+
+
+--
+-- Name: h_login_attempts_202505; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_login_attempts ATTACH PARTITION public.h_login_attempts_202505 FOR VALUES FROM ('2025-05-01 00:00:00+00') TO ('2025-06-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202505; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202505 FOR VALUES FROM ('2025-05-01 00:00:00+00') TO ('2025-06-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202506; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202506 FOR VALUES FROM ('2025-06-01 00:00:00+00') TO ('2025-07-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202507; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202507 FOR VALUES FROM ('2025-07-01 00:00:00+00') TO ('2025-08-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202508; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202508 FOR VALUES FROM ('2025-08-01 00:00:00+00') TO ('2025-09-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202509; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202509 FOR VALUES FROM ('2025-09-01 00:00:00+00') TO ('2025-10-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202510; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202510 FOR VALUES FROM ('2025-10-01 00:00:00+00') TO ('2025-11-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202511; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202511 FOR VALUES FROM ('2025-11-01 00:00:00+00') TO ('2025-12-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202512; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202512 FOR VALUES FROM ('2025-12-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202601; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202601 FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2026-02-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202602; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202602 FOR VALUES FROM ('2026-02-01 00:00:00+00') TO ('2026-03-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202603; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202603 FOR VALUES FROM ('2026-03-01 00:00:00+00') TO ('2026-04-01 00:00:00+00');
+
+
+--
+-- Name: h_payment_webhooks_202604; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_webhooks_202604 FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-05-01 00:00:00+00');
+
+
+--
 -- Name: affiliate_commissions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1511,6 +2815,48 @@ ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.art
 --
 
 ALTER TABLE ONLY public.h_affiliate_clicks ALTER COLUMN id SET DEFAULT nextval('public.h_affiliate_clicks_id_seq'::regclass);
+
+
+--
+-- Name: h_article_views id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_article_views ALTER COLUMN id SET DEFAULT nextval('public.h_article_views_id_seq'::regclass);
+
+
+--
+-- Name: h_audit_trails id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_audit_trails ALTER COLUMN id SET DEFAULT nextval('public.h_audit_trails_id_seq'::regclass);
+
+
+--
+-- Name: h_error_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_error_logs ALTER COLUMN id SET DEFAULT nextval('public.h_error_logs_id_seq'::regclass);
+
+
+--
+-- Name: h_login_attempts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_login_attempts ALTER COLUMN id SET DEFAULT nextval('public.h_login_attempts_id_seq'::regclass);
+
+
+--
+-- Name: h_payment_webhooks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payment_webhooks ALTER COLUMN id SET DEFAULT nextval('public.h_payment_webhooks_id_seq'::regclass);
+
+
+--
+-- Name: h_payout_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payout_events ALTER COLUMN id SET DEFAULT nextval('public.h_payout_events_id_seq'::regclass);
 
 
 --
@@ -1682,6 +3028,14 @@ ALTER TABLE ONLY public.articles
 
 ALTER TABLE ONLY public.h_affiliate_clicks
     ADD CONSTRAINT h_affiliate_clicks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: h_payout_events h_payout_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payout_events
+    ADD CONSTRAINT h_payout_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -1957,10 +3311,1221 @@ ALTER TABLE ONLY public.vendor_service_areas
 
 
 --
+-- Name: index_h_article_views_on_article_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_article_views_on_article_id ON ONLY public.h_article_views USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202505_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202505_article_id_idx ON public.h_article_views_202505 USING btree (article_id);
+
+
+--
+-- Name: idx_article_views_unprocessed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_article_views_unprocessed ON ONLY public.h_article_views USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202505_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202505_article_id_idx1 ON public.h_article_views_202505 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: index_h_article_views_on_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_article_views_on_id ON ONLY public.h_article_views USING btree (id);
+
+
+--
+-- Name: h_article_views_202505_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202505_id_idx ON public.h_article_views_202505 USING btree (id);
+
+
+--
+-- Name: h_article_views_202505_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202505_unproc_idx ON public.h_article_views_202505 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: index_h_article_views_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_article_views_on_user_id ON ONLY public.h_article_views USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202505_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202505_user_id_idx ON public.h_article_views_202505 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202506_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202506_article_id_idx ON public.h_article_views_202506 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202506_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202506_article_id_idx1 ON public.h_article_views_202506 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202506_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202506_id_idx ON public.h_article_views_202506 USING btree (id);
+
+
+--
+-- Name: h_article_views_202506_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202506_unproc_idx ON public.h_article_views_202506 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202506_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202506_user_id_idx ON public.h_article_views_202506 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202507_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202507_article_id_idx ON public.h_article_views_202507 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202507_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202507_article_id_idx1 ON public.h_article_views_202507 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202507_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202507_id_idx ON public.h_article_views_202507 USING btree (id);
+
+
+--
+-- Name: h_article_views_202507_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202507_unproc_idx ON public.h_article_views_202507 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202507_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202507_user_id_idx ON public.h_article_views_202507 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202508_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202508_article_id_idx ON public.h_article_views_202508 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202508_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202508_article_id_idx1 ON public.h_article_views_202508 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202508_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202508_id_idx ON public.h_article_views_202508 USING btree (id);
+
+
+--
+-- Name: h_article_views_202508_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202508_unproc_idx ON public.h_article_views_202508 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202508_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202508_user_id_idx ON public.h_article_views_202508 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202509_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202509_article_id_idx ON public.h_article_views_202509 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202509_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202509_article_id_idx1 ON public.h_article_views_202509 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202509_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202509_id_idx ON public.h_article_views_202509 USING btree (id);
+
+
+--
+-- Name: h_article_views_202509_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202509_unproc_idx ON public.h_article_views_202509 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202509_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202509_user_id_idx ON public.h_article_views_202509 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202510_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202510_article_id_idx ON public.h_article_views_202510 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202510_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202510_article_id_idx1 ON public.h_article_views_202510 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202510_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202510_id_idx ON public.h_article_views_202510 USING btree (id);
+
+
+--
+-- Name: h_article_views_202510_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202510_unproc_idx ON public.h_article_views_202510 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202510_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202510_user_id_idx ON public.h_article_views_202510 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202511_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202511_article_id_idx ON public.h_article_views_202511 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202511_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202511_article_id_idx1 ON public.h_article_views_202511 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202511_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202511_id_idx ON public.h_article_views_202511 USING btree (id);
+
+
+--
+-- Name: h_article_views_202511_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202511_unproc_idx ON public.h_article_views_202511 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202511_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202511_user_id_idx ON public.h_article_views_202511 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202512_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202512_article_id_idx ON public.h_article_views_202512 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202512_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202512_article_id_idx1 ON public.h_article_views_202512 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202512_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202512_id_idx ON public.h_article_views_202512 USING btree (id);
+
+
+--
+-- Name: h_article_views_202512_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202512_unproc_idx ON public.h_article_views_202512 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202512_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202512_user_id_idx ON public.h_article_views_202512 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202601_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202601_article_id_idx ON public.h_article_views_202601 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202601_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202601_article_id_idx1 ON public.h_article_views_202601 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202601_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202601_id_idx ON public.h_article_views_202601 USING btree (id);
+
+
+--
+-- Name: h_article_views_202601_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202601_unproc_idx ON public.h_article_views_202601 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202601_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202601_user_id_idx ON public.h_article_views_202601 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202602_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202602_article_id_idx ON public.h_article_views_202602 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202602_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202602_article_id_idx1 ON public.h_article_views_202602 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202602_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202602_id_idx ON public.h_article_views_202602 USING btree (id);
+
+
+--
+-- Name: h_article_views_202602_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202602_unproc_idx ON public.h_article_views_202602 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202602_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202602_user_id_idx ON public.h_article_views_202602 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202603_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202603_article_id_idx ON public.h_article_views_202603 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202603_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202603_article_id_idx1 ON public.h_article_views_202603 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202603_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202603_id_idx ON public.h_article_views_202603 USING btree (id);
+
+
+--
+-- Name: h_article_views_202603_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202603_unproc_idx ON public.h_article_views_202603 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202603_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202603_user_id_idx ON public.h_article_views_202603 USING btree (user_id);
+
+
+--
+-- Name: h_article_views_202604_article_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202604_article_id_idx ON public.h_article_views_202604 USING btree (article_id);
+
+
+--
+-- Name: h_article_views_202604_article_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202604_article_id_idx1 ON public.h_article_views_202604 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202604_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202604_id_idx ON public.h_article_views_202604 USING btree (id);
+
+
+--
+-- Name: h_article_views_202604_unproc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202604_unproc_idx ON public.h_article_views_202604 USING btree (article_id) WHERE (processed_flag = false);
+
+
+--
+-- Name: h_article_views_202604_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_article_views_202604_user_id_idx ON public.h_article_views_202604 USING btree (user_id);
+
+
+--
+-- Name: index_h_audit_trails_on_changed_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_audit_trails_on_changed_by ON ONLY public.h_audit_trails USING btree (changed_by);
+
+
+--
+-- Name: h_audit_trails_202505_changed_by_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_changed_by_idx ON public.h_audit_trails_202505 USING btree (changed_by);
+
+
+--
+-- Name: h_audit_trails_202505_changed_by_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_changed_by_idx1 ON public.h_audit_trails_202505 USING btree (changed_by);
+
+
+--
+-- Name: index_h_audit_trails_on_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_audit_trails_on_id ON ONLY public.h_audit_trails USING btree (id);
+
+
+--
+-- Name: h_audit_trails_202505_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_id_idx ON public.h_audit_trails_202505 USING btree (id);
+
+
+--
+-- Name: h_audit_trails_202505_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_id_idx1 ON public.h_audit_trails_202505 USING btree (id);
+
+
+--
+-- Name: index_h_audit_trails_on_table_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_audit_trails_on_table_name ON ONLY public.h_audit_trails USING btree (table_name);
+
+
+--
+-- Name: h_audit_trails_202505_table_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_table_name_idx ON public.h_audit_trails_202505 USING btree (table_name);
+
+
+--
+-- Name: h_audit_trails_202505_table_name_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_audit_trails_202505_table_name_idx1 ON public.h_audit_trails_202505 USING btree (table_name);
+
+
+--
+-- Name: index_h_error_logs_on_error_class; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_error_logs_on_error_class ON ONLY public.h_error_logs USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202505_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202505_error_class_idx ON public.h_error_logs_202505 USING btree (error_class);
+
+
+--
+-- Name: index_h_error_logs_on_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_error_logs_on_id ON ONLY public.h_error_logs USING btree (id);
+
+
+--
+-- Name: h_error_logs_202505_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202505_id_idx ON public.h_error_logs_202505 USING btree (id);
+
+
+--
+-- Name: index_h_error_logs_on_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_error_logs_on_request_id ON ONLY public.h_error_logs USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202505_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202505_request_id_idx ON public.h_error_logs_202505 USING btree (request_id);
+
+
+--
+-- Name: index_h_error_logs_on_request_path; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_error_logs_on_request_path ON ONLY public.h_error_logs USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202505_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202505_request_path_idx ON public.h_error_logs_202505 USING btree (request_path);
+
+
+--
+-- Name: index_h_error_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_error_logs_on_user_id ON ONLY public.h_error_logs USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202505_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202505_user_id_idx ON public.h_error_logs_202505 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202506_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202506_error_class_idx ON public.h_error_logs_202506 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202506_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202506_id_idx ON public.h_error_logs_202506 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202506_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202506_request_id_idx ON public.h_error_logs_202506 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202506_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202506_request_path_idx ON public.h_error_logs_202506 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202506_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202506_user_id_idx ON public.h_error_logs_202506 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202507_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202507_error_class_idx ON public.h_error_logs_202507 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202507_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202507_id_idx ON public.h_error_logs_202507 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202507_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202507_request_id_idx ON public.h_error_logs_202507 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202507_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202507_request_path_idx ON public.h_error_logs_202507 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202507_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202507_user_id_idx ON public.h_error_logs_202507 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202508_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202508_error_class_idx ON public.h_error_logs_202508 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202508_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202508_id_idx ON public.h_error_logs_202508 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202508_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202508_request_id_idx ON public.h_error_logs_202508 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202508_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202508_request_path_idx ON public.h_error_logs_202508 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202508_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202508_user_id_idx ON public.h_error_logs_202508 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202509_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202509_error_class_idx ON public.h_error_logs_202509 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202509_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202509_id_idx ON public.h_error_logs_202509 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202509_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202509_request_id_idx ON public.h_error_logs_202509 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202509_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202509_request_path_idx ON public.h_error_logs_202509 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202509_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202509_user_id_idx ON public.h_error_logs_202509 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202510_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202510_error_class_idx ON public.h_error_logs_202510 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202510_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202510_id_idx ON public.h_error_logs_202510 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202510_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202510_request_id_idx ON public.h_error_logs_202510 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202510_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202510_request_path_idx ON public.h_error_logs_202510 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202510_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202510_user_id_idx ON public.h_error_logs_202510 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202511_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202511_error_class_idx ON public.h_error_logs_202511 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202511_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202511_id_idx ON public.h_error_logs_202511 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202511_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202511_request_id_idx ON public.h_error_logs_202511 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202511_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202511_request_path_idx ON public.h_error_logs_202511 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202511_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202511_user_id_idx ON public.h_error_logs_202511 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202512_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202512_error_class_idx ON public.h_error_logs_202512 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202512_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202512_id_idx ON public.h_error_logs_202512 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202512_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202512_request_id_idx ON public.h_error_logs_202512 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202512_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202512_request_path_idx ON public.h_error_logs_202512 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202512_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202512_user_id_idx ON public.h_error_logs_202512 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202601_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202601_error_class_idx ON public.h_error_logs_202601 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202601_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202601_id_idx ON public.h_error_logs_202601 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202601_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202601_request_id_idx ON public.h_error_logs_202601 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202601_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202601_request_path_idx ON public.h_error_logs_202601 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202601_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202601_user_id_idx ON public.h_error_logs_202601 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202602_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202602_error_class_idx ON public.h_error_logs_202602 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202602_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202602_id_idx ON public.h_error_logs_202602 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202602_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202602_request_id_idx ON public.h_error_logs_202602 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202602_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202602_request_path_idx ON public.h_error_logs_202602 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202602_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202602_user_id_idx ON public.h_error_logs_202602 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202603_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202603_error_class_idx ON public.h_error_logs_202603 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202603_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202603_id_idx ON public.h_error_logs_202603 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202603_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202603_request_id_idx ON public.h_error_logs_202603 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202603_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202603_request_path_idx ON public.h_error_logs_202603 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202603_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202603_user_id_idx ON public.h_error_logs_202603 USING btree (user_id);
+
+
+--
+-- Name: h_error_logs_202604_error_class_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202604_error_class_idx ON public.h_error_logs_202604 USING btree (error_class);
+
+
+--
+-- Name: h_error_logs_202604_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202604_id_idx ON public.h_error_logs_202604 USING btree (id);
+
+
+--
+-- Name: h_error_logs_202604_request_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202604_request_id_idx ON public.h_error_logs_202604 USING btree (request_id);
+
+
+--
+-- Name: h_error_logs_202604_request_path_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202604_request_path_idx ON public.h_error_logs_202604 USING btree (request_path);
+
+
+--
+-- Name: h_error_logs_202604_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_error_logs_202604_user_id_idx ON public.h_error_logs_202604 USING btree (user_id);
+
+
+--
+-- Name: index_h_login_attempts_on_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_login_attempts_on_id ON ONLY public.h_login_attempts USING btree (id);
+
+
+--
+-- Name: h_login_attempts_202505_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_id_idx ON public.h_login_attempts_202505 USING btree (id);
+
+
+--
+-- Name: h_login_attempts_202505_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_id_idx1 ON public.h_login_attempts_202505 USING btree (id);
+
+
+--
+-- Name: index_h_login_attempts_on_ip_address; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_login_attempts_on_ip_address ON ONLY public.h_login_attempts USING btree (ip_address);
+
+
+--
+-- Name: h_login_attempts_202505_ip_address_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_ip_address_idx ON public.h_login_attempts_202505 USING btree (ip_address);
+
+
+--
+-- Name: h_login_attempts_202505_ip_address_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_ip_address_idx1 ON public.h_login_attempts_202505 USING btree (ip_address);
+
+
+--
+-- Name: index_h_login_attempts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_login_attempts_on_user_id ON ONLY public.h_login_attempts USING btree (user_id);
+
+
+--
+-- Name: h_login_attempts_202505_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_user_id_idx ON public.h_login_attempts_202505 USING btree (user_id);
+
+
+--
+-- Name: h_login_attempts_202505_user_id_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_login_attempts_202505_user_id_idx1 ON public.h_login_attempts_202505 USING btree (user_id);
+
+
+--
+-- Name: idx_hpwebhook_gateway_event; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hpwebhook_gateway_event ON ONLY public.h_payment_webhooks USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202505_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202505_gateway_event_id_idx ON public.h_payment_webhooks_202505 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202505_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202505_uq ON public.h_payment_webhooks_202505 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202506_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202506_gateway_event_id_idx ON public.h_payment_webhooks_202506 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202506_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202506_uq ON public.h_payment_webhooks_202506 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202507_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202507_gateway_event_id_idx ON public.h_payment_webhooks_202507 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202507_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202507_uq ON public.h_payment_webhooks_202507 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202508_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202508_gateway_event_id_idx ON public.h_payment_webhooks_202508 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202508_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202508_uq ON public.h_payment_webhooks_202508 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202509_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202509_gateway_event_id_idx ON public.h_payment_webhooks_202509 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202509_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202509_uq ON public.h_payment_webhooks_202509 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202510_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202510_gateway_event_id_idx ON public.h_payment_webhooks_202510 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202510_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202510_uq ON public.h_payment_webhooks_202510 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202511_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202511_gateway_event_id_idx ON public.h_payment_webhooks_202511 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202511_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202511_uq ON public.h_payment_webhooks_202511 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202512_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202512_gateway_event_id_idx ON public.h_payment_webhooks_202512 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202512_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202512_uq ON public.h_payment_webhooks_202512 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202601_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202601_gateway_event_id_idx ON public.h_payment_webhooks_202601 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202601_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202601_uq ON public.h_payment_webhooks_202601 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202602_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202602_gateway_event_id_idx ON public.h_payment_webhooks_202602 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202602_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202602_uq ON public.h_payment_webhooks_202602 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202603_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202603_gateway_event_id_idx ON public.h_payment_webhooks_202603 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202603_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202603_uq ON public.h_payment_webhooks_202603 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202604_gateway_event_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX h_payment_webhooks_202604_gateway_event_id_idx ON public.h_payment_webhooks_202604 USING btree (gateway, event_id);
+
+
+--
+-- Name: h_payment_webhooks_202604_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX h_payment_webhooks_202604_uq ON public.h_payment_webhooks_202604 USING btree (gateway, event_id);
+
+
+--
 -- Name: idx_article_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_article_comments_author_polymorphic ON public.article_comments USING btree (author_type, author_id);
+
+
+--
+-- Name: idx_hpe_logger; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hpe_logger ON public.h_payout_events USING btree (logged_by_type, logged_by_id);
 
 
 --
@@ -2241,6 +4806,27 @@ CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views
 --
 
 CREATE INDEX index_h_affiliate_clicks_on_affiliate_user_id ON public.h_affiliate_clicks USING btree (affiliate_user_id);
+
+
+--
+-- Name: index_h_payout_events_on_event; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_payout_events_on_event ON public.h_payout_events USING btree (event);
+
+
+--
+-- Name: index_h_payout_events_on_occurred_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_payout_events_on_occurred_at ON public.h_payout_events USING btree (occurred_at);
+
+
+--
+-- Name: index_h_payout_events_on_payout_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_payout_events_on_payout_id ON public.h_payout_events USING btree (payout_id);
 
 
 --
@@ -3525,6 +6111,895 @@ CREATE UNIQUE INDEX uq_quote_request_item ON public.quote_request_items USING bt
 
 
 --
+-- Name: h_article_views_202505_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202505_article_id_idx;
+
+
+--
+-- Name: h_article_views_202505_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202505_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202505_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202505_id_idx;
+
+
+--
+-- Name: h_article_views_202505_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202505_user_id_idx;
+
+
+--
+-- Name: h_article_views_202506_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202506_article_id_idx;
+
+
+--
+-- Name: h_article_views_202506_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202506_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202506_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202506_id_idx;
+
+
+--
+-- Name: h_article_views_202506_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202506_user_id_idx;
+
+
+--
+-- Name: h_article_views_202507_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202507_article_id_idx;
+
+
+--
+-- Name: h_article_views_202507_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202507_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202507_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202507_id_idx;
+
+
+--
+-- Name: h_article_views_202507_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202507_user_id_idx;
+
+
+--
+-- Name: h_article_views_202508_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202508_article_id_idx;
+
+
+--
+-- Name: h_article_views_202508_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202508_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202508_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202508_id_idx;
+
+
+--
+-- Name: h_article_views_202508_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202508_user_id_idx;
+
+
+--
+-- Name: h_article_views_202509_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202509_article_id_idx;
+
+
+--
+-- Name: h_article_views_202509_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202509_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202509_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202509_id_idx;
+
+
+--
+-- Name: h_article_views_202509_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202509_user_id_idx;
+
+
+--
+-- Name: h_article_views_202510_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202510_article_id_idx;
+
+
+--
+-- Name: h_article_views_202510_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202510_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202510_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202510_id_idx;
+
+
+--
+-- Name: h_article_views_202510_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202510_user_id_idx;
+
+
+--
+-- Name: h_article_views_202511_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202511_article_id_idx;
+
+
+--
+-- Name: h_article_views_202511_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202511_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202511_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202511_id_idx;
+
+
+--
+-- Name: h_article_views_202511_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202511_user_id_idx;
+
+
+--
+-- Name: h_article_views_202512_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202512_article_id_idx;
+
+
+--
+-- Name: h_article_views_202512_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202512_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202512_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202512_id_idx;
+
+
+--
+-- Name: h_article_views_202512_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202512_user_id_idx;
+
+
+--
+-- Name: h_article_views_202601_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202601_article_id_idx;
+
+
+--
+-- Name: h_article_views_202601_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202601_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202601_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202601_id_idx;
+
+
+--
+-- Name: h_article_views_202601_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202601_user_id_idx;
+
+
+--
+-- Name: h_article_views_202602_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202602_article_id_idx;
+
+
+--
+-- Name: h_article_views_202602_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202602_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202602_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202602_id_idx;
+
+
+--
+-- Name: h_article_views_202602_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202602_user_id_idx;
+
+
+--
+-- Name: h_article_views_202603_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202603_article_id_idx;
+
+
+--
+-- Name: h_article_views_202603_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202603_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202603_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202603_id_idx;
+
+
+--
+-- Name: h_article_views_202603_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202603_user_id_idx;
+
+
+--
+-- Name: h_article_views_202604_article_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_article_id ATTACH PARTITION public.h_article_views_202604_article_id_idx;
+
+
+--
+-- Name: h_article_views_202604_article_id_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_article_views_unprocessed ATTACH PARTITION public.h_article_views_202604_article_id_idx1;
+
+
+--
+-- Name: h_article_views_202604_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_id ATTACH PARTITION public.h_article_views_202604_id_idx;
+
+
+--
+-- Name: h_article_views_202604_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_article_views_on_user_id ATTACH PARTITION public.h_article_views_202604_user_id_idx;
+
+
+--
+-- Name: h_audit_trails_202505_changed_by_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_audit_trails_on_changed_by ATTACH PARTITION public.h_audit_trails_202505_changed_by_idx;
+
+
+--
+-- Name: h_audit_trails_202505_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_audit_trails_on_id ATTACH PARTITION public.h_audit_trails_202505_id_idx;
+
+
+--
+-- Name: h_audit_trails_202505_table_name_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_audit_trails_on_table_name ATTACH PARTITION public.h_audit_trails_202505_table_name_idx;
+
+
+--
+-- Name: h_error_logs_202505_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202505_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202505_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202505_id_idx;
+
+
+--
+-- Name: h_error_logs_202505_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202505_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202505_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202505_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202505_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202505_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202506_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202506_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202506_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202506_id_idx;
+
+
+--
+-- Name: h_error_logs_202506_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202506_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202506_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202506_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202506_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202506_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202507_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202507_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202507_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202507_id_idx;
+
+
+--
+-- Name: h_error_logs_202507_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202507_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202507_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202507_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202507_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202507_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202508_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202508_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202508_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202508_id_idx;
+
+
+--
+-- Name: h_error_logs_202508_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202508_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202508_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202508_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202508_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202508_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202509_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202509_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202509_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202509_id_idx;
+
+
+--
+-- Name: h_error_logs_202509_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202509_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202509_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202509_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202509_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202509_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202510_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202510_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202510_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202510_id_idx;
+
+
+--
+-- Name: h_error_logs_202510_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202510_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202510_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202510_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202510_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202510_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202511_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202511_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202511_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202511_id_idx;
+
+
+--
+-- Name: h_error_logs_202511_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202511_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202511_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202511_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202511_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202511_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202512_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202512_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202512_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202512_id_idx;
+
+
+--
+-- Name: h_error_logs_202512_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202512_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202512_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202512_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202512_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202512_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202601_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202601_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202601_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202601_id_idx;
+
+
+--
+-- Name: h_error_logs_202601_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202601_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202601_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202601_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202601_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202601_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202602_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202602_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202602_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202602_id_idx;
+
+
+--
+-- Name: h_error_logs_202602_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202602_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202602_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202602_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202602_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202602_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202603_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202603_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202603_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202603_id_idx;
+
+
+--
+-- Name: h_error_logs_202603_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202603_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202603_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202603_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202603_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202603_user_id_idx;
+
+
+--
+-- Name: h_error_logs_202604_error_class_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_error_class ATTACH PARTITION public.h_error_logs_202604_error_class_idx;
+
+
+--
+-- Name: h_error_logs_202604_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_id ATTACH PARTITION public.h_error_logs_202604_id_idx;
+
+
+--
+-- Name: h_error_logs_202604_request_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_id ATTACH PARTITION public.h_error_logs_202604_request_id_idx;
+
+
+--
+-- Name: h_error_logs_202604_request_path_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_request_path ATTACH PARTITION public.h_error_logs_202604_request_path_idx;
+
+
+--
+-- Name: h_error_logs_202604_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_error_logs_on_user_id ATTACH PARTITION public.h_error_logs_202604_user_id_idx;
+
+
+--
+-- Name: h_login_attempts_202505_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_login_attempts_on_id ATTACH PARTITION public.h_login_attempts_202505_id_idx;
+
+
+--
+-- Name: h_login_attempts_202505_ip_address_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_login_attempts_on_ip_address ATTACH PARTITION public.h_login_attempts_202505_ip_address_idx;
+
+
+--
+-- Name: h_login_attempts_202505_user_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_h_login_attempts_on_user_id ATTACH PARTITION public.h_login_attempts_202505_user_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202505_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202505_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202506_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202506_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202507_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202507_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202508_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202508_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202509_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202509_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202510_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202510_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202511_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202511_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202512_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202512_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202601_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202601_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202602_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202602_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202603_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202603_gateway_event_id_idx;
+
+
+--
+-- Name: h_payment_webhooks_202604_gateway_event_id_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.idx_hpwebhook_gateway_event ATTACH PARTITION public.h_payment_webhooks_202604_gateway_event_id_idx;
+
+
+--
+-- Name: h_error_logs trg_h_error_logs_compress; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_h_error_logs_compress BEFORE INSERT ON public.h_error_logs FOR EACH ROW EXECUTE FUNCTION public.tg_h_error_logs_compress();
+
+
+--
 -- Name: affiliate_signups fk_rails_00b8de6797; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4709,6 +8184,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: h_payout_events fk_rails_bd2df7a8c8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_payout_events
+    ADD CONSTRAINT fk_rails_bd2df7a8c8 FOREIGN KEY (payout_id) REFERENCES public.payouts(id);
+
+
+--
 -- Name: quote_request_items fk_rails_bdc5d283e6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4997,12 +8480,75 @@ ALTER TABLE ONLY public.affiliate_signups
 
 
 --
+-- Name: h_article_views h_article_views_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_article_views
+    ADD CONSTRAINT h_article_views_article_id_fkey FOREIGN KEY (article_id) REFERENCES public.articles(id);
+
+
+--
+-- Name: h_article_views h_article_views_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_article_views
+    ADD CONSTRAINT h_article_views_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: h_audit_trails h_audit_trails_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_audit_trails
+    ADD CONSTRAINT h_audit_trails_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(id);
+
+
+--
+-- Name: h_error_logs h_error_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_error_logs
+    ADD CONSTRAINT h_error_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: h_login_attempts h_login_attempts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_login_attempts
+    ADD CONSTRAINT h_login_attempts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: h_payment_webhooks h_payment_webhooks_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_payment_webhooks
+    ADD CONSTRAINT h_payment_webhooks_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- Name: h_payment_webhooks h_payment_webhooks_payout_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.h_payment_webhooks
+    ADD CONSTRAINT h_payment_webhooks_payout_id_fkey FOREIGN KEY (payout_id) REFERENCES public.payouts(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250514090444'),
+('20250514085213'),
+('20250514084407'),
+('20250514080810'),
+('20250514072740'),
+('20250514070200'),
+('20250514052343'),
 ('20250514050858'),
 ('20250514045450'),
 ('20250514043410'),
