@@ -81,6 +81,166 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: article_comments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.article_comments (
+    id bigint NOT NULL,
+    article_id bigint NOT NULL,
+    parent_id bigint,
+    author_type character varying(20) NOT NULL,
+    author_id bigint NOT NULL,
+    body text NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_article_comments_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+);
+
+
+--
+-- Name: article_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.article_comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: article_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.article_comments_id_seq OWNED BY public.article_comments.id;
+
+
+--
+-- Name: article_likes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.article_likes (
+    id bigint NOT NULL,
+    article_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: article_likes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.article_likes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: article_likes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.article_likes_id_seq OWNED BY public.article_likes.id;
+
+
+--
+-- Name: article_media; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.article_media (
+    id bigint NOT NULL,
+    article_id bigint NOT NULL,
+    media_type smallint NOT NULL,
+    file_url character varying(500) NOT NULL,
+    caption character varying(150),
+    "position" smallint,
+    meta_json jsonb DEFAULT '"{}"'::jsonb,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: article_media_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.article_media_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: article_media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.article_media_id_seq OWNED BY public.article_media.id;
+
+
+--
+-- Name: articles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.articles (
+    id bigint NOT NULL,
+    author_type character varying(20) NOT NULL,
+    author_id bigint NOT NULL,
+    category smallint NOT NULL,
+    title character varying(150) NOT NULL,
+    content_blocks jsonb DEFAULT '"{}"'::jsonb NOT NULL,
+    order_id bigint,
+    likes_count integer DEFAULT 0 NOT NULL,
+    replies_count integer DEFAULT 0 NOT NULL,
+    views_count integer DEFAULT 0 NOT NULL,
+    published_at timestamp(6) without time zone,
+    is_draft boolean DEFAULT false NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_articles_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+);
+
+
+--
+-- Name: articles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.articles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: articles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
+
+
+--
 -- Name: m_authorities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -469,6 +629,49 @@ ALTER SEQUENCE public.member_shipping_addresses_id_seq OWNED BY public.member_sh
 
 
 --
+-- Name: order_reviews; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.order_reviews (
+    id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    reviewer_id bigint NOT NULL,
+    vendor_id bigint NOT NULL,
+    rating jsonb NOT NULL,
+    title character varying(100),
+    comment text,
+    vendor_reply text,
+    replied_at timestamp(6) without time zone,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: order_reviews_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.order_reviews_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: order_reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.order_reviews_id_seq OWNED BY public.order_reviews.id;
+
+
+--
 -- Name: orders; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -570,6 +773,47 @@ CREATE SEQUENCE public.quote_items_id_seq
 --
 
 ALTER SEQUENCE public.quote_items_id_seq OWNED BY public.quote_items.id;
+
+
+--
+-- Name: quote_request_comments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quote_request_comments (
+    id bigint NOT NULL,
+    quote_request_id bigint NOT NULL,
+    parent_id bigint,
+    author_type character varying(20) NOT NULL,
+    author_id bigint NOT NULL,
+    body text NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_qr_comments_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+);
+
+
+--
+-- Name: quote_request_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.quote_request_comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quote_request_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.quote_request_comments_id_seq OWNED BY public.quote_request_comments.id;
 
 
 --
@@ -1001,10 +1245,45 @@ CREATE TABLE public.vendor_service_areas (
 
 
 --
+-- Name: article_comments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments ALTER COLUMN id SET DEFAULT nextval('public.article_comments_id_seq'::regclass);
+
+
+--
+-- Name: article_likes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_likes ALTER COLUMN id SET DEFAULT nextval('public.article_likes_id_seq'::regclass);
+
+
+--
+-- Name: article_media id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_media ALTER COLUMN id SET DEFAULT nextval('public.article_media_id_seq'::regclass);
+
+
+--
+-- Name: articles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.articles_id_seq'::regclass);
+
+
+--
 -- Name: member_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_shipping_addresses ALTER COLUMN id SET DEFAULT nextval('public.member_shipping_addresses_id_seq'::regclass);
+
+
+--
+-- Name: order_reviews id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews ALTER COLUMN id SET DEFAULT nextval('public.order_reviews_id_seq'::regclass);
 
 
 --
@@ -1019,6 +1298,13 @@ ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.order
 --
 
 ALTER TABLE ONLY public.quote_items ALTER COLUMN id SET DEFAULT nextval('public.quote_items_id_seq'::regclass);
+
+
+--
+-- Name: quote_request_comments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments ALTER COLUMN id SET DEFAULT nextval('public.quote_request_comments_id_seq'::regclass);
 
 
 --
@@ -1085,6 +1371,38 @@ ALTER TABLE ONLY public.affiliate_details
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: article_comments article_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT article_comments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: article_likes article_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_likes
+    ADD CONSTRAINT article_likes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: article_media article_media_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_media
+    ADD CONSTRAINT article_media_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: articles articles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles
+    ADD CONSTRAINT articles_pkey PRIMARY KEY (id);
 
 
 --
@@ -1200,6 +1518,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: order_reviews order_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT order_reviews_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1213,6 +1539,14 @@ ALTER TABLE ONLY public.orders
 
 ALTER TABLE ONLY public.quote_items
     ADD CONSTRAINT quote_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quote_request_comments quote_request_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT quote_request_comments_pkey PRIMARY KEY (id);
 
 
 --
@@ -1328,6 +1662,20 @@ ALTER TABLE ONLY public.vendor_service_areas
 
 
 --
+-- Name: idx_article_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_article_comments_author_polymorphic ON public.article_comments USING btree (author_type, author_id);
+
+
+--
+-- Name: idx_qr_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_qr_comments_author_polymorphic ON public.quote_request_comments USING btree (author_type, author_id);
+
+
+--
 -- Name: index_admin_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1388,6 +1736,132 @@ CREATE INDEX index_affiliate_details_on_stripe_account_id ON public.affiliate_de
 --
 
 CREATE INDEX index_affiliate_details_on_updated_by_id ON public.affiliate_details USING btree (updated_by_id);
+
+
+--
+-- Name: index_article_comments_on_article_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_article_id ON public.article_comments USING btree (article_id);
+
+
+--
+-- Name: index_article_comments_on_author_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_author_id ON public.article_comments USING btree (author_id);
+
+
+--
+-- Name: index_article_comments_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_created_by_id ON public.article_comments USING btree (created_by_id);
+
+
+--
+-- Name: index_article_comments_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_deleted_by_id ON public.article_comments USING btree (deleted_by_id);
+
+
+--
+-- Name: index_article_comments_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_parent_id ON public.article_comments USING btree (parent_id);
+
+
+--
+-- Name: index_article_comments_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_comments_on_updated_by_id ON public.article_comments USING btree (updated_by_id);
+
+
+--
+-- Name: index_article_likes_on_article_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_likes_on_article_id ON public.article_likes USING btree (article_id);
+
+
+--
+-- Name: index_article_likes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_likes_on_user_id ON public.article_likes USING btree (user_id);
+
+
+--
+-- Name: index_article_media_on_article_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_media_on_article_id ON public.article_media USING btree (article_id);
+
+
+--
+-- Name: index_article_media_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_media_on_created_by_id ON public.article_media USING btree (created_by_id);
+
+
+--
+-- Name: index_article_media_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_media_on_deleted_by_id ON public.article_media USING btree (deleted_by_id);
+
+
+--
+-- Name: index_article_media_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_article_media_on_updated_by_id ON public.article_media USING btree (updated_by_id);
+
+
+--
+-- Name: index_articles_on_author_type_and_author_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_author_type_and_author_id ON public.articles USING btree (author_type, author_id);
+
+
+--
+-- Name: index_articles_on_content_blocks; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_content_blocks ON public.articles USING gin (content_blocks);
+
+
+--
+-- Name: index_articles_on_likes_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_likes_count ON public.articles USING btree (likes_count);
+
+
+--
+-- Name: index_articles_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_order_id ON public.articles USING btree (order_id);
+
+
+--
+-- Name: index_articles_on_replies_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_replies_count ON public.articles USING btree (replies_count);
+
+
+--
+-- Name: index_articles_on_views_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views_count);
 
 
 --
@@ -1944,6 +2418,48 @@ CREATE INDEX index_member_shipping_addresses_on_updated_by_id ON public.member_s
 
 
 --
+-- Name: index_order_reviews_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_order_reviews_on_created_by_id ON public.order_reviews USING btree (created_by_id);
+
+
+--
+-- Name: index_order_reviews_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_order_reviews_on_deleted_by_id ON public.order_reviews USING btree (deleted_by_id);
+
+
+--
+-- Name: index_order_reviews_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_order_reviews_on_order_id ON public.order_reviews USING btree (order_id);
+
+
+--
+-- Name: index_order_reviews_on_reviewer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_order_reviews_on_reviewer_id ON public.order_reviews USING btree (reviewer_id);
+
+
+--
+-- Name: index_order_reviews_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_order_reviews_on_updated_by_id ON public.order_reviews USING btree (updated_by_id);
+
+
+--
+-- Name: index_order_reviews_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_order_reviews_on_vendor_id ON public.order_reviews USING btree (vendor_id);
+
+
+--
 -- Name: index_orders_on_affiliate_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2081,6 +2597,41 @@ CREATE INDEX index_quote_items_on_sqhole_json ON public.quote_items USING gin (s
 --
 
 CREATE INDEX index_quote_items_on_updated_by_id ON public.quote_items USING btree (updated_by_id);
+
+
+--
+-- Name: index_quote_request_comments_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_comments_on_created_by_id ON public.quote_request_comments USING btree (created_by_id);
+
+
+--
+-- Name: index_quote_request_comments_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_comments_on_deleted_by_id ON public.quote_request_comments USING btree (deleted_by_id);
+
+
+--
+-- Name: index_quote_request_comments_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_comments_on_parent_id ON public.quote_request_comments USING btree (parent_id);
+
+
+--
+-- Name: index_quote_request_comments_on_quote_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_comments_on_quote_request_id ON public.quote_request_comments USING btree (quote_request_id);
+
+
+--
+-- Name: index_quote_request_comments_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_quote_request_comments_on_updated_by_id ON public.quote_request_comments USING btree (updated_by_id);
 
 
 --
@@ -2497,6 +3048,13 @@ CREATE INDEX index_vendor_service_areas_on_vendor_id ON public.vendor_service_ar
 
 
 --
+-- Name: uq_article_likes_article_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_article_likes_article_user ON public.article_likes USING btree (article_id, user_id);
+
+
+--
 -- Name: uq_member_default_address; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2678,6 +3236,14 @@ ALTER TABLE ONLY public.quote_requests
 
 
 --
+-- Name: order_reviews fk_rails_19289e95c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_19289e95c6 FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quote_requests fk_rails_1b8890d53b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2699,6 +3265,22 @@ ALTER TABLE ONLY public.vendor_service_areas
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT fk_rails_205180732b FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: order_reviews fk_rails_218234f6ac; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_218234f6ac FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- Name: article_likes fk_rails_2280bc43bb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_likes
+    ADD CONSTRAINT fk_rails_2280bc43bb FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -2742,6 +3324,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: quote_request_comments fk_rails_2965acff0f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT fk_rails_2965acff0f FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_2997f898f1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2771,6 +3361,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT fk_rails_355a7ffe95 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: articles fk_rails_35e2f292e3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles
+    ADD CONSTRAINT fk_rails_35e2f292e3 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2806,6 +3404,14 @@ ALTER TABLE ONLY public.m_glosses
 
 
 --
+-- Name: article_likes fk_rails_3f46dcc174; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_likes
+    ADD CONSTRAINT fk_rails_3f46dcc174 FOREIGN KEY (article_id) REFERENCES public.articles(id);
+
+
+--
 -- Name: orders fk_rails_40865df908; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2822,6 +3428,14 @@ ALTER TABLE ONLY public.m_cities
 
 
 --
+-- Name: articles fk_rails_4297cebbfe; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles
+    ADD CONSTRAINT fk_rails_4297cebbfe FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
 -- Name: m_hole_diameters fk_rails_42c61c1cc6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2835,6 +3449,14 @@ ALTER TABLE ONLY public.m_hole_diameters
 
 ALTER TABLE ONLY public.m_prefectures
     ADD CONSTRAINT fk_rails_4364687b87 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: article_comments fk_rails_439c61b372; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT fk_rails_439c61b372 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2886,6 +3508,14 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
+-- Name: quote_request_comments fk_rails_48c0b3f433; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT fk_rails_48c0b3f433 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: stripe_payments fk_rails_4b62aa0798; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2923,6 +3553,14 @@ ALTER TABLE ONLY public.quotes
 
 ALTER TABLE ONLY public.admin_details
     ADD CONSTRAINT fk_rails_4fcb60b766 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: article_media fk_rails_5019b4f352; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_media
+    ADD CONSTRAINT fk_rails_5019b4f352 FOREIGN KEY (article_id) REFERENCES public.articles(id);
 
 
 --
@@ -2987,6 +3625,14 @@ ALTER TABLE ONLY public.m_materials
 
 ALTER TABLE ONLY public.m_edge_processes
     ADD CONSTRAINT fk_rails_608bdc2fe1 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: articles fk_rails_60cb0a2f23; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles
+    ADD CONSTRAINT fk_rails_60cb0a2f23 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3059,6 +3705,14 @@ ALTER TABLE ONLY public.quote_items
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_rails_66cc3b7a7e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: article_comments fk_rails_67982717fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT fk_rails_67982717fa FOREIGN KEY (article_id) REFERENCES public.articles(id);
 
 
 --
@@ -3142,6 +3796,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: order_reviews fk_rails_7266ab26e5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_7266ab26e5 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quote_items fk_rails_737aee6ef8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3214,6 +3876,14 @@ ALTER TABLE ONLY public.stripe_accounts
 
 
 --
+-- Name: article_comments fk_rails_86c76f9c76; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT fk_rails_86c76f9c76 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_details fk_rails_8b1030bd18; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3246,6 +3916,14 @@ ALTER TABLE ONLY public.quote_request_items
 
 
 --
+-- Name: order_reviews fk_rails_91fa08e5f2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_91fa08e5f2 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: vendor_details fk_rails_9550a269e6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3267,6 +3945,14 @@ ALTER TABLE ONLY public.quotes
 
 ALTER TABLE ONLY public.quote_items
     ADD CONSTRAINT fk_rails_97c8b4422c FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
+-- Name: quote_request_comments fk_rails_980f101925; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT fk_rails_980f101925 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id);
 
 
 --
@@ -3422,6 +4108,14 @@ ALTER TABLE ONLY public.member_details
 
 
 --
+-- Name: order_reviews fk_rails_b27d5eba1f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_b27d5eba1f FOREIGN KEY (reviewer_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_cities fk_rails_b2a090b409; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3478,6 +4172,14 @@ ALTER TABLE ONLY public.m_grain_finishes
 
 
 --
+-- Name: quote_request_comments fk_rails_c02b3b85ee; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT fk_rails_c02b3b85ee FOREIGN KEY (parent_id) REFERENCES public.quote_request_comments(id);
+
+
+--
 -- Name: member_details fk_rails_c2cdeb6f7c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3526,11 +4228,35 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: articles fk_rails_d87756143c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.articles
+    ADD CONSTRAINT fk_rails_d87756143c FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: article_comments fk_rails_d931c2be38; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT fk_rails_d931c2be38 FOREIGN KEY (parent_id) REFERENCES public.article_comments(id);
+
+
+--
 -- Name: quote_items fk_rails_d9bcd636be; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.quote_items
     ADD CONSTRAINT fk_rails_d9bcd636be FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
+
+
+--
+-- Name: order_reviews fk_rails_db794df21d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_reviews
+    ADD CONSTRAINT fk_rails_db794df21d FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3547,6 +4273,14 @@ ALTER TABLE ONLY public.orders
 
 ALTER TABLE ONLY public.stripe_payouts
     ADD CONSTRAINT fk_rails_dc468b0d39 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: quote_request_comments fk_rails_dcfea1537d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quote_request_comments
+    ADD CONSTRAINT fk_rails_dcfea1537d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3614,6 +4348,14 @@ ALTER TABLE ONLY public.m_corner_processes
 
 
 --
+-- Name: article_comments fk_rails_f0e007d0f8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.article_comments
+    ADD CONSTRAINT fk_rails_f0e007d0f8 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: member_details fk_rails_f1af1cd707; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3652,6 +4394,13 @@ ALTER TABLE ONLY public.m_categories
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250514041340'),
+('20250514033035'),
+('20250514030627'),
+('20250514030208'),
+('20250514024742'),
+('20250514022214'),
+('20250514015335'),
 ('20250513061725'),
 ('20250513061417'),
 ('20250513060950'),
