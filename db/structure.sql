@@ -34,6 +34,51 @@ CREATE TABLE public.admin_details (
 
 
 --
+-- Name: affiliate_commissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.affiliate_commissions (
+    id bigint NOT NULL,
+    affiliate_user_id bigint NOT NULL,
+    referred_user_id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    order_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    rate_pct numeric(5,2) DEFAULT 0.0 NOT NULL,
+    commission_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    paid_flag boolean DEFAULT false NOT NULL,
+    paid_at timestamp(6) without time zone,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_aff_comm_amount_non_negative CHECK ((commission_amount >= (0)::numeric)),
+    CONSTRAINT chk_aff_comm_paid_consistency CHECK (((NOT paid_flag) OR (paid_at IS NOT NULL)))
+);
+
+
+--
+-- Name: affiliate_commissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.affiliate_commissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: affiliate_commissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.affiliate_commissions_id_seq OWNED BY public.affiliate_commissions.id;
+
+
+--
 -- Name: affiliate_details; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -66,6 +111,45 @@ CREATE TABLE public.affiliate_details (
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+
+--
+-- Name: affiliate_signups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.affiliate_signups (
+    id bigint NOT NULL,
+    affiliate_user_id bigint NOT NULL,
+    affiliate_click_id bigint,
+    signup_user_id bigint NOT NULL,
+    signup_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: affiliate_signups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.affiliate_signups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: affiliate_signups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.affiliate_signups_id_seq OWNED BY public.affiliate_signups.id;
 
 
 --
@@ -238,6 +322,43 @@ CREATE SEQUENCE public.articles_id_seq
 --
 
 ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
+
+
+--
+-- Name: h_affiliate_clicks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.h_affiliate_clicks (
+    id bigint NOT NULL,
+    affiliate_user_id bigint NOT NULL,
+    click_token uuid NOT NULL,
+    referrer_url character varying(500),
+    landing_url character varying(500),
+    ip_address inet,
+    user_agent character varying(255),
+    clicked_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: h_affiliate_clicks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.h_affiliate_clicks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: h_affiliate_clicks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.h_affiliate_clicks_id_seq OWNED BY public.h_affiliate_clicks.id;
 
 
 --
@@ -629,6 +750,55 @@ ALTER SEQUENCE public.member_shipping_addresses_id_seq OWNED BY public.member_sh
 
 
 --
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    id bigint NOT NULL,
+    recipient_type character varying NOT NULL,
+    recipient_id bigint NOT NULL,
+    channel smallint NOT NULL,
+    notification_type character varying(30) NOT NULL,
+    subject character varying(150),
+    body text,
+    payload_json jsonb,
+    related_model_type character varying(30),
+    related_model_id bigint,
+    status smallint DEFAULT 0 NOT NULL,
+    broadcast_id uuid DEFAULT gen_random_uuid(),
+    sent_at timestamp(6) without time zone,
+    read_at timestamp(6) without time zone,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_notifications_recipient_type CHECK (((recipient_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+);
+
+
+--
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.notifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
+
+
+--
 -- Name: order_reviews; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -718,6 +888,56 @@ CREATE SEQUENCE public.orders_id_seq
 --
 
 ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
+
+
+--
+-- Name: payouts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.payouts (
+    id bigint NOT NULL,
+    payee_type character varying(20) NOT NULL,
+    payee_id bigint NOT NULL,
+    period_from date,
+    period_to date,
+    gross_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    commission_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    net_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    status smallint DEFAULT 0 NOT NULL,
+    payout_at timestamp(6) without time zone,
+    transaction_ref character varying(100),
+    bank_name character varying(100),
+    account_type smallint,
+    account_number character varying(30),
+    remarks text,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT chk_payouts_payee_type CHECK (((payee_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+);
+
+
+--
+-- Name: payouts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.payouts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: payouts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.payouts_id_seq OWNED BY public.payouts.id;
 
 
 --
@@ -1245,6 +1465,20 @@ CREATE TABLE public.vendor_service_areas (
 
 
 --
+-- Name: affiliate_commissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions ALTER COLUMN id SET DEFAULT nextval('public.affiliate_commissions_id_seq'::regclass);
+
+
+--
+-- Name: affiliate_signups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups ALTER COLUMN id SET DEFAULT nextval('public.affiliate_signups_id_seq'::regclass);
+
+
+--
 -- Name: article_comments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1273,10 +1507,24 @@ ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.art
 
 
 --
+-- Name: h_affiliate_clicks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_affiliate_clicks ALTER COLUMN id SET DEFAULT nextval('public.h_affiliate_clicks_id_seq'::regclass);
+
+
+--
 -- Name: member_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_shipping_addresses ALTER COLUMN id SET DEFAULT nextval('public.member_shipping_addresses_id_seq'::regclass);
+
+
+--
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
 
 
 --
@@ -1291,6 +1539,13 @@ ALTER TABLE ONLY public.order_reviews ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.orders_id_seq'::regclass);
+
+
+--
+-- Name: payouts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts ALTER COLUMN id SET DEFAULT nextval('public.payouts_id_seq'::regclass);
 
 
 --
@@ -1358,11 +1613,27 @@ ALTER TABLE ONLY public.admin_details
 
 
 --
+-- Name: affiliate_commissions affiliate_commissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT affiliate_commissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: affiliate_details affiliate_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT affiliate_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: affiliate_signups affiliate_signups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT affiliate_signups_pkey PRIMARY KEY (id);
 
 
 --
@@ -1403,6 +1674,14 @@ ALTER TABLE ONLY public.article_media
 
 ALTER TABLE ONLY public.articles
     ADD CONSTRAINT articles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: h_affiliate_clicks h_affiliate_clicks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_affiliate_clicks
+    ADD CONSTRAINT h_affiliate_clicks_pkey PRIMARY KEY (id);
 
 
 --
@@ -1518,6 +1797,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: order_reviews order_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1531,6 +1818,14 @@ ALTER TABLE ONLY public.order_reviews
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: payouts payouts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts
+    ADD CONSTRAINT payouts_pkey PRIMARY KEY (id);
 
 
 --
@@ -1669,6 +1964,20 @@ CREATE INDEX idx_article_comments_author_polymorphic ON public.article_comments 
 
 
 --
+-- Name: idx_notifications_recipient_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notifications_recipient_status ON public.notifications USING btree (recipient_type, recipient_id, status);
+
+
+--
+-- Name: idx_notifications_related; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notifications_related ON public.notifications USING btree (related_model_type, related_model_id);
+
+
+--
 -- Name: idx_qr_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1704,6 +2013,48 @@ CREATE INDEX index_admin_details_on_updated_by_id ON public.admin_details USING 
 
 
 --
+-- Name: index_affiliate_commissions_on_affiliate_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_affiliate_user_id ON public.affiliate_commissions USING btree (affiliate_user_id);
+
+
+--
+-- Name: index_affiliate_commissions_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_created_by_id ON public.affiliate_commissions USING btree (created_by_id);
+
+
+--
+-- Name: index_affiliate_commissions_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_deleted_by_id ON public.affiliate_commissions USING btree (deleted_by_id);
+
+
+--
+-- Name: index_affiliate_commissions_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_order_id ON public.affiliate_commissions USING btree (order_id);
+
+
+--
+-- Name: index_affiliate_commissions_on_referred_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_referred_user_id ON public.affiliate_commissions USING btree (referred_user_id);
+
+
+--
+-- Name: index_affiliate_commissions_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_commissions_on_updated_by_id ON public.affiliate_commissions USING btree (updated_by_id);
+
+
+--
 -- Name: index_affiliate_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1736,6 +2087,27 @@ CREATE INDEX index_affiliate_details_on_stripe_account_id ON public.affiliate_de
 --
 
 CREATE INDEX index_affiliate_details_on_updated_by_id ON public.affiliate_details USING btree (updated_by_id);
+
+
+--
+-- Name: index_affiliate_signups_on_affiliate_click_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_signups_on_affiliate_click_id ON public.affiliate_signups USING btree (affiliate_click_id);
+
+
+--
+-- Name: index_affiliate_signups_on_affiliate_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_signups_on_affiliate_user_id ON public.affiliate_signups USING btree (affiliate_user_id);
+
+
+--
+-- Name: index_affiliate_signups_on_signup_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_affiliate_signups_on_signup_user_id ON public.affiliate_signups USING btree (signup_user_id);
 
 
 --
@@ -1862,6 +2234,13 @@ CREATE INDEX index_articles_on_replies_count ON public.articles USING btree (rep
 --
 
 CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views_count);
+
+
+--
+-- Name: index_h_affiliate_clicks_on_affiliate_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_h_affiliate_clicks_on_affiliate_user_id ON public.h_affiliate_clicks USING btree (affiliate_user_id);
 
 
 --
@@ -2418,6 +2797,20 @@ CREATE INDEX index_member_shipping_addresses_on_updated_by_id ON public.member_s
 
 
 --
+-- Name: index_notifications_on_broadcast_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_broadcast_id ON public.notifications USING btree (broadcast_id);
+
+
+--
+-- Name: index_notifications_on_notification_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_notification_type ON public.notifications USING btree (notification_type);
+
+
+--
 -- Name: index_order_reviews_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2513,6 +2906,41 @@ CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
 --
 
 CREATE INDEX index_orders_on_vendor_id ON public.orders USING btree (vendor_id);
+
+
+--
+-- Name: index_payouts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payouts_on_created_by_id ON public.payouts USING btree (created_by_id);
+
+
+--
+-- Name: index_payouts_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payouts_on_deleted_by_id ON public.payouts USING btree (deleted_by_id);
+
+
+--
+-- Name: index_payouts_on_payee_type_and_payee_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payouts_on_payee_type_and_payee_id ON public.payouts USING btree (payee_type, payee_id);
+
+
+--
+-- Name: index_payouts_on_transaction_ref; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_payouts_on_transaction_ref ON public.payouts USING btree (transaction_ref);
+
+
+--
+-- Name: index_payouts_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payouts_on_updated_by_id ON public.payouts USING btree (updated_by_id);
 
 
 --
@@ -3048,10 +3476,24 @@ CREATE INDEX index_vendor_service_areas_on_vendor_id ON public.vendor_service_ar
 
 
 --
+-- Name: uq_aff_comm_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_aff_comm_order ON public.affiliate_commissions USING btree (order_id);
+
+
+--
 -- Name: uq_article_likes_article_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX uq_article_likes_article_user ON public.article_likes USING btree (article_id, user_id);
+
+
+--
+-- Name: uq_h_aff_click_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_h_aff_click_token ON public.h_affiliate_clicks USING btree (click_token);
 
 
 --
@@ -3069,10 +3511,25 @@ CREATE UNIQUE INDEX uq_orders_quote_request ON public.orders USING btree (quote_
 
 
 --
+-- Name: uq_payouts_period; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_payouts_period ON public.payouts USING btree (payee_type, payee_id, period_from, period_to);
+
+
+--
 -- Name: uq_quote_request_item; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX uq_quote_request_item ON public.quote_request_items USING btree (quote_request_id, quote_item_id);
+
+
+--
+-- Name: affiliate_signups fk_rails_00b8de6797; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_00b8de6797 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3089,6 +3546,14 @@ ALTER TABLE ONLY public.stripe_payouts
 
 ALTER TABLE ONLY public.quotes
     ADD CONSTRAINT fk_rails_02b555fb4d FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_commissions fk_rails_03512ee4df; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_03512ee4df FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3228,6 +3693,14 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: payouts fk_rails_1680a8e85c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts
+    ADD CONSTRAINT fk_rails_1680a8e85c FOREIGN KEY (transaction_ref) REFERENCES public.stripe_payouts(payout_id);
+
+
+--
 -- Name: quote_requests fk_rails_180f8788a0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3241,6 +3714,14 @@ ALTER TABLE ONLY public.quote_requests
 
 ALTER TABLE ONLY public.order_reviews
     ADD CONSTRAINT fk_rails_19289e95c6 FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
+-- Name: notifications fk_rails_1b74717c67; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_1b74717c67 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3401,6 +3882,14 @@ ALTER TABLE ONLY public.orders
 
 ALTER TABLE ONLY public.m_glosses
     ADD CONSTRAINT fk_rails_3dcf832460 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_signups fk_rails_3ef6352d1f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_3ef6352d1f FOREIGN KEY (signup_user_id) REFERENCES public.users(id);
 
 
 --
@@ -3585,6 +4074,14 @@ ALTER TABLE ONLY public.m_process_types
 
 ALTER TABLE ONLY public.m_authorities
     ADD CONSTRAINT fk_rails_5230eda4ef FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: notifications fk_rails_5449be7f30; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_5449be7f30 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3796,6 +4293,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: affiliate_commissions fk_rails_71684630c8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_71684630c8 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: order_reviews fk_rails_7266ab26e5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3860,6 +4365,14 @@ ALTER TABLE ONLY public.stripe_payments
 
 
 --
+-- Name: payouts fk_rails_7e89b17246; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts
+    ADD CONSTRAINT fk_rails_7e89b17246 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: vendor_service_areas fk_rails_7fc7dfd7b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3876,11 +4389,27 @@ ALTER TABLE ONLY public.stripe_accounts
 
 
 --
+-- Name: h_affiliate_clicks fk_rails_800550e991; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.h_affiliate_clicks
+    ADD CONSTRAINT fk_rails_800550e991 FOREIGN KEY (affiliate_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: article_comments fk_rails_86c76f9c76; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.article_comments
     ADD CONSTRAINT fk_rails_86c76f9c76 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: payouts fk_rails_8ae13af0e2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts
+    ADD CONSTRAINT fk_rails_8ae13af0e2 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -3908,6 +4437,14 @@ ALTER TABLE ONLY public.quote_items
 
 
 --
+-- Name: affiliate_commissions fk_rails_8fd375453d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_8fd375453d FOREIGN KEY (referred_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quote_request_items fk_rails_8fe04c2eb3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3921,6 +4458,14 @@ ALTER TABLE ONLY public.quote_request_items
 
 ALTER TABLE ONLY public.order_reviews
     ADD CONSTRAINT fk_rails_91fa08e5f2 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_commissions fk_rails_939dc7f310; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_939dc7f310 FOREIGN KEY (affiliate_user_id) REFERENCES public.users(id);
 
 
 --
@@ -3977,6 +4522,14 @@ ALTER TABLE ONLY public.m_paint_colors
 
 ALTER TABLE ONLY public.m_hole_diameters
     ADD CONSTRAINT fk_rails_98dcfdc04c FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_commissions fk_rails_996822f75d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_996822f75d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -4196,6 +4749,22 @@ ALTER TABLE ONLY public.m_cities
 
 
 --
+-- Name: payouts fk_rails_c50a09411a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payouts
+    ADD CONSTRAINT fk_rails_c50a09411a FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_signups fk_rails_c7cac3c3b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_c7cac3c3b6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: m_corner_processes fk_rails_cbf0dca52b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4252,6 +4821,14 @@ ALTER TABLE ONLY public.quote_items
 
 
 --
+-- Name: affiliate_signups fk_rails_da86bb4702; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_da86bb4702 FOREIGN KEY (affiliate_click_id) REFERENCES public.h_affiliate_clicks(id);
+
+
+--
 -- Name: order_reviews fk_rails_db794df21d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4281,6 +4858,14 @@ ALTER TABLE ONLY public.stripe_payouts
 
 ALTER TABLE ONLY public.quote_request_comments
     ADD CONSTRAINT fk_rails_dcfea1537d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_signups fk_rails_df4fe43808; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_df4fe43808 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -4340,6 +4925,22 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: notifications fk_rails_ee2be4cca6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_ee2be4cca6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_commissions fk_rails_ef4e150db0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_commissions
+    ADD CONSTRAINT fk_rails_ef4e150db0 FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
 -- Name: m_corner_processes fk_rails_f029d371ff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4388,12 +4989,25 @@ ALTER TABLE ONLY public.m_categories
 
 
 --
+-- Name: affiliate_signups fk_rails_fd29361a59; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_signups
+    ADD CONSTRAINT fk_rails_fd29361a59 FOREIGN KEY (affiliate_user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250514050858'),
+('20250514045450'),
+('20250514043410'),
+('20250514042946'),
+('20250514042353'),
 ('20250514041340'),
 ('20250514033035'),
 ('20250514030627'),
