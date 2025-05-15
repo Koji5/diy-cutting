@@ -23,9 +23,78 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <% if notice %> <p class="notice"><%= notice %></p> <% end %>
-    <% if alert  %> <p class="alert"><%= alert  %></p> <% end %>
-    <%= yield %>
+  <body class="d-flex flex-column min-vh-100">
+
+    <!-- ===== ヘッダー ===== -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+      <div class="container-fluid">
+
+        <%= link_to "DIY Cutting", root_path, class: "navbar-brand" %>
+
+        <!-- モバイル用ハンバーガー -->
+        <button class="navbar-toggler d-lg-none" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- 右寄せ：ログイン / ログアウト -->
+        <div class="ms-auto">
+          <% if user_signed_in? %>
+            <span class="text-white me-3">こんにちは、<%= current_user.name %></span>
+            <%= link_to "ログアウト", destroy_user_session_path,
+                        method: :delete, class: "btn btn-sm btn-outline-light" %>
+          <% else %>
+            <%= link_to "ログイン",  new_user_session_path,        class: "btn btn-sm btn-light me-2" %>
+            <%= link_to "新規登録", new_user_registration_path, class: "btn btn-sm btn-warning" %>
+          <% end %>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ===== フラッシュメッセージ ===== -->
+    <div class="container-fluid mt-2">
+      <% flash.each do |type, message| %>
+        <% bs = { "notice" => "success", "alert" => "danger" }[type] || "info" %>
+        <div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
+          <%= message %>
+          <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- ===== コンテンツ 2 カラム ===== -->
+    <div class="container-fluid flex-grow-1">
+      <div class="row">
+
+        <!-- サイドメニュー：PC だけ表示 -->
+        <aside class="col-lg-2 d-none d-lg-block border-end pt-3">
+          <%= render "shared/menu" %>
+        </aside>
+
+        <!-- メイン：ここに各ページが入る -->
+        <main class="col-12 col-lg-10 py-3">
+          <%= yield %>            <!-- ★ この行は絶対に残す -->
+        </main>
+
+      </div>
+    </div>
+
+    <!-- ===== フッター ===== -->
+    <footer class="bg-light text-center small py-2">
+      &copy; <%= Time.current.year %> DIY Cutting
+    </footer>
+
+    <!-- ===== モバイル用オフキャンバスメニュー ===== -->
+    <div class="offcanvas offcanvas-start" id="mobileMenu" tabindex="-1">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">メニュー</h5>
+        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <%= render "shared/menu" %>
+      </div>
+    </div>
+
   </body>
 </html>

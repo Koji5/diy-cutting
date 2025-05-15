@@ -1,2 +1,23 @@
-@import 'bootstrap/scss/bootstrap';
-@import 'bootstrap-icons/font/bootstrap-icons';
+// ----------------------------------------
+// ① 色などカスタム変数（必要なら）
+// $primary: #2577ff;
+
+// ② Bootstrap 本体
+@import "bootstrap/scss/bootstrap";
+
+// ③ Bootstrap Icons
+@import "bootstrap-icons/font/bootstrap-icons";
+
+// ----------------------------------------
+// サイドメニュー
+aside {
+  height: calc(100vh - var(--bs-navbar-height)); // or 56px
+  overflow-y: auto;
+}
+
+// メニュー内リンクの強調
+.nav-link.active,
+.nav-link:hover {
+  font-weight: 600;
+  background-color: rgba($primary, 0.1);
+}
