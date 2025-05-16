@@ -41,5 +41,6 @@ module App
 
     # マイグレーション実行後に生成されるスキーマ定義が schema.rb（Ruby DSL） ではなく structure.sql（生 SQL） になる設定
     config.active_record.schema_format = :sql
+    config.assets.paths << Rails.root.join("app/javascript")
   end
 end

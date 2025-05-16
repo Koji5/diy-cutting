@@ -7,3 +7,6 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+if Rails.env.development?
+  Dir[Rails.root.join("db/seeds/local/*.rb")].sort.each { |f| load f }
+end

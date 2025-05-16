@@ -1645,6 +1645,51 @@ CREATE TABLE public.m_paint_types (
 
 
 --
+-- Name: m_postal_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_postal_codes (
+    id bigint NOT NULL,
+    postal_code character varying(7) NOT NULL,
+    city_code character varying(5) NOT NULL,
+    city_town_name_kanji text NOT NULL,
+    town_area_name_kanji text,
+    multi_town_flag boolean DEFAULT false NOT NULL,
+    koaza_banchi_flag boolean DEFAULT false NOT NULL,
+    chome_flag boolean DEFAULT false NOT NULL,
+    multi_aza_flag boolean DEFAULT false NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp with time zone,
+    CONSTRAINT postal_city_len_chk CHECK ((char_length((city_code)::text) = 5)),
+    CONSTRAINT postal_code_len_chk CHECK ((char_length((postal_code)::text) = 7))
+);
+
+
+--
+-- Name: m_postal_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.m_postal_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: m_postal_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.m_postal_codes_id_seq OWNED BY public.m_postal_codes.id;
+
+
+--
 -- Name: m_prefectures; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2860,6 +2905,13 @@ ALTER TABLE ONLY public.h_payout_events ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: m_postal_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes ALTER COLUMN id SET DEFAULT nextval('public.m_postal_codes_id_seq'::regclass);
+
+
+--
 -- Name: member_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3116,6 +3168,14 @@ ALTER TABLE ONLY public.m_paint_surfaces
 
 ALTER TABLE ONLY public.m_paint_types
     ADD CONSTRAINT m_paint_types_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_postal_codes m_postal_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes
+    ADD CONSTRAINT m_postal_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -4543,6 +4603,13 @@ CREATE INDEX idx_notifications_related ON public.notifications USING btree (rela
 
 
 --
+-- Name: idx_postal_code_area_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_postal_code_area_unique ON public.m_postal_codes USING btree (postal_code, town_area_name_kanji);
+
+
+--
 -- Name: idx_qr_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5205,6 +5272,41 @@ CREATE UNIQUE INDEX index_m_paint_types_on_name_ja ON public.m_paint_types USING
 --
 
 CREATE INDEX index_m_paint_types_on_updated_by_id ON public.m_paint_types USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_postal_codes_on_city_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_postal_codes_on_city_code ON public.m_postal_codes USING btree (city_code);
+
+
+--
+-- Name: index_m_postal_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_postal_codes_on_created_by_id ON public.m_postal_codes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_postal_codes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_postal_codes_on_deleted_by_id ON public.m_postal_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_postal_codes_on_postal_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_postal_codes_on_postal_code ON public.m_postal_codes USING btree (postal_code);
+
+
+--
+-- Name: index_m_postal_codes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_postal_codes_on_updated_by_id ON public.m_postal_codes USING btree (updated_by_id);
 
 
 --
@@ -7000,6 +7102,30 @@ CREATE TRIGGER trg_h_error_logs_compress BEFORE INSERT ON public.h_error_logs FO
 
 
 --
+-- Name: affiliate_details fk_affiliate_details_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_details
+    ADD CONSTRAINT fk_affiliate_details_city_code FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: member_details fk_member_details_billing_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_details
+    ADD CONSTRAINT fk_member_details_billing_city_code FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: member_shipping_addresses fk_member_shipping_addresses_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_shipping_addresses
+    ADD CONSTRAINT fk_member_shipping_addresses_city_code FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: affiliate_signups fk_rails_00b8de6797; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7480,6 +7606,14 @@ ALTER TABLE ONLY public.quote_request_comments
 
 
 --
+-- Name: m_postal_codes fk_rails_4a069ba98b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes
+    ADD CONSTRAINT fk_rails_4a069ba98b FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: stripe_payments fk_rails_4b62aa0798; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7904,6 +8038,14 @@ ALTER TABLE ONLY public.m_grain_finishes
 
 
 --
+-- Name: m_postal_codes fk_rails_8cab43ec13; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes
+    ADD CONSTRAINT fk_rails_8cab43ec13 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: quote_items fk_rails_8d4554da01; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7949,6 +8091,14 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 ALTER TABLE ONLY public.vendor_details
     ADD CONSTRAINT fk_rails_9550a269e6 FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
+
+
+--
+-- Name: m_postal_codes fk_rails_9584d0ef32; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes
+    ADD CONSTRAINT fk_rails_9584d0ef32 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8280,6 +8430,14 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: m_postal_codes fk_rails_d6f8c39731; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_postal_codes
+    ADD CONSTRAINT fk_rails_d6f8c39731 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: articles fk_rails_d87756143c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8480,6 +8638,22 @@ ALTER TABLE ONLY public.affiliate_signups
 
 
 --
+-- Name: vendor_details fk_vendor_details_office_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_details
+    ADD CONSTRAINT fk_vendor_details_office_city_code FOREIGN KEY (office_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: vendor_service_areas fk_vendor_service_areas_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_areas
+    ADD CONSTRAINT fk_vendor_service_areas_city_code FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: h_article_views h_article_views_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8542,6 +8716,12 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250516041816'),
+('20250516041435'),
+('20250516040734'),
+('20250516034743'),
+('20250516030806'),
+('20250516020025'),
 ('20250514090444'),
 ('20250514085213'),
 ('20250514084407'),

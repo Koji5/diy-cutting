@@ -1,19 +1,19 @@
 Rails.application.routes.draw do
   get "articles/index"
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+  get  "prefectures/:code/cities", to: "postals#cities"      # 都道府県→市区町村
+  get  "postal_lookup/:zip",       to: "postals#lookup"      # 郵便番号→候補一覧
 
   root "articles#index"            # トップページを articles#index に
   resources :articles, only: [:index]
-  devise_for :users
+
+  # ① Member (標準)  ─ /users/...
+  devise_for :users, controllers: {
+    registrations: "members/registrations"
+  }, path: "", path_names: { sign_up: "sign_up", sign_in: "sign_in" }
+
+  # ② Vendor 専用     ─ /vendors/...
+  devise_for :vendors, class_name: "User", controllers: {
+    registrations: "vendors/registrations"
+  }, path: "vendors", path_names: { sign_up: "sign_up", sign_in: "sign_in" }
 end

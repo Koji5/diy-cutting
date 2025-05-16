@@ -1,0 +1,64 @@
+<%#
+  共通パーシャル
+  必須: form
+  任意: zip_col / pref_col / city_col / line_col
+        （渡さなければデフォルト名）
+%>
+<% raise ArgumentError, "local :form is required" unless local_assigns[:form] %>
+<% form = local_assigns[:form] %>
+<% zip_col  = local_assigns.fetch(:zip_col,  :postal_code)      %>
+<% pref_col = local_assigns.fetch(:pref_col, :prefecture_code)  %>
+<% city_col = local_assigns.fetch(:city_col, :city_code)        %>
+<% line_col = local_assigns.fetch(:line_col, :address_line)     %>
+
+<div data-controller="address">
+
+  <!-- 郵便番号 & 検索ボタン -->
+  <div class="input-group mb-3">
+    <%= form.text_field zip_col,
+          maxlength: 7,
+          class: "form-control",
+          data: { address_target: "zip" } %>
+    <button type="button" class="btn btn-outline-secondary"
+            data-address-target="zipBtn"
+            data-action="click->address#searchZip">
+      住所を検索
+    </button>
+  </div>
+
+  <!-- 都道府県 -->
+  <div class="mb-3">
+    <%= form.select pref_col,
+          options_from_collection_for_select(MPrefecture.all, :code, :name_ja),
+          { include_blank: "-- 都道府県 --" },
+          class: "form-select",
+          data: { address_target: "pref",
+                  action: "change->address#loadCities" } %>
+  </div>
+
+  <!-- 市区町村 -->
+  <div class="mb-3">
+    <%= form.select city_col,
+          [], {}, class: "form-select",
+          data: { address_target: "city" } %>
+  </div>
+
+  <!-- 町域・番地など自由入力 -->
+  <div class="mb-3">
+    <%= form.text_field line_col,
+          class: "form-control",
+          placeholder: "町域・番地など",
+          data: { address_target: "addr1" } %>
+  </div>
+
+  <!-- 候補モーダル -->
+  <div class="modal" tabindex="-1" data-address-target="modal">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-body" data-address-target="modalBody">
+          <!-- 動的に候補が入る -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

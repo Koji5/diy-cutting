@@ -1,0 +1,81 @@
+<%# ---------------- User 本体 ---------------- %>
+<div class="mb-3">
+  <%= f.label :email, class: "form-label" %>
+  <%= f.email_field :email, class: "form-control", required: true, autofocus: true %>
+</div>
+
+<div class="mb-3">
+  <%= f.label :password, class: "form-label" %>
+  <%= f.password_field :password, class: "form-control", required: true %>
+</div>
+
+<div class="mb-4">
+  <%= f.label :password_confirmation, class: "form-label" %>
+  <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+</div>
+
+<%# ------------- MemberDetail（polymorphic）------------- %>
+<%= f.fields_for :detail do |md| %>
+  <div class="mb-3">
+    <%= md.label :nickname, "ニックネーム", class: "form-label" %>
+    <%= md.text_field :nickname, class: "form-control", maxlength: 50 %>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :icon_url, "プロフィールアイコン URL", class: "form-label" %>
+    <%= md.url_field :icon_url, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :legal_type, "個人／法人", class: "form-label d-block" %>
+    <%# 0=individual / 1=corporation – ラジオボタン %>
+    <div class="form-check form-check-inline">
+      <%= md.radio_button :legal_type, 0, class: "form-check-input", required: true %>
+      <%= md.label :legal_type_individual, "個人", value: 0, class: "form-check-label" %>
+    </div>
+    <div class="form-check form-check-inline">
+      <%= md.radio_button :legal_type, 1, class: "form-check-input" %>
+      <%= md.label :legal_type_corporation, "法人", value: 1, class: "form-check-label" %>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :legal_name, "氏名／法人名", class: "form-label" %>
+    <%= md.text_field :legal_name, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :legal_name_kana, "ふりがな／法人名カナ", class: "form-label" %>
+    <%= md.text_field :legal_name_kana, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :birthday, "生年月日", class: "form-label" %>
+    <%= md.date_field :birthday, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= md.label :gender, "性別", class: "form-label" %>
+    <%= md.select :gender, [["指定しない", ""], ["男性", "M"], ["女性", "F"], ["その他", "O"]],
+                  {}, class: "form-select" %>
+  </div>
+
+  <h5 class="mt-4 mb-3">請求先住所</h5>
+
+  <%= render "shared/address_fields",
+           form: md,
+           zip_col:  :billing_postal_code,
+           pref_col: :billing_prefecture_code,
+           city_col: :billing_city_code,
+           line_col: :billing_address_line %>
+
+  <div class="mb-3">
+    <%= md.label :billing_department, "部署", class: "form-label" %>
+    <%= md.text_field :billing_department, class: "form-control" %>
+  </div>
+
+  <div class="mb-4">
+    <%= md.label :billing_phone_number, "電話番号", class: "form-label" %>
+    <%= md.telephone_field :billing_phone_number, class: "form-control" %>
+  </div>
+<% end %>
