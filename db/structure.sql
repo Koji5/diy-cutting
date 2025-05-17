@@ -2425,8 +2425,6 @@ CREATE TABLE public.users (
     email character varying NOT NULL,
     encrypted_password character varying NOT NULL,
     role smallint NOT NULL,
-    detail_type character varying(20) NOT NULL,
-    detail_id bigint NOT NULL,
     password_changed_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     password_expires_at timestamp(6) without time zone,
     created_by_id bigint,
@@ -2447,8 +2445,6 @@ CREATE TABLE public.users (
     failed_attempts integer DEFAULT 0 NOT NULL,
     unlock_token character varying,
     locked_at timestamp(6) without time zone,
-    CONSTRAINT users_detail_type_value CHECK (((detail_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[]))),
-    CONSTRAINT users_role_detail_type_consistency CHECK ((((role = 0) AND ((detail_type)::text = 'MemberDetail'::text)) OR ((role = 1) AND ((detail_type)::text = 'VendorDetail'::text)) OR ((role = 2) AND ((detail_type)::text = 'AdminDetail'::text)) OR ((role = 3) AND ((detail_type)::text = 'AffiliateDetail'::text)))),
     CONSTRAINT users_role_value CHECK ((role = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -6038,13 +6034,6 @@ CREATE INDEX index_users_on_deleted_by_id ON public.users USING btree (deleted_b
 
 
 --
--- Name: index_users_on_detail_type_and_detail_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_detail_type_and_detail_id ON public.users USING btree (detail_type, detail_id);
-
-
---
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8716,6 +8705,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250517024649'),
+('20250517022626'),
 ('20250516041816'),
 ('20250516041435'),
 ('20250516040734'),

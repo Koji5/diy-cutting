@@ -14,8 +14,8 @@
   <%= f.password_field :password_confirmation, class: "form-control", required: true %>
 </div>
 
-<%# ------------- MemberDetail（polymorphic）------------- %>
-<%= f.fields_for :detail do |md| %>
+<%# ------------- MemberDetail------------- %>
+<%= f.fields_for :member_detail do |md| %>
   <div class="mb-3">
     <%= md.label :nickname, "ニックネーム", class: "form-label" %>
     <%= md.text_field :nickname, class: "form-control", maxlength: 50 %>

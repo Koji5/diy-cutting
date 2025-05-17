@@ -22,11 +22,20 @@ services:
   db:
     image: postgres:16-alpine
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: diy_cutting_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 5
-
+volumes:
+  db_data:
+    external: true
+    name: b7921c7195273aa2439ae5e5918fe1ff8e698e073cb9d2ff0aa568a808d5c291
   #redis:
   #  image: redis:7-alpine
