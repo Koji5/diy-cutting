@@ -40,6 +40,7 @@
         <!-- 右寄せ：ログイン / ログアウト -->
         <div class="ms-auto">
           <% if user_signed_in? %>
+            <span class="text-white me-3"><%= role_badge(current_user) %></span>
             <span class="text-white me-3">こんにちは、<%= current_user.display_name %>さん</span>
             <%= link_to "ログアウト", destroy_user_session_path,
                         data: { turbo_method: :delete, turbo_confirm: "本当にログアウトしますか？" }, class: "btn btn-sm btn-outline-light" %>
