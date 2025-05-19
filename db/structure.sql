@@ -1774,7 +1774,6 @@ CREATE TABLE public.member_details (
     billing_department character varying(100),
     billing_phone_number character varying(30),
     primary_shipping_id bigint,
-    role smallint DEFAULT 4 NOT NULL,
     stripe_customer_id character varying,
     registered_affiliate_id bigint,
     created_by_id bigint,
@@ -1784,7 +1783,7 @@ CREATE TABLE public.member_details (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_member_role CHECK ((role = 4))
+    membership_plan integer DEFAULT 0 NOT NULL
 );
 
 
@@ -8705,6 +8704,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250519011742'),
 ('20250517024649'),
 ('20250517022626'),
 ('20250516041816'),

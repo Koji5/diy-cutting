@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_one :admin_detail
   has_one :affiliate_detail
   accepts_nested_attributes_for :member_detail
+  has_secure_token :public_uid
 
   # ロール毎に “詳細テーブル” と “候補カラム” をマッピング
   DISPLAY_NAME_MAP = {
@@ -20,16 +21,11 @@ class User < ApplicationRecord
   }.freeze
 
   # callbacks
-  before_validation :ensure_public_uid,        on: :create
 
   validates :public_uid, presence: true, uniqueness: true, length: { maximum: 32 }
   validates :email,      presence: true, uniqueness: true,
                          format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :role,   presence: true
-
-  def prepare_member_detail
-    build_member_detail(role: MemberDetail.roles[:member]) if member_detail.blank?
-  end
 
   # ----- 共通表示名 -----
   def display_name
@@ -43,10 +39,5 @@ class User < ApplicationRecord
     map[:cols].find { |c| record[c].present? }               # => シンボル or nil
          &.then { |c| record[c] } || email                   # 値が無ければ email
   end
-
-  private
-
-  def ensure_public_uid = self.public_uid ||= SecureRandom.urlsafe_base64(24)
-
 
 end

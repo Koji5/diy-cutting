@@ -1,5 +1,5 @@
 class MemberDetail < ApplicationRecord
-  enum :role, { member: 4 }
+  enum :membership_plan, { free: 0 }
   self.primary_key = :user_id
   belongs_to :user, inverse_of: :member_detail
   has_many :shipping_addresses,
@@ -7,7 +7,10 @@ class MemberDetail < ApplicationRecord
            foreign_key: :member_id,
            dependent: :destroy
   belongs_to :primary_shipping_address,
-             class_name: "MemberShippingAddress",
-             foreign_key: :primary_shipping_id,
-             optional: true
+           class_name: "MemberShippingAddress",
+           foreign_key: :primary_shipping_id,
+           optional: true
+  belongs_to :registered_affiliate,
+           class_name: "User",
+           optional: true
 end
