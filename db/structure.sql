@@ -117,7 +117,6 @@ CREATE TABLE public.affiliate_details (
     payout_threshold numeric(18,4) DEFAULT 5000.0 NOT NULL,
     unpaid_balance numeric(18,4) DEFAULT 0.0 NOT NULL,
     last_paid_at timestamp(6) without time zone,
-    stripe_account_id character varying(255) NOT NULL,
     charges_enabled boolean DEFAULT false NOT NULL,
     payouts_enabled boolean DEFAULT false NOT NULL,
     created_by_id bigint,
@@ -199,7 +198,7 @@ CREATE TABLE public.article_comments (
     updated_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_article_comments_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+    CONSTRAINT chk_article_comments_author_type CHECK (((author_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
 );
 
 
@@ -318,7 +317,7 @@ CREATE TABLE public.articles (
     updated_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_articles_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+    CONSTRAINT chk_articles_author_type CHECK (((author_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
 );
 
 
@@ -1376,7 +1375,7 @@ CREATE TABLE public.h_payout_events (
     logged_by_type character varying(20),
     logged_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_hpe_logged_by_type CHECK ((((logged_by_type)::text = ANY ((ARRAY['System'::character varying, 'User'::character varying, 'Admin'::character varying])::text[])) OR (logged_by_type IS NULL)))
+    CONSTRAINT chk_hpe_logged_by_type CHECK ((((logged_by_type)::text = ANY (ARRAY[('System'::character varying)::text, ('User'::character varying)::text, ('Admin'::character varying)::text])) OR (logged_by_type IS NULL)))
 );
 
 
@@ -1857,7 +1856,7 @@ CREATE TABLE public.notifications (
     updated_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_notifications_recipient_type CHECK (((recipient_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+    CONSTRAINT chk_notifications_recipient_type CHECK (((recipient_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
 );
 
 
@@ -1999,7 +1998,7 @@ CREATE TABLE public.payouts (
     updated_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_payouts_payee_type CHECK (((payee_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+    CONSTRAINT chk_payouts_payee_type CHECK (((payee_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
 );
 
 
@@ -2095,7 +2094,7 @@ CREATE TABLE public.quote_request_comments (
     updated_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_qr_comments_author_type CHECK (((author_type)::text = ANY ((ARRAY['MemberDetail'::character varying, 'VendorDetail'::character varying, 'AdminDetail'::character varying, 'AffiliateDetail'::character varying])::text[])))
+    CONSTRAINT chk_qr_comments_author_type CHECK (((author_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
 );
 
 
@@ -2504,7 +2503,6 @@ CREATE TABLE public.vendor_details (
     account_name character varying(100),
     shipping_base_address_json jsonb,
     notes text,
-    stripe_account_id character varying(255) NOT NULL,
     charges_enabled boolean DEFAULT false NOT NULL,
     payouts_enabled boolean DEFAULT false NOT NULL,
     created_by_id bigint,
@@ -2513,7 +2511,8 @@ CREATE TABLE public.vendor_details (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    coverage_scope integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2535,11 +2534,42 @@ CREATE TABLE public.vendor_materials (
 
 CREATE TABLE public.vendor_service_areas (
     vendor_id bigint NOT NULL,
-    prefecture_code character varying(2) NOT NULL,
     city_code character varying(5) NOT NULL,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+
+--
+-- Name: vendor_service_prefectures; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_service_prefectures (
+    id bigint NOT NULL,
+    vendor_id bigint NOT NULL,
+    prefecture_code character(1) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: vendor_service_prefectures_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.vendor_service_prefectures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: vendor_service_prefectures_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.vendor_service_prefectures_id_seq OWNED BY public.vendor_service_prefectures.id;
 
 
 --
@@ -2998,6 +3028,13 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: vendor_service_prefectures id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_prefectures ALTER COLUMN id SET DEFAULT nextval('public.vendor_service_prefectures_id_seq'::regclass);
+
+
+--
 -- Name: admin_details admin_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3358,11 +3395,11 @@ ALTER TABLE ONLY public.vendor_materials
 
 
 --
--- Name: vendor_service_areas vendor_service_areas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: vendor_service_prefectures vendor_service_prefectures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.vendor_service_areas
-    ADD CONSTRAINT vendor_service_areas_pkey PRIMARY KEY (vendor_id, prefecture_code, city_code);
+ALTER TABLE ONLY public.vendor_service_prefectures
+    ADD CONSTRAINT vendor_service_prefectures_pkey PRIMARY KEY (id);
 
 
 --
@@ -4612,6 +4649,20 @@ CREATE INDEX idx_qr_comments_author_polymorphic ON public.quote_request_comments
 
 
 --
+-- Name: idx_vsa_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_vsa_unique ON public.vendor_service_areas USING btree (vendor_id, city_code);
+
+
+--
+-- Name: idx_vsp_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_vsp_unique ON public.vendor_service_prefectures USING btree (vendor_id, prefecture_code);
+
+
+--
 -- Name: index_admin_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4700,13 +4751,6 @@ CREATE INDEX index_affiliate_details_on_deleted_by_id ON public.affiliate_detail
 --
 
 CREATE UNIQUE INDEX index_affiliate_details_on_invoice_number ON public.affiliate_details USING btree (invoice_number);
-
-
---
--- Name: index_affiliate_details_on_stripe_account_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_affiliate_details_on_stripe_account_id ON public.affiliate_details USING btree (stripe_account_id);
 
 
 --
@@ -6082,6 +6126,13 @@ CREATE INDEX index_vendor_capabilities_on_vendor_id ON public.vendor_capabilitie
 
 
 --
+-- Name: index_vendor_details_on_coverage_scope; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_details_on_coverage_scope ON public.vendor_details USING btree (coverage_scope);
+
+
+--
 -- Name: index_vendor_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6100,13 +6151,6 @@ CREATE INDEX index_vendor_details_on_deleted_by_id ON public.vendor_details USIN
 --
 
 CREATE UNIQUE INDEX index_vendor_details_on_invoice_number ON public.vendor_details USING btree (invoice_number);
-
-
---
--- Name: index_vendor_details_on_stripe_account_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_vendor_details_on_stripe_account_id ON public.vendor_details USING btree (stripe_account_id);
 
 
 --
@@ -6135,13 +6179,6 @@ CREATE INDEX index_vendor_materials_on_vendor_id ON public.vendor_materials USIN
 --
 
 CREATE INDEX index_vendor_service_areas_on_city_code ON public.vendor_service_areas USING btree (city_code);
-
-
---
--- Name: index_vendor_service_areas_on_prefecture_code; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_vendor_service_areas_on_prefecture_code ON public.vendor_service_areas USING btree (prefecture_code);
 
 
 --
@@ -7322,14 +7359,6 @@ ALTER TABLE ONLY public.quote_requests
 
 
 --
--- Name: vendor_service_areas fk_rails_1d5998f1d2; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.vendor_service_areas
-    ADD CONSTRAINT fk_rails_1d5998f1d2 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
-
-
---
 -- Name: users fk_rails_205180732b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7882,14 +7911,6 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
--- Name: affiliate_details fk_rails_711468941e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.affiliate_details
-    ADD CONSTRAINT fk_rails_711468941e FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
-
-
---
 -- Name: affiliate_commissions fk_rails_71684630c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8002,6 +8023,14 @@ ALTER TABLE ONLY public.article_comments
 
 
 --
+-- Name: vendor_service_prefectures fk_rails_8a9ace2194; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_prefectures
+    ADD CONSTRAINT fk_rails_8a9ace2194 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
 -- Name: payouts fk_rails_8ae13af0e2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8071,14 +8100,6 @@ ALTER TABLE ONLY public.order_reviews
 
 ALTER TABLE ONLY public.affiliate_commissions
     ADD CONSTRAINT fk_rails_939dc7f310 FOREIGN KEY (affiliate_user_id) REFERENCES public.users(id);
-
-
---
--- Name: vendor_details fk_rails_9550a269e6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.vendor_details
-    ADD CONSTRAINT fk_rails_9550a269e6 FOREIGN KEY (stripe_account_id) REFERENCES public.stripe_accounts(stripe_account_id);
 
 
 --
@@ -8626,6 +8647,14 @@ ALTER TABLE ONLY public.affiliate_signups
 
 
 --
+-- Name: vendor_service_prefectures fk_rails_fe52c5e836; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_service_prefectures
+    ADD CONSTRAINT fk_rails_fe52c5e836 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: vendor_details fk_vendor_details_office_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8704,6 +8733,10 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250520002832'),
+('20250520002259'),
+('20250520001538'),
+('20250519053327'),
 ('20250519011742'),
 ('20250517024649'),
 ('20250517022626'),

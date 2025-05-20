@@ -10,13 +10,12 @@ class AffiliateDetail < ApplicationRecord
              class_name: 'MCity',
              foreign_key: :city_code,
              primary_key: :code
-  belongs_to :stripe_account,
-             class_name: 'StripeAccount',
-             foreign_key: :stripe_account_id,
-             primary_key: :stripe_account_id
+
+  enum :account_type, { futsuu: 0, toza: 1 }   # 普通／当座
 
   # 役割整合チェック（アプリ層）
   validates :user,   presence: true
-  validates :name,   presence: true, length: { maximum: 100 }
+  validates :name, :postal_code, :prefecture_code,
+            :city_code, :address_line, presence: true
   validates :commission_rate, numericality: { greater_than: 0 }
 end

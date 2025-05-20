@@ -6,10 +6,13 @@ class User < ApplicationRecord
   enum :role, { member: 0, vendor: 1, admin: 2, affiliate: 3 }
 
   has_one :member_detail,    dependent: :destroy
-  has_one :vendor_detail
-  has_one :admin_detail
-  has_one :affiliate_detail
+  has_one :vendor_detail,    dependent: :destroy
+  has_one :admin_detail,     dependent: :destroy
+  has_one :affiliate_detail, dependent: :destroy
   accepts_nested_attributes_for :member_detail
+  accepts_nested_attributes_for :vendor_detail
+  accepts_nested_attributes_for :admin_detail
+  accepts_nested_attributes_for :affiliate_detail
   has_secure_token :public_uid
 
   # ロール毎に “詳細テーブル” と “候補カラム” をマッピング

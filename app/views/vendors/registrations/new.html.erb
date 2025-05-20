@@ -1,0 +1,10 @@
+<div class="container py-5" style="max-width:460px">
+  <h1 class="h4 mb-4 text-center">ベンダー新規登録</h1>
+  <%= render "shared/error_messages", resource: resource %>
+  <%= form_with model: resource, url: vendor_registration_path, scope: :user do |f| %>
+
+    <%= render "form", f: f %>
+
+    <%= f.submit "登録する", class: "btn btn-primary w-100" %>
+  <% end %>
+</div>

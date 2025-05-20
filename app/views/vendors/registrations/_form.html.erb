@@ -1,0 +1,92 @@
+<%# ---------- User 本体 ---------- %>
+<div class="mb-3">
+  <%= f.label :email, "メールアドレス", class: "form-label" %>
+  <%= f.email_field :email, class: "form-control", required: true %>
+</div>
+
+<div class="mb-3">
+  <%= f.label :password, "パスワード", class: "form-label" %>
+  <%= f.password_field :password, class: "form-control", required: true %>
+</div>
+
+<div class="mb-4">
+  <%= f.label :password_confirmation, "パスワード確認", class: "form-label" %>
+  <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+</div>
+
+<%# ---------- VendorDetail ---------- %>
+<%= f.fields_for :vendor_detail do |vd| %>
+  <div class="mb-3">
+    <%= vd.label :nickname, "ニックネーム", class: "form-label" %>
+    <%= vd.text_field :nickname, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :profile_icon_url, "プロフィール画像 URL", class: "form-label" %>
+    <%= vd.url_field :profile_icon_url, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :vendor_name, "事業者名", class: "form-label" %>
+    <%= vd.text_field :vendor_name, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :vendor_name_kana, "事業者名カナ", class: "form-label" %>
+    <%= vd.text_field :vendor_name_kana, class: "form-control" %>
+  </div>
+
+  <%= render "shared/address_fields",
+            form: vd,
+            zip_col:  :office_postal_code,
+            pref_col: :office_prefecture_code,
+            city_col: :office_city_code,
+            line_col: :office_address_line %>
+
+  <div class="mb-3">
+    <%= vd.label :office_phone_number, "代表電話", class: "form-label" %>
+    <%= vd.telephone_field :office_phone_number, class: "form-control" %>
+  </div>
+
+  <h5 class="mt-4">窓口担当者</h5>
+
+  <div class="mb-3">
+    <%= vd.label :contact_person_name, "担当者氏名", class: "form-label" %>
+    <%= vd.text_field :contact_person_name, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :contact_person_kana, "担当者氏名カナ", class: "form-label" %>
+    <%= vd.text_field :contact_person_kana, class: "form-control" %>
+  </div>
+
+  <div class="mb-4">
+    <%= vd.label :contact_phone_number, "担当者直通電話", class: "form-label" %>
+    <%= vd.telephone_field :contact_phone_number, class: "form-control" %>
+  </div>
+
+  <h5 class="mt-4">振込口座</h5>
+
+  <div class="mb-3">
+    <%= vd.label :bank_name, "銀行名", class: "form-label" %>
+    <%= vd.text_field :bank_name, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :account_type, "口座種別", class: "form-label d-block" %>
+    <%= vd.radio_button :account_type, :futsuu, class: "form-check-input", required: true %>
+    <%= vd.label :account_type_futsuu, "普通", value: :futsuu, class: "form-check-label me-3" %>
+    <%= vd.radio_button :account_type, :toza, class: "form-check-input" %>
+    <%= vd.label :account_type_toza, "当座", value: :toza, class: "form-check-label" %>
+  </div>
+
+  <div class="mb-3">
+    <%= vd.label :account_number, "口座番号", class: "form-label" %>
+    <%= vd.text_field :account_number, class: "form-control" %>
+  </div>
+
+  <div class="mb-4">
+    <%= vd.label :account_name, "口座名義", class: "form-label" %>
+    <%= vd.text_field :account_name, class: "form-control" %>
+  </div>
+<% end %>

@@ -1,0 +1,70 @@
+  <%# ------ User 本体 ------ %>
+  <div class="mb-3">
+    <%= f.label :email, "メールアドレス", class: "form-label" %>
+    <%= f.email_field :email, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :password, "パスワード", class: "form-label" %>
+    <%= f.password_field :password, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-4">
+    <%= f.label :password_confirmation, "パスワード確認", class: "form-label" %>
+    <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+  </div>
+
+  <%# ------ AffiliateDetail ------ %>
+  <%= f.fields_for :affiliate_detail do |ad| %>
+    <div class="mb-3">
+      <%= ad.label :name, "氏名／法人名", class: "form-label" %>
+      <%= ad.text_field :name, class: "form-control", required: true %>
+    </div>
+
+    <div class="mb-3">
+      <%= ad.label :name_kana, "フリガナ", class: "form-label" %>
+      <%= ad.text_field :name_kana, class: "form-control" %>
+    </div>
+
+    <%= render "shared/address_fields",
+               form: ad,
+               zip_col:  :postal_code,
+               pref_col: :prefecture_code,
+               city_col: :city_code,
+               line_col: :address_line %>
+
+    <div class="mb-3">
+      <%= ad.label :phone_number, "電話番号", class: "form-label" %>
+      <%= ad.telephone_field :phone_number, class: "form-control" %>
+    </div>
+
+    <div class="mb-3">
+      <%= ad.label :invoice_number, "適格請求書発行事業者番号", class: "form-label" %>
+      <%= ad.text_field :invoice_number, class: "form-control" %>
+    </div>
+
+    <h5 class="mt-4">振込口座情報</h5>
+
+    <div class="mb-3">
+      <%= ad.label :bank_name, "銀行名", class: "form-label" %>
+      <%= ad.text_field :bank_name, class: "form-control" %>
+    </div>
+
+    <div class="mb-3">
+      <%= ad.label :account_type, "口座種別", class: "form-label d-block" %>
+      <%= ad.radio_button :account_type, :futsuu, class: "form-check-input", required: true %>
+      <%= ad.label :account_type_futsuu, "普通", value: :futsuu, class: "form-check-label me-3" %>
+      <%= ad.radio_button :account_type, :toza, class: "form-check-input" %>
+      <%= ad.label :account_type_toza, "当座", value: :toza, class: "form-check-label" %>
+    </div>
+
+    <div class="mb-3">
+      <%= ad.label :account_number, "口座番号", class: "form-label" %>
+      <%= ad.text_field :account_number, class: "form-control" %>
+    </div>
+
+    <div class="mb-4">
+      <%= ad.label :account_holder, "口座名義", class: "form-label" %>
+      <%= ad.text_field :account_holder, class: "form-control" %>
+    </div>
+  <% end %>
