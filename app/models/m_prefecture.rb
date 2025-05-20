@@ -1,6 +1,6 @@
 class MPrefecture < ApplicationRecord
   self.primary_key = :code
-
+  def name = name_ja
   belongs_to :created_by, class_name: "User", optional: true
   belongs_to :updated_by, class_name: "User", optional: true
   belongs_to :deleted_by, class_name: "User", optional: true

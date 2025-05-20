@@ -1,0 +1,37 @@
+<h1 class="mb-4">対応可能地域設定</h1>
+
+<div data-controller="coverage-selector"
+     data-coverage-selector-url-value="<%= vendors_coverage_settings_path %>"
+     class="mb-3">
+
+  <!-- ラジオ 3 個だけを permanent にする -->
+  <div class="btn-group"
+       role="group"
+       data-turbo-permanent>         <!-- ★ここだけ permanent -->
+
+    <input class="btn-check"
+           type="radio" name="coverage" id="cov0" value="all_japan"
+           data-action="coverage-selector#switch"
+           <%= "checked" if @vendor.all_japan? %>>
+    <label class="btn btn-outline-primary" for="cov0">全国</label>
+
+    <input class="btn-check"
+           type="radio" name="coverage" id="cov1" value="prefectures"
+           data-action="coverage-selector#switch"
+           <%= "checked" if @vendor.prefectures? %>>
+    <label class="btn btn-outline-primary" for="cov1">都道府県単位</label>
+
+    <input class="btn-check"
+           type="radio" name="coverage" id="cov2" value="cities"
+           data-action="coverage-selector#switch"
+           <%= "checked" if @vendor.cities? %>>
+    <label class="btn btn-outline-primary" for="cov2">市区町村単位</label>
+  </div>
+</div>
+
+<!-- frame は selector の「外」に置く -->
+<turbo-frame id="coverage-body">
+  <%= render "nationwide_block"                           if @vendor.all_japan? %>
+  <%= render "prefecture_block", pref_codes: @pref_codes  if @vendor.prefectures? %>
+  <%= render "city_block",        city_codes: @city_codes if @vendor.cities? %>
+</turbo-frame>

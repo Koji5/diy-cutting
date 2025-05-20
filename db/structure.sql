@@ -2547,7 +2547,7 @@ CREATE TABLE public.vendor_service_areas (
 CREATE TABLE public.vendor_service_prefectures (
     id bigint NOT NULL,
     vendor_id bigint NOT NULL,
-    prefecture_code character(1) NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -8733,6 +8733,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250520060432'),
 ('20250520002832'),
 ('20250520002259'),
 ('20250520001538'),

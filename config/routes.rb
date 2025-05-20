@@ -31,4 +31,12 @@ Rails.application.routes.draw do
     post "affiliate",         to: "affiliates/registrations#create",
                               as: :affiliate_registration
   end
+
+  namespace :vendors do
+    resource  :coverage_settings, only: %i[show update]  # 画面１枚
+    post "coverage_settings/cities_bulk", to: "coverage_settings#cities_bulk"
+    post "coverage_settings/prefs_bulk",  to: "coverage_settings#prefs_bulk"
+    post "coverage_settings/nationwide_bulk",  to: "coverage_settings#nationwide_bulk"
+    get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
+  end
 end

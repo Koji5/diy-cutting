@@ -17,6 +17,10 @@ class VendorDetail < ApplicationRecord
              foreign_key: :vendor_id,
              inverse_of: :vendor_detail,
              dependent: :destroy
+  has_many :service_prefectures,
+             class_name: "VendorServicePrefecture",
+             foreign_key: :vendor_id,
+             dependent: :destroy
   has_many :service_areas,
              class_name: 'VendorServiceArea',
              foreign_key: :vendor_id,
@@ -29,6 +33,11 @@ class VendorDetail < ApplicationRecord
              dependent: :destroy
 
   enum :account_type, { futsuu: 0, toza: 1 }
+  enum :coverage_scope, { 
+      all_japan: 0,
+      prefectures: 1,
+      cities: 2
+    }
 
   # Validations
   validates :vendor_name, :office_prefecture_code,

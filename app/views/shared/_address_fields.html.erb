@@ -11,7 +11,7 @@
 <% city_col = local_assigns.fetch(:city_col, :city_code)        %>
 <% line_col = local_assigns.fetch(:line_col, :address_line)     %>
 
-<div data-controller="address">
+<div data-controller="address" data-turbo-permanent data-action="address#logConnect">
 
   <!-- 郵便番号 & 検索ボタン -->
   <div class="input-group mb-3">

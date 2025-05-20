@@ -1,0 +1,10 @@
+<%= turbo_stream.update "coverage-body" do %>
+  <% case @vendor.coverage_scope.to_sym
+     when :all_japan %>
+       <%= render "nationwide_block" %>
+  <% when :prefectures %>
+       <%= render "prefecture_block", pref_codes: @pref_codes %>
+  <% when :cities %>
+       <%= render "city_block", city_codes: @city_codes %>
+  <% end %>
+<% end %>

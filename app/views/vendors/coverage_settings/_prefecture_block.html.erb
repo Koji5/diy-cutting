@@ -1,0 +1,18 @@
+<%= form_with url: vendors_coverage_settings_prefs_bulk_path,
+              method: :post,
+              data: { remote: true } do |f| %>
+
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-2">
+    <% MPrefecture.order(:code).each do |pref| %>
+      <div class="form-check">
+        <%= check_box_tag "prefecture_codes[]", pref.code, pref_codes.include?(pref.code),
+                          class: "form-check-input" %>
+        <%= label_tag nil, pref.name, class: "form-check-label ms-1" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="text-end mt-3">
+    <%= f.submit "決定", class: "btn btn-primary px-4" %>
+  </div>
+<% end %>

@@ -24,6 +24,7 @@ export default class extends Controller {
   // ライフサイクル
   // --------------------------------------------------
   connect () {
+    console.log("address connect!")
     // Bootstrap モーダルを初期化
     this.bsModal = new bootstrap.Modal(this.modalTarget)
   }

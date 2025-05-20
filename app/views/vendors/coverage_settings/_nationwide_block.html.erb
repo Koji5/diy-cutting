@@ -1,0 +1,7 @@
+<%= form_with url: vendors_coverage_settings_nationwide_bulk_path,
+              method: :post,
+              data:  { remote: true } do |f| %>
+  <div class="text-end">
+    <%= f.submit "全国対応に設定する", class: "btn btn-primary px-4" %>
+  </div>
+<% end %>
