@@ -84,7 +84,7 @@
     </div>
 
     <!-- ===== フッター ===== -->
-    <footer class="bg-light text-center small py-2">
+    <footer class="bg-light text-center small py-2 fixed-bottom border-top">
       &copy; <%= Time.current.year %> DIY Cutting
     </footer>
 
@@ -98,17 +98,6 @@
         <%= render "shared/menu" %>
       </div>
     </div>
-    <turbo-frame id="toast-frame"></turbo-frame>
-    <!-- ▼ Bootstrap Toast のテンプレート（非表示） -->
-    <div id="flash-toast"
-        class="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-3"
-        role="alert" aria-live="polite" aria-atomic="true"
-        data-controller="flash-toast" hidden>
-      <div class="d-flex">
-        <div class="toast-body"></div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                data-action="flash-toast#hide"></button>
-      </div>
-    </div>
+    <turbo-frame id="toast-frame" target="_top"></turbo-frame>
   </body>
 </html>

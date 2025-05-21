@@ -8,6 +8,12 @@ module Vendors
       @pref_codes   = @vendor.service_prefectures.pluck(:prefecture_code)
       @city_codes   = @vendor.service_areas.pluck(:city_code)
 
+      # ★ office_city があれば緯度経度をビューへ
+      if (city = @vendor.office_city)
+        @office_lat = city.latitude
+        @office_lng = city.longitude
+      end
+
       # ラジオ切替時は mode パラメータを使って「表示だけ」切替
       @vendor.coverage_scope = params[:mode] if params[:mode].present?
 
@@ -57,6 +63,14 @@ module Vendors
       render json: MCity.where(prefecture_code: params[:pref_code]).select(:code, :name).order(:name)
     end
 
+    def flash_toast
+      render turbo_stream: turbo_stream.update(
+        "toast-frame",
+        partial: "shared/flash_toast",
+        locals: { message: params[:msg], type: params[:type] }
+      )
+    end
+
     private
 
     def current_vendor = current_user.vendor_detail
@@ -69,11 +83,11 @@ module Vendors
       redirect_to root_path, alert: "権限がありません" unless current_user.vendor?
     end
 
-    def render_flash_stream
+    def render_flash_stream(message: "保存しました", type: "success")
       render turbo_stream: turbo_stream.update(
         "toast-frame",
         partial: "shared/flash_toast",
-        locals: { message: "保存しました" }
+        locals: { message: message, type: type }
       )
     end
   end

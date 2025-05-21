@@ -1,10 +1,12 @@
-<div id="flash-toast"
-     class="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-3"
+<div class="toast toast-over-footer align-items-center text-bg-<%= type || 'success' %> border-0"
      role="alert" aria-live="polite" aria-atomic="true"
-     data-controller="flash-toast">
+     data-controller="flash-toast"
+     data-bs-delay="4000"
+     data-bs-autohide="true"
+     style="min-width:240px">
   <div class="d-flex">
     <div class="toast-body"><%= message %></div>
     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-            data-action="flash-toast#hide"></button>
+            data-bs-dismiss="toast"></button>
   </div>
 </div>

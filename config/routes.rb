@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   get  "prefectures/:code/cities", to: "postals#cities"      # 都道府県→市区町村
   get  "postal_lookup/:zip",       to: "postals#lookup"      # 郵便番号→候補一覧
+  get "vendors/flash_toast", to: "vendors/coverage_settings#flash_toast"
 
   root "articles#index"            # トップページを articles#index に
   resources :articles, only: [:index]

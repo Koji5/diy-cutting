@@ -1,7 +1,14 @@
 <div data-controller="service-area-map"
-     data-service-area-map-geojson-path-value="/japan_munis_simplified.geojson"
+     data-service-area-map-geojson-path-value="/munis/pref_index.geojson"
      data-service-area-map-initial-codes-value="<%= city_codes.to_json %>"
      data-service-area-map-post-url-value="<%= vendors_coverage_settings_cities_bulk_path %>"
+
+     <%# ★ office_city がある場合のみ中心・ズーム10をセット %>
+     <% if @office_lat && @office_lng %>
+       data-service-area-map-center-value="[<%= @office_lat %>,<%= @office_lng %>]"
+       data-service-area-map-zoom-value="10"
+     <% end %>
+
      style="height: 600px;"></div>
 
 <div class="alert alert-info mt-2">

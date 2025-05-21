@@ -43,6 +43,10 @@ gem "thruster", require: false
 gem "devise", "~> 4.9"
 gem "importmap-rails"
 gem "cssbundling-rails"
+# GeoJSON を扱うため追加
+gem "rgeo",          "~> 3.0"
+gem "rgeo-geojson",  "~> 2.1"
+gem "ffi-geos",      "~> 2.5"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

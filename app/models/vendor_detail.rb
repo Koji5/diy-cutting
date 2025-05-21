@@ -11,7 +11,12 @@ class VendorDetail < ApplicationRecord
              class_name: 'MCity',
              foreign_key: :office_city_code,
              primary_key: :code
-
+  # ★ 別名エイリアス
+  belongs_to :office_city,
+             class_name: 'MCity',
+             foreign_key: :office_city_code,
+             primary_key: :code,
+             optional: true
   has_many :capabilities,
              class_name: 'VendorCapability',
              foreign_key: :vendor_id,

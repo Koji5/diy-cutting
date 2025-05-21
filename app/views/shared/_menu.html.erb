@@ -1,3 +1,39 @@
+<nav class="nav flex-column gap-1">
+
+  <!-- 既存メニュー … -->
+
+  <% if current_user&.vendor? %>
+    <!-- ▼ 設定（アコーディオン） -->
+    <div class="accordion" id="settingsAccordion">
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-3"
+                  type="button" data-bs-toggle="collapse"
+                  data-bs-target="#settingsMenu" aria-expanded="false">
+            <i class="bi bi-gear me-2"></i> 設定
+          </button>
+        </h2>
+
+        <div id="settingsMenu" class="accordion-collapse collapse"
+             data-bs-parent="#settingsAccordion">
+          <div class="accordion-body py-1 px-0">
+
+            <%= link_to vendors_coverage_settings_path,
+                        class: "nav-link ps-5 py-1" do %>
+              <i class="bi bi-map me-1"></i> 対応可能地域設定
+            <% end %>
+
+            <%# 今後ここに設定メニューを追加できます %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+</nav>
+
+
+
 <ul class="nav flex-column">
   <li class="nav-item">
     <%= link_to "記事一覧", articles_path, class: "nav-link" %>
