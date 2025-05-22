@@ -1,11 +1,9 @@
 class Order < ApplicationRecord
-  belongs_to :quote
-  belongs_to :quote_request, optional: true
   belongs_to :user          # 会員
   belongs_to :vendor,    class_name: 'User'
   belongs_to :affiliate, class_name: 'User', optional: true
   belongs_to :shipping_address,
-             class_name: 'MemberShippingAddress'
+             class_name: 'TransactionShippingAddress'
 
   enum status: {
     pending: 0, paid: 1, in_production: 2,

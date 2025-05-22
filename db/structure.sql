@@ -341,6 +341,73 @@ ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
 
 
 --
+-- Name: cart_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cart_items (
+    id bigint NOT NULL,
+    cart_id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cart_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cart_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cart_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cart_items_id_seq OWNED BY public.cart_items.id;
+
+
+--
+-- Name: carts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.carts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying(50) NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    shipping_address_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: carts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.carts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: carts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.carts_id_seq OWNED BY public.carts.id;
+
+
+--
 -- Name: h_affiliate_clicks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1931,8 +1998,6 @@ ALTER SEQUENCE public.order_reviews_id_seq OWNED BY public.order_reviews.id;
 
 CREATE TABLE public.orders (
     id bigint NOT NULL,
-    quote_id bigint NOT NULL,
-    quote_request_id bigint,
     user_id bigint NOT NULL,
     vendor_id bigint NOT NULL,
     affiliate_id bigint,
@@ -1951,7 +2016,8 @@ CREATE TABLE public.orders (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    vendor_offer_id bigint NOT NULL
 );
 
 
@@ -1972,6 +2038,144 @@ CREATE SEQUENCE public.orders_id_seq
 --
 
 ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
+
+
+--
+-- Name: part_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.part_files (
+    id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    file_key character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: part_files_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.part_files_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: part_files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.part_files_id_seq OWNED BY public.part_files.id;
+
+
+--
+-- Name: part_snapshots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.part_snapshots (
+    id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    checksum character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    material_category_code character varying(10) NOT NULL,
+    material_code character varying(16) NOT NULL,
+    shape_code character varying(8) NOT NULL,
+    paint_type_code character varying(4),
+    thickness_mm numeric(8,2) NOT NULL,
+    width1_mm numeric(8,2) NOT NULL,
+    width2_mm numeric(8,2),
+    length_mm numeric(8,2) NOT NULL,
+    shape_json jsonb DEFAULT '{}'::jsonb,
+    corner_proc_json jsonb DEFAULT '{}'::jsonb,
+    hole_json jsonb DEFAULT '{}'::jsonb,
+    sqhole_json jsonb DEFAULT '{}'::jsonb,
+    edge_json jsonb DEFAULT '{}'::jsonb,
+    paint_json jsonb DEFAULT '{}'::jsonb,
+    note text,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    CONSTRAINT chk_ps_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
+);
+
+
+--
+-- Name: part_snapshots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.part_snapshots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: part_snapshots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.part_snapshots_id_seq OWNED BY public.part_snapshots.id;
+
+
+--
+-- Name: parts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.parts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying(50) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    material_category_code character varying(10) NOT NULL,
+    material_code character varying(16) NOT NULL,
+    shape_code character varying(8) NOT NULL,
+    paint_type_code character varying(4),
+    thickness_mm numeric(8,2) NOT NULL,
+    width1_mm numeric(8,2) NOT NULL,
+    width2_mm numeric(8,2),
+    length_mm numeric(8,2) NOT NULL,
+    shape_json jsonb DEFAULT '{}'::jsonb,
+    corner_proc_json jsonb DEFAULT '{}'::jsonb,
+    hole_json jsonb DEFAULT '{}'::jsonb,
+    sqhole_json jsonb DEFAULT '{}'::jsonb,
+    edge_json jsonb DEFAULT '{}'::jsonb,
+    paint_json jsonb DEFAULT '{}'::jsonb,
+    note text,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    CONSTRAINT chk_parts_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
+);
+
+
+--
+-- Name: parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.parts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.parts_id_seq OWNED BY public.parts.id;
 
 
 --
@@ -2025,46 +2229,24 @@ ALTER SEQUENCE public.payouts_id_seq OWNED BY public.payouts.id;
 
 
 --
--- Name: quote_items; Type: TABLE; Schema: public; Owner: -
+-- Name: recipe_parts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.quote_items (
+CREATE TABLE public.recipe_parts (
     id bigint NOT NULL,
-    quote_id bigint NOT NULL,
-    line_no smallint NOT NULL,
-    material_category_code character varying(10) NOT NULL,
-    material_code character varying(16) NOT NULL,
-    shape_code character varying(10) NOT NULL,
-    paint_type_code character varying(10),
-    thickness_mm numeric(8,2) NOT NULL,
-    width1_mm numeric(8,2) NOT NULL,
-    width2_mm numeric(8,2),
-    length_mm numeric(8,2) NOT NULL,
-    shape_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    corner_proc_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hole_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    sqhole_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    edge_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    paint_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    quantity integer NOT NULL,
-    shipping_size_class smallint,
-    note text,
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_positive_dims CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND (length_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (quantity > 0)))
+    recipe_id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: quote_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: recipe_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.quote_items_id_seq
+CREATE SEQUENCE public.recipe_parts_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2073,39 +2255,31 @@ CREATE SEQUENCE public.quote_items_id_seq
 
 
 --
--- Name: quote_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: recipe_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.quote_items_id_seq OWNED BY public.quote_items.id;
+ALTER SEQUENCE public.recipe_parts_id_seq OWNED BY public.recipe_parts.id;
 
 
 --
--- Name: quote_request_comments; Type: TABLE; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.quote_request_comments (
+CREATE TABLE public.recipe_snapshot_parts (
     id bigint NOT NULL,
-    quote_request_id bigint NOT NULL,
-    parent_id bigint,
-    author_type character varying(20) NOT NULL,
-    author_id bigint NOT NULL,
-    body text NOT NULL,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_by_id bigint,
-    updated_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_qr_comments_author_type CHECK (((author_type)::text = ANY (ARRAY[('MemberDetail'::character varying)::text, ('VendorDetail'::character varying)::text, ('AdminDetail'::character varying)::text, ('AffiliateDetail'::character varying)::text])))
+    recipe_snapshot_id bigint NOT NULL,
+    part_snapshot_id bigint NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: quote_request_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.quote_request_comments_id_seq
+CREATE SEQUENCE public.recipe_snapshot_parts_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2114,39 +2288,31 @@ CREATE SEQUENCE public.quote_request_comments_id_seq
 
 
 --
--- Name: quote_request_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.quote_request_comments_id_seq OWNED BY public.quote_request_comments.id;
+ALTER SEQUENCE public.recipe_snapshot_parts_id_seq OWNED BY public.recipe_snapshot_parts.id;
 
 
 --
--- Name: quote_request_items; Type: TABLE; Schema: public; Owner: -
+-- Name: recipe_snapshots; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.quote_request_items (
+CREATE TABLE public.recipe_snapshots (
     id bigint NOT NULL,
-    quote_request_id bigint NOT NULL,
-    quote_item_id bigint NOT NULL,
-    unit_price numeric(18,4) DEFAULT 0.0 NOT NULL,
-    amount numeric(18,4) DEFAULT 0.0 NOT NULL,
-    memo text,
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_amount_non_negative CHECK ((amount >= (0)::numeric))
+    recipe_id bigint NOT NULL,
+    version integer NOT NULL,
+    published_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: quote_request_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: recipe_snapshots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.quote_request_items_id_seq
+CREATE SEQUENCE public.recipe_snapshots_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2155,88 +2321,32 @@ CREATE SEQUENCE public.quote_request_items_id_seq
 
 
 --
--- Name: quote_request_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: recipe_snapshots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.quote_request_items_id_seq OWNED BY public.quote_request_items.id;
-
-
---
--- Name: quote_requests; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.quote_requests (
-    id bigint NOT NULL,
-    quote_id bigint NOT NULL,
-    vendor_id bigint NOT NULL,
-    status smallint DEFAULT 0 NOT NULL,
-    items_subtotal numeric(18,4) DEFAULT 0.0 NOT NULL,
-    shipping_fee numeric(18,4) DEFAULT 0.0 NOT NULL,
-    tax_rate_pct numeric(4,2) DEFAULT 10.0 NOT NULL,
-    tax_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
-    total_estimate numeric(18,4) DEFAULT 0.0 NOT NULL,
-    answered_at timestamp(6) without time zone,
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
+ALTER SEQUENCE public.recipe_snapshots_id_seq OWNED BY public.recipe_snapshots.id;
 
 
 --
--- Name: quote_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: recipes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.quote_requests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: quote_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.quote_requests_id_seq OWNED BY public.quote_requests.id;
-
-
---
--- Name: quotes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.quotes (
+CREATE TABLE public.recipes (
     id bigint NOT NULL,
     user_id bigint NOT NULL,
-    status smallint DEFAULT 0 NOT NULL,
-    shipping_address_id bigint NOT NULL,
-    ship_prefecture_code character varying(2) DEFAULT ''::character varying NOT NULL,
-    ship_city_code character varying(5),
-    global_requirements text,
-    deadline date,
-    remarks text,
-    accepted_request_id bigint,
-    accepted_at timestamp(6) without time zone,
-    total_estimate numeric(18,4) DEFAULT 0.0 NOT NULL,
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    name character varying(60) NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    latest_snapshot_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: quotes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: recipes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.quotes_id_seq
+CREATE SEQUENCE public.recipes_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2245,10 +2355,76 @@ CREATE SEQUENCE public.quotes_id_seq
 
 
 --
--- Name: quotes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: recipes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.quotes_id_seq OWNED BY public.quotes.id;
+ALTER SEQUENCE public.recipes_id_seq OWNED BY public.recipes.id;
+
+
+--
+-- Name: rfq_parts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rfq_parts (
+    id bigint NOT NULL,
+    rfq_id bigint NOT NULL,
+    part_snapshot_id bigint NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: rfq_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.rfq_parts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: rfq_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rfq_parts_id_seq OWNED BY public.rfq_parts.id;
+
+
+--
+-- Name: rfqs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rfqs (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    shipping_address_id bigint,
+    status integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: rfqs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.rfqs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: rfqs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rfqs_id_seq OWNED BY public.rfqs.id;
 
 
 --
@@ -2378,6 +2554,41 @@ CREATE TABLE public.stripe_refunds (
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+
+--
+-- Name: transaction_shipping_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_shipping_addresses (
+    id bigint NOT NULL,
+    recipient_name character varying NOT NULL,
+    postal_code character varying(8) NOT NULL,
+    prefecture_code character varying(2) NOT NULL,
+    city_code character varying(5) NOT NULL,
+    address_line character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: transaction_shipping_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_shipping_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_shipping_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_shipping_addresses_id_seq OWNED BY public.transaction_shipping_addresses.id;
 
 
 --
@@ -2529,6 +2740,90 @@ CREATE TABLE public.vendor_materials (
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+
+--
+-- Name: vendor_offer_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_offer_items (
+    id bigint NOT NULL,
+    vendor_offer_id bigint NOT NULL,
+    rfq_part_id bigint NOT NULL,
+    unit_price numeric(18,4) NOT NULL,
+    lead_time_days integer,
+    note text,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint
+);
+
+
+--
+-- Name: vendor_offer_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.vendor_offer_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: vendor_offer_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.vendor_offer_items_id_seq OWNED BY public.vendor_offer_items.id;
+
+
+--
+-- Name: vendor_offers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_offers (
+    id bigint NOT NULL,
+    rfq_id bigint NOT NULL,
+    vendor_id bigint NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    total_price numeric(18,4) DEFAULT 0.0,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    sub_total numeric(18,4) DEFAULT 0.0 NOT NULL,
+    shipping_fee numeric(18,4) DEFAULT 0.0 NOT NULL,
+    tax_rate numeric(4,2) DEFAULT 10.0 NOT NULL,
+    tax_amount numeric(18,4) DEFAULT 0.0 NOT NULL,
+    received_at timestamp(6) without time zone,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint
+);
+
+
+--
+-- Name: vendor_offers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.vendor_offers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: vendor_offers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.vendor_offers_id_seq OWNED BY public.vendor_offers.id;
 
 
 --
@@ -2884,6 +3179,20 @@ ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.art
 
 
 --
+-- Name: cart_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_items ALTER COLUMN id SET DEFAULT nextval('public.cart_items_id_seq'::regclass);
+
+
+--
+-- Name: carts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carts ALTER COLUMN id SET DEFAULT nextval('public.carts_id_seq'::regclass);
+
+
+--
 -- Name: h_affiliate_clicks id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2968,6 +3277,27 @@ ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.order
 
 
 --
+-- Name: part_files id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_files ALTER COLUMN id SET DEFAULT nextval('public.part_files_id_seq'::regclass);
+
+
+--
+-- Name: part_snapshots id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots ALTER COLUMN id SET DEFAULT nextval('public.part_snapshots_id_seq'::regclass);
+
+
+--
+-- Name: parts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts ALTER COLUMN id SET DEFAULT nextval('public.parts_id_seq'::regclass);
+
+
+--
 -- Name: payouts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2975,38 +3305,45 @@ ALTER TABLE ONLY public.payouts ALTER COLUMN id SET DEFAULT nextval('public.payo
 
 
 --
--- Name: quote_items id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: recipe_parts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_items ALTER COLUMN id SET DEFAULT nextval('public.quote_items_id_seq'::regclass);
-
-
---
--- Name: quote_request_comments id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_comments ALTER COLUMN id SET DEFAULT nextval('public.quote_request_comments_id_seq'::regclass);
+ALTER TABLE ONLY public.recipe_parts ALTER COLUMN id SET DEFAULT nextval('public.recipe_parts_id_seq'::regclass);
 
 
 --
--- Name: quote_request_items id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_items ALTER COLUMN id SET DEFAULT nextval('public.quote_request_items_id_seq'::regclass);
-
-
---
--- Name: quote_requests id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests ALTER COLUMN id SET DEFAULT nextval('public.quote_requests_id_seq'::regclass);
+ALTER TABLE ONLY public.recipe_snapshot_parts ALTER COLUMN id SET DEFAULT nextval('public.recipe_snapshot_parts_id_seq'::regclass);
 
 
 --
--- Name: quotes id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: recipe_snapshots id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quotes ALTER COLUMN id SET DEFAULT nextval('public.quotes_id_seq'::regclass);
+ALTER TABLE ONLY public.recipe_snapshots ALTER COLUMN id SET DEFAULT nextval('public.recipe_snapshots_id_seq'::regclass);
+
+
+--
+-- Name: recipes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipes ALTER COLUMN id SET DEFAULT nextval('public.recipes_id_seq'::regclass);
+
+
+--
+-- Name: rfq_parts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfq_parts ALTER COLUMN id SET DEFAULT nextval('public.rfq_parts_id_seq'::regclass);
+
+
+--
+-- Name: rfqs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfqs ALTER COLUMN id SET DEFAULT nextval('public.rfqs_id_seq'::regclass);
 
 
 --
@@ -3014,6 +3351,13 @@ ALTER TABLE ONLY public.quotes ALTER COLUMN id SET DEFAULT nextval('public.quote
 --
 
 ALTER TABLE ONLY public.stripe_payments ALTER COLUMN id SET DEFAULT nextval('public.stripe_payments_id_seq'::regclass);
+
+
+--
+-- Name: transaction_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_shipping_addresses ALTER COLUMN id SET DEFAULT nextval('public.transaction_shipping_addresses_id_seq'::regclass);
 
 
 --
@@ -3028,6 +3372,20 @@ ALTER TABLE ONLY public.user_authorities ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: vendor_offer_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offer_items ALTER COLUMN id SET DEFAULT nextval('public.vendor_offer_items_id_seq'::regclass);
+
+
+--
+-- Name: vendor_offers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers ALTER COLUMN id SET DEFAULT nextval('public.vendor_offers_id_seq'::regclass);
 
 
 --
@@ -3107,6 +3465,22 @@ ALTER TABLE ONLY public.article_media
 
 ALTER TABLE ONLY public.articles
     ADD CONSTRAINT articles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cart_items cart_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_items
+    ADD CONSTRAINT cart_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: carts carts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT carts_pkey PRIMARY KEY (id);
 
 
 --
@@ -3270,6 +3644,30 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: part_files part_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_files
+    ADD CONSTRAINT part_files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: part_snapshots part_snapshots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT part_snapshots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: parts parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT parts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: payouts payouts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3278,43 +3676,51 @@ ALTER TABLE ONLY public.payouts
 
 
 --
--- Name: quote_items quote_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: recipe_parts recipe_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT quote_items_pkey PRIMARY KEY (id);
-
-
---
--- Name: quote_request_comments quote_request_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT quote_request_comments_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.recipe_parts
+    ADD CONSTRAINT recipe_parts_pkey PRIMARY KEY (id);
 
 
 --
--- Name: quote_request_items quote_request_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts recipe_snapshot_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT quote_request_items_pkey PRIMARY KEY (id);
-
-
---
--- Name: quote_requests quote_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT quote_requests_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.recipe_snapshot_parts
+    ADD CONSTRAINT recipe_snapshot_parts_pkey PRIMARY KEY (id);
 
 
 --
--- Name: quotes quotes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: recipe_snapshots recipe_snapshots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT quotes_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.recipe_snapshots
+    ADD CONSTRAINT recipe_snapshots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rfq_parts rfq_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfq_parts
+    ADD CONSTRAINT rfq_parts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rfqs rfqs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfqs
+    ADD CONSTRAINT rfqs_pkey PRIMARY KEY (id);
 
 
 --
@@ -3358,6 +3764,14 @@ ALTER TABLE ONLY public.stripe_refunds
 
 
 --
+-- Name: transaction_shipping_addresses transaction_shipping_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_shipping_addresses
+    ADD CONSTRAINT transaction_shipping_addresses_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_authorities user_authorities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3395,6 +3809,22 @@ ALTER TABLE ONLY public.vendor_details
 
 ALTER TABLE ONLY public.vendor_materials
     ADD CONSTRAINT vendor_materials_pkey PRIMARY KEY (vendor_id, material_code);
+
+
+--
+-- Name: vendor_offer_items vendor_offer_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offer_items
+    ADD CONSTRAINT vendor_offer_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vendor_offers vendor_offers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT vendor_offers_pkey PRIMARY KEY (id);
 
 
 --
@@ -4645,13 +5075,6 @@ CREATE UNIQUE INDEX idx_postal_code_area_unique ON public.m_postal_codes USING b
 
 
 --
--- Name: idx_qr_comments_author_polymorphic; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_qr_comments_author_polymorphic ON public.quote_request_comments USING btree (author_type, author_id);
-
-
---
 -- Name: idx_vsa_unique; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4908,6 +5331,34 @@ CREATE INDEX index_articles_on_replies_count ON public.articles USING btree (rep
 --
 
 CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views_count);
+
+
+--
+-- Name: index_cart_items_on_cart_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cart_items_on_cart_id ON public.cart_items USING btree (cart_id);
+
+
+--
+-- Name: index_cart_items_on_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cart_items_on_part_id ON public.cart_items USING btree (part_id);
+
+
+--
+-- Name: index_carts_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_carts_on_shipping_address_id ON public.carts USING btree (shipping_address_id);
+
+
+--
+-- Name: index_carts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_carts_on_user_id ON public.carts USING btree (user_id);
 
 
 --
@@ -5604,13 +6055,6 @@ CREATE INDEX index_orders_on_deleted_by_id ON public.orders USING btree (deleted
 
 
 --
--- Name: index_orders_on_quote_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_orders_on_quote_id ON public.orders USING btree (quote_id);
-
-
---
 -- Name: index_orders_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5636,6 +6080,125 @@ CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
 --
 
 CREATE INDEX index_orders_on_vendor_id ON public.orders USING btree (vendor_id);
+
+
+--
+-- Name: index_orders_on_vendor_offer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_vendor_offer_id ON public.orders USING btree (vendor_offer_id);
+
+
+--
+-- Name: index_part_files_on_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_files_on_part_id ON public.part_files USING btree (part_id);
+
+
+--
+-- Name: index_part_snapshots_on_checksum; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_checksum ON public.part_snapshots USING btree (checksum);
+
+
+--
+-- Name: index_part_snapshots_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_corner_proc_json ON public.part_snapshots USING gin (corner_proc_json);
+
+
+--
+-- Name: index_part_snapshots_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_created_by_id ON public.part_snapshots USING btree (created_by_id);
+
+
+--
+-- Name: index_part_snapshots_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_deleted_by_id ON public.part_snapshots USING btree (deleted_by_id);
+
+
+--
+-- Name: index_part_snapshots_on_hole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_hole_json ON public.part_snapshots USING gin (hole_json);
+
+
+--
+-- Name: index_part_snapshots_on_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_part_id ON public.part_snapshots USING btree (part_id);
+
+
+--
+-- Name: index_part_snapshots_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_sqhole_json ON public.part_snapshots USING gin (sqhole_json);
+
+
+--
+-- Name: index_part_snapshots_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_updated_by_id ON public.part_snapshots USING btree (updated_by_id);
+
+
+--
+-- Name: index_parts_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_corner_proc_json ON public.parts USING gin (corner_proc_json);
+
+
+--
+-- Name: index_parts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_created_by_id ON public.parts USING btree (created_by_id);
+
+
+--
+-- Name: index_parts_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_deleted_by_id ON public.parts USING btree (deleted_by_id);
+
+
+--
+-- Name: index_parts_on_hole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_hole_json ON public.parts USING gin (hole_json);
+
+
+--
+-- Name: index_parts_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_sqhole_json ON public.parts USING gin (sqhole_json);
+
+
+--
+-- Name: index_parts_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_updated_by_id ON public.parts USING btree (updated_by_id);
+
+
+--
+-- Name: index_parts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_user_id ON public.parts USING btree (user_id);
 
 
 --
@@ -5674,241 +6237,80 @@ CREATE INDEX index_payouts_on_updated_by_id ON public.payouts USING btree (updat
 
 
 --
--- Name: index_quote_items_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipe_parts_on_part_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_corner_proc_json ON public.quote_items USING gin (corner_proc_json);
+CREATE INDEX index_recipe_parts_on_part_id ON public.recipe_parts USING btree (part_id);
 
 
 --
--- Name: index_quote_items_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipe_parts_on_recipe_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_created_by_id ON public.quote_items USING btree (created_by_id);
+CREATE INDEX index_recipe_parts_on_recipe_id ON public.recipe_parts USING btree (recipe_id);
 
 
 --
--- Name: index_quote_items_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipe_snapshot_parts_on_part_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_deleted_by_id ON public.quote_items USING btree (deleted_by_id);
+CREATE INDEX index_recipe_snapshot_parts_on_part_snapshot_id ON public.recipe_snapshot_parts USING btree (part_snapshot_id);
 
 
 --
--- Name: index_quote_items_on_hole_json; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipe_snapshot_parts_on_recipe_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_hole_json ON public.quote_items USING gin (hole_json);
+CREATE INDEX index_recipe_snapshot_parts_on_recipe_snapshot_id ON public.recipe_snapshot_parts USING btree (recipe_snapshot_id);
 
 
 --
--- Name: index_quote_items_on_material_category_code; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipe_snapshots_on_recipe_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_material_category_code ON public.quote_items USING btree (material_category_code);
+CREATE INDEX index_recipe_snapshots_on_recipe_id ON public.recipe_snapshots USING btree (recipe_id);
 
 
 --
--- Name: index_quote_items_on_material_code; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipes_on_latest_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_material_code ON public.quote_items USING btree (material_code);
+CREATE INDEX index_recipes_on_latest_snapshot_id ON public.recipes USING btree (latest_snapshot_id);
 
 
 --
--- Name: index_quote_items_on_paint_type_code; Type: INDEX; Schema: public; Owner: -
+-- Name: index_recipes_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_paint_type_code ON public.quote_items USING btree (paint_type_code);
+CREATE INDEX index_recipes_on_user_id ON public.recipes USING btree (user_id);
 
 
 --
--- Name: index_quote_items_on_quote_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_rfq_parts_on_part_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_quote_id ON public.quote_items USING btree (quote_id);
+CREATE INDEX index_rfq_parts_on_part_snapshot_id ON public.rfq_parts USING btree (part_snapshot_id);
 
 
 --
--- Name: index_quote_items_on_quote_id_and_line_no; Type: INDEX; Schema: public; Owner: -
+-- Name: index_rfq_parts_on_rfq_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_quote_items_on_quote_id_and_line_no ON public.quote_items USING btree (quote_id, line_no);
+CREATE INDEX index_rfq_parts_on_rfq_id ON public.rfq_parts USING btree (rfq_id);
 
 
 --
--- Name: index_quote_items_on_shape_code; Type: INDEX; Schema: public; Owner: -
+-- Name: index_rfqs_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_shape_code ON public.quote_items USING btree (shape_code);
+CREATE INDEX index_rfqs_on_shipping_address_id ON public.rfqs USING btree (shipping_address_id);
 
 
 --
--- Name: index_quote_items_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
+-- Name: index_rfqs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_quote_items_on_sqhole_json ON public.quote_items USING gin (sqhole_json);
-
-
---
--- Name: index_quote_items_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_items_on_updated_by_id ON public.quote_items USING btree (updated_by_id);
-
-
---
--- Name: index_quote_request_comments_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_comments_on_created_by_id ON public.quote_request_comments USING btree (created_by_id);
-
-
---
--- Name: index_quote_request_comments_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_comments_on_deleted_by_id ON public.quote_request_comments USING btree (deleted_by_id);
-
-
---
--- Name: index_quote_request_comments_on_parent_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_comments_on_parent_id ON public.quote_request_comments USING btree (parent_id);
-
-
---
--- Name: index_quote_request_comments_on_quote_request_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_comments_on_quote_request_id ON public.quote_request_comments USING btree (quote_request_id);
-
-
---
--- Name: index_quote_request_comments_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_comments_on_updated_by_id ON public.quote_request_comments USING btree (updated_by_id);
-
-
---
--- Name: index_quote_request_items_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_items_on_created_by_id ON public.quote_request_items USING btree (created_by_id);
-
-
---
--- Name: index_quote_request_items_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_items_on_deleted_by_id ON public.quote_request_items USING btree (deleted_by_id);
-
-
---
--- Name: index_quote_request_items_on_quote_item_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_items_on_quote_item_id ON public.quote_request_items USING btree (quote_item_id);
-
-
---
--- Name: index_quote_request_items_on_quote_request_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_items_on_quote_request_id ON public.quote_request_items USING btree (quote_request_id);
-
-
---
--- Name: index_quote_request_items_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_request_items_on_updated_by_id ON public.quote_request_items USING btree (updated_by_id);
-
-
---
--- Name: index_quote_requests_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_requests_on_created_by_id ON public.quote_requests USING btree (created_by_id);
-
-
---
--- Name: index_quote_requests_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_requests_on_deleted_by_id ON public.quote_requests USING btree (deleted_by_id);
-
-
---
--- Name: index_quote_requests_on_quote_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_requests_on_quote_id ON public.quote_requests USING btree (quote_id);
-
-
---
--- Name: index_quote_requests_on_quote_id_and_vendor_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_quote_requests_on_quote_id_and_vendor_id ON public.quote_requests USING btree (quote_id, vendor_id);
-
-
---
--- Name: index_quote_requests_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_requests_on_updated_by_id ON public.quote_requests USING btree (updated_by_id);
-
-
---
--- Name: index_quote_requests_on_vendor_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quote_requests_on_vendor_id ON public.quote_requests USING btree (vendor_id);
-
-
---
--- Name: index_quotes_on_accepted_request_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_quotes_on_accepted_request_id ON public.quotes USING btree (accepted_request_id);
-
-
---
--- Name: index_quotes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quotes_on_created_by_id ON public.quotes USING btree (created_by_id);
-
-
---
--- Name: index_quotes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quotes_on_deleted_by_id ON public.quotes USING btree (deleted_by_id);
-
-
---
--- Name: index_quotes_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quotes_on_shipping_address_id ON public.quotes USING btree (shipping_address_id);
-
-
---
--- Name: index_quotes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quotes_on_updated_by_id ON public.quotes USING btree (updated_by_id);
-
-
---
--- Name: index_quotes_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_quotes_on_user_id ON public.quotes USING btree (user_id);
+CREATE INDEX index_rfqs_on_user_id ON public.rfqs USING btree (user_id);
 
 
 --
@@ -6178,6 +6580,97 @@ CREATE INDEX index_vendor_materials_on_vendor_id ON public.vendor_materials USIN
 
 
 --
+-- Name: index_vendor_offer_items_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offer_items_on_created_by_id ON public.vendor_offer_items USING btree (created_by_id);
+
+
+--
+-- Name: index_vendor_offer_items_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offer_items_on_deleted_by_id ON public.vendor_offer_items USING btree (deleted_by_id);
+
+
+--
+-- Name: index_vendor_offer_items_on_rfq_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offer_items_on_rfq_part_id ON public.vendor_offer_items USING btree (rfq_part_id);
+
+
+--
+-- Name: index_vendor_offer_items_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offer_items_on_updated_by_id ON public.vendor_offer_items USING btree (updated_by_id);
+
+
+--
+-- Name: index_vendor_offer_items_on_vendor_offer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offer_items_on_vendor_offer_id ON public.vendor_offer_items USING btree (vendor_offer_id);
+
+
+--
+-- Name: index_vendor_offers_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_created_by_id ON public.vendor_offers USING btree (created_by_id);
+
+
+--
+-- Name: index_vendor_offers_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_deleted_by_id ON public.vendor_offers USING btree (deleted_by_id);
+
+
+--
+-- Name: index_vendor_offers_on_rfq_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_rfq_id ON public.vendor_offers USING btree (rfq_id);
+
+
+--
+-- Name: index_vendor_offers_on_rfq_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_rfq_id_and_status ON public.vendor_offers USING btree (rfq_id, status);
+
+
+--
+-- Name: index_vendor_offers_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_status ON public.vendor_offers USING btree (status);
+
+
+--
+-- Name: index_vendor_offers_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_updated_by_id ON public.vendor_offers USING btree (updated_by_id);
+
+
+--
+-- Name: index_vendor_offers_on_vendor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_vendor_id ON public.vendor_offers USING btree (vendor_id);
+
+
+--
+-- Name: index_vendor_offers_on_vendor_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_offers_on_vendor_id_and_status ON public.vendor_offers USING btree (vendor_id, status);
+
+
+--
 -- Name: index_vendor_service_areas_on_city_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6189,6 +6682,20 @@ CREATE INDEX index_vendor_service_areas_on_city_code ON public.vendor_service_ar
 --
 
 CREATE INDEX index_vendor_service_areas_on_vendor_id ON public.vendor_service_areas USING btree (vendor_id);
+
+
+--
+-- Name: uniq_offer_item; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_offer_item ON public.vendor_offer_items USING btree (vendor_offer_id, rfq_part_id);
+
+
+--
+-- Name: uniq_vendor_offer_per_rfq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_vendor_offer_per_rfq ON public.vendor_offers USING btree (rfq_id, vendor_id) WHERE (deleted_flag = false);
 
 
 --
@@ -6220,24 +6727,10 @@ CREATE UNIQUE INDEX uq_member_default_address ON public.member_shipping_addresse
 
 
 --
--- Name: uq_orders_quote_request; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_orders_quote_request ON public.orders USING btree (quote_request_id);
-
-
---
 -- Name: uq_payouts_period; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX uq_payouts_period ON public.payouts USING btree (payee_type, payee_id, period_from, period_to);
-
-
---
--- Name: uq_quote_request_item; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_quote_request_item ON public.quote_request_items USING btree (quote_request_id, quote_item_id);
 
 
 --
@@ -7170,14 +7663,6 @@ ALTER TABLE ONLY public.stripe_payouts
 
 
 --
--- Name: quotes fk_rails_02b555fb4d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_02b555fb4d FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: affiliate_commissions fk_rails_03512ee4df; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7191,6 +7676,14 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 ALTER TABLE ONLY public.admin_details
     ADD CONSTRAINT fk_rails_0434f99b3a FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: part_files fk_rails_0484e77ee6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_files
+    ADD CONSTRAINT fk_rails_0484e77ee6 FOREIGN KEY (part_id) REFERENCES public.parts(id);
 
 
 --
@@ -7210,14 +7703,6 @@ ALTER TABLE ONLY public.m_glosses
 
 
 --
--- Name: quote_request_items fk_rails_07572f2c8b; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT fk_rails_07572f2c8b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: member_details fk_rails_08851c9c2d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7226,11 +7711,19 @@ ALTER TABLE ONLY public.member_details
 
 
 --
--- Name: quote_request_items fk_rails_0ae9bad297; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: recipe_snapshot_parts fk_rails_0989e6ad85; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT fk_rails_0ae9bad297 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id);
+ALTER TABLE ONLY public.recipe_snapshot_parts
+    ADD CONSTRAINT fk_rails_0989e6ad85 FOREIGN KEY (recipe_snapshot_id) REFERENCES public.recipe_snapshots(id);
+
+
+--
+-- Name: part_snapshots fk_rails_0a3ba229b5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_0a3ba229b5 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
 
 
 --
@@ -7290,27 +7783,11 @@ ALTER TABLE ONLY public.m_paint_types
 
 
 --
--- Name: quotes fk_rails_145bf3d23c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: part_snapshots fk_rails_140f6f0234; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_145bf3d23c FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
--- Name: quote_requests fk_rails_1466442f91; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT fk_rails_1466442f91 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
--- Name: quote_request_items fk_rails_14e4cbe138; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT fk_rails_14e4cbe138 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_140f6f0234 FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
 
 
 --
@@ -7330,14 +7807,6 @@ ALTER TABLE ONLY public.payouts
 
 
 --
--- Name: quote_requests fk_rails_180f8788a0; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT fk_rails_180f8788a0 FOREIGN KEY (vendor_id) REFERENCES public.users(id);
-
-
---
 -- Name: order_reviews fk_rails_19289e95c6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7354,14 +7823,6 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: quote_requests fk_rails_1b8890d53b; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT fk_rails_1b8890d53b FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
-
-
---
 -- Name: users fk_rails_205180732b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7375,6 +7836,14 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.order_reviews
     ADD CONSTRAINT fk_rails_218234f6ac FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- Name: recipe_parts fk_rails_220f43ebf6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipe_parts
+    ADD CONSTRAINT fk_rails_220f43ebf6 FOREIGN KEY (recipe_id) REFERENCES public.recipes(id);
 
 
 --
@@ -7406,7 +7875,7 @@ ALTER TABLE ONLY public.vendor_materials
 --
 
 ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT fk_rails_267c198c1b FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_rails_267c198c1b FOREIGN KEY (shipping_address_id) REFERENCES public.transaction_shipping_addresses(id) ON DELETE RESTRICT;
 
 
 --
@@ -7418,19 +7887,11 @@ ALTER TABLE ONLY public.stripe_refunds
 
 
 --
--- Name: orders fk_rails_27f9662e04; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: vendor_offer_items fk_rails_276f1f2b18; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT fk_rails_27f9662e04 FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
-
-
---
--- Name: quote_request_comments fk_rails_2965acff0f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT fk_rails_2965acff0f FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.vendor_offer_items
+    ADD CONSTRAINT fk_rails_276f1f2b18 FOREIGN KEY (rfq_part_id) REFERENCES public.rfq_parts(id);
 
 
 --
@@ -7447,6 +7908,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 ALTER TABLE ONLY public.m_paint_surfaces
     ADD CONSTRAINT fk_rails_2c0d76fe0e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: parts fk_rails_30be2232d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_30be2232d9 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -7474,19 +7943,27 @@ ALTER TABLE ONLY public.articles
 
 
 --
+-- Name: vendor_offers fk_rails_37424dfe2f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT fk_rails_37424dfe2f FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: orders fk_rails_3785801b9a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_3785801b9a FOREIGN KEY (vendor_offer_id) REFERENCES public.vendor_offers(id);
+
+
+--
 -- Name: m_shapes fk_rails_37e866bfd4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_shapes
     ADD CONSTRAINT fk_rails_37e866bfd4 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
--- Name: quotes fk_rails_386f544620; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_386f544620 FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -7519,14 +7996,6 @@ ALTER TABLE ONLY public.affiliate_signups
 
 ALTER TABLE ONLY public.article_likes
     ADD CONSTRAINT fk_rails_3f46dcc174 FOREIGN KEY (article_id) REFERENCES public.articles(id);
-
-
---
--- Name: orders fk_rails_40865df908; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT fk_rails_40865df908 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id) ON DELETE SET NULL;
 
 
 --
@@ -7567,6 +8036,14 @@ ALTER TABLE ONLY public.m_prefectures
 
 ALTER TABLE ONLY public.article_comments
     ADD CONSTRAINT fk_rails_439c61b372 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: part_snapshots fk_rails_44200a9608; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_44200a9608 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
 
 
 --
@@ -7618,19 +8095,19 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
--- Name: quote_request_comments fk_rails_48c0b3f433; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT fk_rails_48c0b3f433 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: m_postal_codes fk_rails_4a069ba98b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_postal_codes
     ADD CONSTRAINT fk_rails_4a069ba98b FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: part_snapshots fk_rails_4a942da875; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_4a942da875 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -7658,19 +8135,19 @@ ALTER TABLE ONLY public.m_shapes
 
 
 --
--- Name: quotes fk_rails_4d07b0b28d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_4d07b0b28d FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: admin_details fk_rails_4fcb60b766; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.admin_details
     ADD CONSTRAINT fk_rails_4fcb60b766 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_offers fk_rails_4fe5613415; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT fk_rails_4fe5613415 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -7735,6 +8212,14 @@ ALTER TABLE ONLY public.admin_details
 
 ALTER TABLE ONLY public.stripe_accounts
     ADD CONSTRAINT fk_rails_5760439bf2 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: cart_items fk_rails_592e298682; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_items
+    ADD CONSTRAINT fk_rails_592e298682 FOREIGN KEY (part_id) REFERENCES public.parts(id);
 
 
 --
@@ -7818,14 +8303,6 @@ ALTER TABLE ONLY public.vendor_materials
 
 
 --
--- Name: quote_items fk_rails_65a17dc088; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_65a17dc088 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: member_shipping_addresses fk_rails_66cc3b7a7e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7850,14 +8327,6 @@ ALTER TABLE ONLY public.m_hole_diameters
 
 
 --
--- Name: quote_items fk_rails_68df8d50c8; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_68df8d50c8 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: user_authorities fk_rails_6a8b2647b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7871,6 +8340,14 @@ ALTER TABLE ONLY public.user_authorities
 
 ALTER TABLE ONLY public.vendor_service_areas
     ADD CONSTRAINT fk_rails_6af0406fe8 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: cart_items fk_rails_6cdb1f0139; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_items
+    ADD CONSTRAINT fk_rails_6cdb1f0139 FOREIGN KEY (cart_id) REFERENCES public.carts(id);
 
 
 --
@@ -7914,6 +8391,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: recipe_parts fk_rails_7138980aad; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipe_parts
+    ADD CONSTRAINT fk_rails_7138980aad FOREIGN KEY (part_id) REFERENCES public.parts(id);
+
+
+--
 -- Name: affiliate_commissions fk_rails_71684630c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7927,14 +8412,6 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 ALTER TABLE ONLY public.order_reviews
     ADD CONSTRAINT fk_rails_7266ab26e5 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
--- Name: quote_items fk_rails_737aee6ef8; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_737aee6ef8 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8018,6 +8495,14 @@ ALTER TABLE ONLY public.h_affiliate_clicks
 
 
 --
+-- Name: vendor_offer_items fk_rails_8605eefbf2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offer_items
+    ADD CONSTRAINT fk_rails_8605eefbf2 FOREIGN KEY (vendor_offer_id) REFERENCES public.vendor_offers(id);
+
+
+--
 -- Name: article_comments fk_rails_86c76f9c76; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8031,6 +8516,14 @@ ALTER TABLE ONLY public.article_comments
 
 ALTER TABLE ONLY public.vendor_service_prefectures
     ADD CONSTRAINT fk_rails_8a9ace2194 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: vendor_offers fk_rails_8ad36f27c5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT fk_rails_8ad36f27c5 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8066,14 +8559,6 @@ ALTER TABLE ONLY public.m_postal_codes
 
 
 --
--- Name: quote_items fk_rails_8d4554da01; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_8d4554da01 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
-
-
---
 -- Name: affiliate_commissions fk_rails_8fd375453d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8082,19 +8567,19 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 
 --
--- Name: quote_request_items fk_rails_8fe04c2eb3; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT fk_rails_8fe04c2eb3 FOREIGN KEY (quote_item_id) REFERENCES public.quote_items(id);
-
-
---
 -- Name: order_reviews fk_rails_91fa08e5f2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.order_reviews
     ADD CONSTRAINT fk_rails_91fa08e5f2 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: rfq_parts fk_rails_923102ee88; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfq_parts
+    ADD CONSTRAINT fk_rails_923102ee88 FOREIGN KEY (part_snapshot_id) REFERENCES public.part_snapshots(id);
 
 
 --
@@ -8114,27 +8599,19 @@ ALTER TABLE ONLY public.m_postal_codes
 
 
 --
--- Name: quotes fk_rails_97a1fb3b7f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: recipes fk_rails_9606fce865; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_97a1fb3b7f FOREIGN KEY (accepted_request_id) REFERENCES public.quote_requests(id);
-
-
---
--- Name: quote_items fk_rails_97c8b4422c; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_97c8b4422c FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT fk_rails_9606fce865 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
--- Name: quote_request_comments fk_rails_980f101925; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: parts fk_rails_9790700793; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT fk_rails_980f101925 FOREIGN KEY (quote_request_id) REFERENCES public.quote_requests(id);
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_9790700793 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
 
 
 --
@@ -8210,14 +8687,6 @@ ALTER TABLE ONLY public.m_process_types
 
 
 --
--- Name: quotes fk_rails_9b3fa1819d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quotes
-    ADD CONSTRAINT fk_rails_9b3fa1819d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: m_cities fk_rails_9bbab727a4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8266,19 +8735,27 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
--- Name: quote_items fk_rails_a05653c402; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_a05653c402 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
-
-
---
 -- Name: vendor_capabilities fk_rails_a23e589077; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vendor_capabilities
     ADD CONSTRAINT fk_rails_a23e589077 FOREIGN KEY (capability_code) REFERENCES public.m_process_types(code);
+
+
+--
+-- Name: vendor_offers fk_rails_a3eca65d17; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT fk_rails_a3eca65d17 FOREIGN KEY (rfq_id) REFERENCES public.rfqs(id);
+
+
+--
+-- Name: parts fk_rails_a63b0793fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_a63b0793fa FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
 
 
 --
@@ -8295,6 +8772,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_aeb287d4a2 FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: parts fk_rails_b13d63e301; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_b13d63e301 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
 
 
 --
@@ -8322,14 +8807,6 @@ ALTER TABLE ONLY public.m_glosses
 
 
 --
--- Name: quote_items fk_rails_b48260cfd5; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_b48260cfd5 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
-
-
---
 -- Name: stripe_refunds fk_rails_b61ac62e9e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8346,19 +8823,27 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: vendor_offers fk_rails_b8710e984c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_offers
+    ADD CONSTRAINT fk_rails_b8710e984c FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
+-- Name: parts fk_rails_b8a090e626; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_b8a090e626 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: h_payout_events fk_rails_bd2df7a8c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.h_payout_events
     ADD CONSTRAINT fk_rails_bd2df7a8c8 FOREIGN KEY (payout_id) REFERENCES public.payouts(id);
-
-
---
--- Name: quote_request_items fk_rails_bdc5d283e6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_request_items
-    ADD CONSTRAINT fk_rails_bdc5d283e6 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8370,11 +8855,11 @@ ALTER TABLE ONLY public.m_grain_finishes
 
 
 --
--- Name: quote_request_comments fk_rails_c02b3b85ee; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: recipe_snapshots fk_rails_c19cfa2d34; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT fk_rails_c02b3b85ee FOREIGN KEY (parent_id) REFERENCES public.quote_request_comments(id);
+ALTER TABLE ONLY public.recipe_snapshots
+    ADD CONSTRAINT fk_rails_c19cfa2d34 FOREIGN KEY (recipe_id) REFERENCES public.recipes(id);
 
 
 --
@@ -8383,6 +8868,14 @@ ALTER TABLE ONLY public.quote_request_comments
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_c2cdeb6f7c FOREIGN KEY (billing_prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
+-- Name: part_snapshots fk_rails_c44e04702a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_c44e04702a FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8407,6 +8900,14 @@ ALTER TABLE ONLY public.payouts
 
 ALTER TABLE ONLY public.affiliate_signups
     ADD CONSTRAINT fk_rails_c7cac3c3b6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: part_snapshots fk_rails_c87b5a313e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_c87b5a313e FOREIGN KEY (part_id) REFERENCES public.parts(id);
 
 
 --
@@ -8442,6 +8943,22 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: rfqs fk_rails_d1a7ab1876; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfqs
+    ADD CONSTRAINT fk_rails_d1a7ab1876 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: part_snapshots fk_rails_d38f648163; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_d38f648163 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
+
+
+--
 -- Name: m_postal_codes fk_rails_d6f8c39731; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8466,11 +8983,19 @@ ALTER TABLE ONLY public.article_comments
 
 
 --
--- Name: quote_items fk_rails_d9bcd636be; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: parts fk_rails_d9a2b8fbeb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_items
-    ADD CONSTRAINT fk_rails_d9bcd636be FOREIGN KEY (quote_id) REFERENCES public.quotes(id);
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_d9a2b8fbeb FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: parts fk_rails_da03c13c19; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_da03c13c19 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
 
 
 --
@@ -8498,6 +9023,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: part_snapshots fk_rails_dc20f86c16; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_dc20f86c16 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: stripe_payouts fk_rails_dc468b0d39; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8506,11 +9039,11 @@ ALTER TABLE ONLY public.stripe_payouts
 
 
 --
--- Name: quote_request_comments fk_rails_dcfea1537d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: rfq_parts fk_rails_dea4f7c049; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.quote_request_comments
-    ADD CONSTRAINT fk_rails_dcfea1537d FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.rfq_parts
+    ADD CONSTRAINT fk_rails_dea4f7c049 FOREIGN KEY (rfq_id) REFERENCES public.rfqs(id);
 
 
 --
@@ -8519,14 +9052,6 @@ ALTER TABLE ONLY public.quote_request_comments
 
 ALTER TABLE ONLY public.affiliate_signups
     ADD CONSTRAINT fk_rails_df4fe43808 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
--- Name: quote_requests fk_rails_e2f2c314b6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT fk_rails_e2f2c314b6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8546,19 +9071,19 @@ ALTER TABLE ONLY public.m_paint_types
 
 
 --
--- Name: quote_requests fk_rails_e95a37007e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.quote_requests
-    ADD CONSTRAINT fk_rails_e95a37007e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: m_authorities fk_rails_e964d916b9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_authorities
     ADD CONSTRAINT fk_rails_e964d916b9 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: carts fk_rails_ea59a35211; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT fk_rails_ea59a35211 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -8583,6 +9108,14 @@ ALTER TABLE ONLY public.vendor_details
 
 ALTER TABLE ONLY public.notifications
     ADD CONSTRAINT fk_rails_ee2be4cca6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: recipe_snapshot_parts fk_rails_eede368e91; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipe_snapshot_parts
+    ADD CONSTRAINT fk_rails_eede368e91 FOREIGN KEY (part_snapshot_id) REFERENCES public.part_snapshots(id);
 
 
 --
@@ -8623,6 +9156,14 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT fk_rails_f6acf748cd FOREIGN KEY (vendor_id) REFERENCES public.users(id);
+
+
+--
+-- Name: parts fk_rails_f85f1811f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_f85f1811f0 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -8736,6 +9277,31 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250522091453'),
+('20250522085653'),
+('20250522083547'),
+('20250522082920'),
+('20250522082321'),
+('20250522081645'),
+('20250522081556'),
+('20250522075913'),
+('20250522074305'),
+('20250522071740'),
+('20250522071728'),
+('20250522071717'),
+('20250522071700'),
+('20250522071650'),
+('20250522071639'),
+('20250522071629'),
+('20250522071617'),
+('20250522071606'),
+('20250522071549'),
+('20250522071539'),
+('20250522071529'),
+('20250522071521'),
+('20250522071513'),
+('20250522071121'),
+('20250522070810'),
 ('20250522011019'),
 ('20250521002304'),
 ('20250520060432'),
