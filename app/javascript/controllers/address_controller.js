@@ -24,9 +24,14 @@ export default class extends Controller {
   // ライフサイクル
   // --------------------------------------------------
   connect () {
-    console.log("address connect!")
     // Bootstrap モーダルを初期化
     this.bsModal = new bootstrap.Modal(this.modalTarget)
+
+    // 画面初期表示時に pref が埋まっていれば city をロード
+    if (this.prefTarget.value && !this.cityTarget.options.length) {
+      // cityTarget.value には DB から埋まった city_code が入っている
+      this.loadCities(this.cityTarget.value)
+    }
   }
 
   // --------------------------------------------------
@@ -46,10 +51,8 @@ export default class extends Controller {
     if (list.length === 0) {
       alert("該当する住所が見つかりません")
     } else if (list.length === 1) {
-      // 1 件なら即反映
       this.applyAddress(list[0])
     } else {
-      // 複数ならモーダルで候補を提示
       this.renderModal(list)
       this.bsModal.show()
     }
@@ -57,19 +60,55 @@ export default class extends Controller {
 
   // --------------------------------------------------
   // 都道府県変更 → 市区町村を Ajax でロード
+  // cityCode が渡された場合はロード後に選択
   // --------------------------------------------------
-  async loadCities () {
+  async loadCities(eventOrCity = null) {
+    // --------------------------------------------------
+    // 1. 引数を判定
+    //    - UI の change イベントから呼ばれた場合 → event が渡る
+    //    - copy-address から直接呼ばれた場合  → cityCode 文字列が渡る
+    // --------------------------------------------------
+    let cityCode = null
+    if (eventOrCity instanceof Event) {
+      // フォームの <select> change で呼ばれた
+      cityCode = null
+    } else {
+      // 直接指定された city_code
+      cityCode = eventOrCity
+    }
+
+    // --------------------------------------------------
+    // 2. 都道府県コードを取得して Ajax で市区町村リストを取得
+    // --------------------------------------------------
     const prefCode = this.prefTarget.value
     if (!prefCode) return
 
     const res  = await fetch(`/prefectures/${prefCode}/cities`)
     const list = await res.json()
 
+    // --------------------------------------------------
+    // 3. <select> 書き換え
+    // --------------------------------------------------
     this.cityTarget.innerHTML =
-      '<option value="">-- 市区町村 --</option>' +
+      '<option value=\"\">-- 市区町村 --</option>' +
       list.map(c =>
-        `<option value="${c.code}">${c.name_ja}</option>`
+        `<option value=\"${c.code}\">${c.name_ja}</option>`
       ).join("")
+
+    // --------------------------------------------------
+    // 4. cityCode が渡されていれば自動選択
+    // --------------------------------------------------
+    if (cityCode) {
+      this.cityTarget.value = cityCode
+      // change イベントを発火して他の JS と整合
+      this.cityTarget.dispatchEvent(new Event("change", { bubbles: true }))
+    }
+
+    if (this.cityTarget.options.length && this.element.dataset.cityCode) {
+      this.cityTarget.value = this.element.dataset.cityCode
+      this.cityTarget.dispatchEvent(new Event("change", { bubbles: true }))
+      delete this.element.dataset.cityCode        // 使い終わったら削除
+    }
   }
 
   // --------------------------------------------------
@@ -79,12 +118,9 @@ export default class extends Controller {
   applyAddress (row) {
     // --- 都道府県 & 市区町村 ---------------------------------
     this.prefTarget.value = row.city_code.slice(0, 2)  // 先頭 2 桁
-    this.loadCities().then(() => {
-      this.cityTarget.value = row.city_code
-    })
+    this.loadCities(row.city_code)
 
     // --- 町域以降 --------------------------------------------
-    // 市区町村名は select に表示済みなので重複させない
     this.addr1Target.value = row.town_area_name_kanji || ""
   }
 

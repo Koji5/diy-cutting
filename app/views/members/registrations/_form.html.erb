@@ -60,22 +60,65 @@
                   {}, class: "form-select" %>
   </div>
 
-  <h5 class="mt-4 mb-3">請求先住所</h5>
+  <%# ========================================================= %>
+  <%#  Billing & Shipping を1つのwrapperにまとめ、copy-address controllerのscope内に %>
+  <%# ========================================================= %>
+  <div data-controller="copy-address"
+       data-copy-address-source-value="billing"
+       data-copy-address-target-value="shipping">
 
-  <%= render "shared/address_fields",
-           form: md,
-           zip_col:  :billing_postal_code,
-           pref_col: :billing_prefecture_code,
-           city_col: :billing_city_code,
-           line_col: :billing_address_line %>
+    <h5 class="mt-4 mb-3">請求先住所</h5>
+    <%= render "shared/address_fields",
+             form: md,
+             zip_col:  :billing_postal_code,
+             pref_col: :billing_prefecture_code,
+             city_col: :billing_city_code,
+             line_col: :billing_address_line,
+             dept_col: :billing_department,
+             phone_col: :billing_phone_number %>
 
-  <div class="mb-3">
-    <%= md.label :billing_department, "部署", class: "form-label" %>
-    <%= md.text_field :billing_department, class: "form-control" %>
-  </div>
+    <div class="mb-3">
+      <%= md.label :billing_department, "部署", class: "form-label" %>
+      <%= md.text_field :billing_department, class: "form-control",
+            data: { copy_address_target: "billing_department" } %>
+    </div>
 
-  <div class="mb-4">
-    <%= md.label :billing_phone_number, "電話番号", class: "form-label" %>
-    <%= md.telephone_field :billing_phone_number, class: "form-control" %>
+    <div class="mb-4">
+      <%= md.label :billing_phone_number, "電話番号", class: "form-label" %>
+      <%= md.telephone_field :billing_phone_number, class: "form-control",
+            data: { copy_address_target: "billing_phone_number" } %>
+    </div>
+
+    <h5 class="mt-4 mb-3">デフォルト送付先住所</h5>
+
+    <div class="mb-2">
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm"
+              data-action="copy-address#copy">
+        請求先情報をコピー
+      </button>
+    </div>
+
+    <%= render "shared/address_fields",
+             form: md,
+             prefix: 'shipping',
+             zip_col:  :shipping_postal_code,
+             pref_col: :shipping_prefecture_code,
+             city_col: :shipping_city_code,
+             line_col: :shipping_address_line,
+             dept_col: :shipping_department,
+             phone_col: :shipping_phone_number %>
+
+    <div class="mb-3">
+      <%= md.label :shipping_department, "部署", class: "form-label" %>
+      <%= md.text_field :shipping_department, class: "form-control",
+            data: { copy_address_target: "shipping_department" } %>
+    </div>
+
+    <div class="mb-4">
+      <%= md.label :shipping_phone_number, "電話番号", class: "form-label" %>
+      <%= md.telephone_field :shipping_phone_number, class: "form-control",
+            data: { copy_address_target: "shipping_phone_number" } %>
+    </div>
   </div>
 <% end %>

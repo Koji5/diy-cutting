@@ -14,3 +14,4 @@ pin "leaflet-draw",  to: "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw
 pin "controllers/coverage_selector_controller", to: "controllers/coverage_selector_controller.js"
 pin "controllers/service_area_map_controller",  to: "controllers/service_area_map_controller.js"
 pin "controllers/hello_controller",             to: "controllers/hello_controller.js"
+pin "copy-address-controller", to: "controllers/copy_address_controller.js"

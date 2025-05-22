@@ -39,7 +39,7 @@ class MemberShippingAddress < ApplicationRecord
             uniqueness: { conditions: -> { where(is_default: true) },
                           message: 'はデフォルト住所が重複しています' },
             if: :is_default?
-
+  validates :department, length: { maximum: 100 }, allow_blank: true
   # ------------------------------------------------------------
   # Callbacks
   # ------------------------------------------------------------

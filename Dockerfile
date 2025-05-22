@@ -11,7 +11,8 @@ RUN apk add --no-cache \
       nodejs \
       npm \
       yarn \
-      git
+      git \
+      geos geos-dev
 
 # 作業ディレクトリを /app に設定
 WORKDIR /app

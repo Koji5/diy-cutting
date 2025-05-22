@@ -1809,7 +1809,8 @@ CREATE TABLE public.member_shipping_addresses (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    department character varying(100)
 );
 
 
@@ -8735,6 +8736,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250522011019'),
 ('20250521002304'),
 ('20250520060432'),
 ('20250520002832'),
