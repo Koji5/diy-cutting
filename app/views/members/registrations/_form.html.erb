@@ -1,17 +1,27 @@
 <%# ---------------- User 本体 ---------------- %>
+<% required = f.object.new_record? %>
+<% placeholder = f.object.new_record? ? "" : "（変更時のみ入力してください）" %>
 <div class="mb-3">
-  <%= f.label :email, class: "form-label" %>
+  <%= f.label :email, "メールアドレス", class: "form-label" %>
   <%= f.email_field :email, class: "form-control", required: true, autofocus: true %>
 </div>
 
 <div class="mb-3">
-  <%= f.label :password, class: "form-label" %>
-  <%= f.password_field :password, class: "form-control", required: true %>
+  <%= f.label :password, "パスワード", class: "form-label" %>
+  <%= f.password_field :password,
+        class:        "form-control",
+        required:     required,
+        placeholder:  placeholder,
+        autocomplete: "new-password" %>
 </div>
 
 <div class="mb-4">
-  <%= f.label :password_confirmation, class: "form-label" %>
-  <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+  <%= f.label :password_confirmation, "パスワード確認", class: "form-label" %>
+  <%= f.password_field :password_confirmation,
+        class:        "form-control",
+        required:     required,
+        placeholder:  placeholder,
+        autocomplete: "new-password" %>
 </div>
 
 <%# ------------- MemberDetail------------- %>
@@ -89,36 +99,38 @@
             data: { copy_address_target: "billing_phone_number" } %>
     </div>
 
-    <h5 class="mt-4 mb-3">デフォルト送付先住所</h5>
+    <% if f.object.new_record? %>   <%# ★ 新規登録のときだけ %>
+      <h5 class="mt-4 mb-3">デフォルト送付先住所</h5>
 
-    <div class="mb-2">
-      <button type="button"
-              class="btn btn-outline-secondary btn-sm"
-              data-action="copy-address#copy">
-        請求先情報をコピー
-      </button>
-    </div>
+      <div class="mb-2">
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm"
+                data-action="copy-address#copy">
+          請求先情報をコピー
+        </button>
+      </div>
 
-    <%= render "shared/address_fields",
-             form: md,
-             prefix: 'shipping',
-             zip_col:  :shipping_postal_code,
-             pref_col: :shipping_prefecture_code,
-             city_col: :shipping_city_code,
-             line_col: :shipping_address_line,
-             dept_col: :shipping_department,
-             phone_col: :shipping_phone_number %>
+      <%= render "shared/address_fields",
+              form: md,
+              prefix: 'shipping',
+              zip_col:  :shipping_postal_code,
+              pref_col: :shipping_prefecture_code,
+              city_col: :shipping_city_code,
+              line_col: :shipping_address_line,
+              dept_col: :shipping_department,
+              phone_col: :shipping_phone_number %>
 
-    <div class="mb-3">
-      <%= md.label :shipping_department, "部署", class: "form-label" %>
-      <%= md.text_field :shipping_department, class: "form-control",
-            data: { copy_address_target: "shipping_department" } %>
-    </div>
+      <div class="mb-3">
+        <%= md.label :shipping_department, "部署", class: "form-label" %>
+        <%= md.text_field :shipping_department, class: "form-control",
+              data: { copy_address_target: "shipping_department" } %>
+      </div>
 
-    <div class="mb-4">
-      <%= md.label :shipping_phone_number, "電話番号", class: "form-label" %>
-      <%= md.telephone_field :shipping_phone_number, class: "form-control",
-            data: { copy_address_target: "shipping_phone_number" } %>
-    </div>
+      <div class="mb-4">
+        <%= md.label :shipping_phone_number, "電話番号", class: "form-label" %>
+        <%= md.telephone_field :shipping_phone_number, class: "form-control",
+              data: { copy_address_target: "shipping_phone_number" } %>
+      </div>
+    <% end %>
   </div>
 <% end %>

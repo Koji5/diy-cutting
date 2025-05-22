@@ -27,10 +27,9 @@ export default class extends Controller {
     // Bootstrap モーダルを初期化
     this.bsModal = new bootstrap.Modal(this.modalTarget)
 
-    // 画面初期表示時に pref が埋まっていれば city をロード
-    if (this.prefTarget.value && !this.cityTarget.options.length) {
-      // cityTarget.value には DB から埋まった city_code が入っている
-      this.loadCities(this.cityTarget.value)
+    const cityCode = this.element.dataset.cityCode
+    if (this.prefTarget.value && cityCode) {
+      this.loadCities(cityCode)                       // city を選択してロード
     }
   }
 

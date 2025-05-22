@@ -1,6 +1,7 @@
 class Members::RegistrationsController < Devise::RegistrationsController
 
   before_action :store_affiliate_uid, only: :new
+  before_action :populate_shipping_attrs, only: :edit
 
   def new
     session.delete(:affiliate_user_id) if params[:uid].blank?
@@ -80,6 +81,7 @@ class Members::RegistrationsController < Devise::RegistrationsController
 
   def detail_permitted
     %i[
+      id
       nickname icon_url
       legal_type legal_name legal_name_kana
       birthday gender
@@ -100,4 +102,32 @@ class Members::RegistrationsController < Devise::RegistrationsController
       session[:affiliate_user_id] = affiliate.id
     end
   end
+
+  # -----------------------------------------------
+  # 編集フォーム初期表示用: shipping_* 仮想属性を埋める
+  # -----------------------------------------------
+  def populate_shipping_attrs
+    return unless resource.member?
+
+    detail = resource.member_detail
+    addr   = detail.shipping_addresses.find_by(is_default: true)
+    return unless addr
+
+    # ---------- 請求先を仮想属性に ----------
+    detail.billing_postal_code     ||= detail.billing_postal_code
+    detail.billing_prefecture_code ||= detail.billing_prefecture_code
+    detail.billing_city_code       ||= detail.billing_city_code
+    detail.billing_address_line    ||= detail.billing_address_line
+    detail.billing_department      ||= detail.billing_department
+    detail.billing_phone_number    ||= detail.billing_phone_number
+
+    # ---------- 送付先（デフォルト） ----------
+    detail.shipping_postal_code     = addr.postal_code
+    detail.shipping_prefecture_code = addr.prefecture_code
+    detail.shipping_city_code       = addr.city_code
+    detail.shipping_address_line    = addr.address_line
+    detail.shipping_department      = addr.department
+    detail.shipping_phone_number    = addr.phone_number
+  end
+
 end

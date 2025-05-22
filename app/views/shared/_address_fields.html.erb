@@ -11,7 +11,7 @@
 <% city_col = local_assigns.fetch(:city_col, :city_code)        %>
 <% line_col = local_assigns.fetch(:line_col, :address_line)     %>
 
-<div data-controller="address" data-turbo-permanent data-action="address#logConnect">
+<div data-controller="address" data-city-code="<%= form.object.send(city_col) %>" data-turbo-permanent data-action="address#logConnect">
 
   <!-- 郵便番号 & 検索ボタン -->
   <div class="input-group mb-3">
@@ -29,7 +29,7 @@
   <!-- 都道府県 -->
   <div class="mb-3">
     <%= form.select pref_col,
-          options_from_collection_for_select(MPrefecture.all, :code, :name_ja),
+          options_from_collection_for_select(MPrefecture.all, :code, :name_ja, form.object.send(pref_col)),
           { include_blank: "-- 都道府県 --" },
           class: "form-select",
           data: { address_target: "pref",
@@ -40,7 +40,8 @@
   <div class="mb-3">
     <%= form.select city_col,
           [], {}, class: "form-select",
-          data: { address_target: "city" } %>
+          data: { address_target: "city" },
+          wrapper: { data: { city_code: form.object.send(city_col) } } %>
   </div>
 
   <!-- 町域・番地など自由入力 -->

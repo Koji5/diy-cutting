@@ -1,41 +1,97 @@
-<nav class="nav flex-column gap-1">
+<%# ================================================
+   共通ナビメニュー
+   - 既存の vendor 用アコーディオンはそのまま維持
+   - member 用（role: member）のみ表示する Bootstrap アコーディオンを追加
+   ================================================ %>
 
-  <!-- 既存メニュー … -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <%= link_to "DIY Cutting", root_path, class: "navbar-brand" %>
 
-  <% if current_user&.vendor? %>
-    <!-- ▼ 設定（アコーディオン） -->
-    <div class="accordion" id="settingsAccordion">
-      <div class="accordion-item border-0">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed py-2 px-3"
-                  type="button" data-bs-toggle="collapse"
-                  data-bs-target="#settingsMenu" aria-expanded="false">
-            <i class="bi bi-gear me-2"></i> 設定
-          </button>
-        </h2>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div id="settingsMenu" class="accordion-collapse collapse"
-             data-bs-parent="#settingsAccordion">
-          <div class="accordion-body py-1 px-0">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <%# =========================
+           既存 vendor メニュー (例)
+           ========================= %>
+        <% if user_signed_in? && current_user.vendor? %>
+          <li class="nav-item">
+            <button class="nav-link btn btn-link text-white" type="button" data-bs-toggle="collapse"
+              data-bs-target="#vendorMenu" aria-expanded="false" aria-controls="vendorMenu">
+              Vendor 設定
+            </button>
+          </li>
+        <% end %>
 
-            <%= link_to vendors_coverage_settings_path,
-                        class: "nav-link ps-5 py-1" do %>
-              <i class="bi bi-map me-1"></i> 対応可能地域設定
-            <% end %>
+        <%# =========================
+           新規 member メニュー
+           ========================= %>
+        <% if user_signed_in? && current_user.member? %>
+          <li class="nav-item">
+            <button class="nav-link btn btn-link text-white" type="button" data-bs-toggle="collapse"
+              data-bs-target="#memberMenu" aria-expanded="false" aria-controls="memberMenu">
+              設定
+            </button>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-            <%# 今後ここに設定メニューを追加できます %>
-          </div>
+<%# -------------------------------------------------
+     アコーディオン本体はナビ下に配置
+------------------------------------------------- %>
+<div class="accordion accordion-flush" id="globalAccordion">
+  <%# -------- Vendor Accordion -------- %>
+  <% if user_signed_in? && current_user.vendor? %>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="vendorHeading">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+          data-bs-target="#vendorMenu" aria-expanded="false" aria-controls="vendorMenu">
+          Vendor 設定
+        </button>
+      </h2>
+      <div id="vendorMenu" class="accordion-collapse collapse" aria-labelledby="vendorHeading"
+        data-bs-parent="#globalAccordion">
+        <div class="accordion-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <%= link_to "対応可能地域設定", vendors_coverage_settings_path, class: "text-decoration-none" %>
+            </li>
+            <%# 他の vendor 項目 ... %>
+          </ul>
         </div>
       </div>
     </div>
   <% end %>
 
-</nav>
-
-
-
-<ul class="nav flex-column">
-  <li class="nav-item">
-    <%= link_to "記事一覧", articles_path, class: "nav-link" %>
-  </li>
-</ul>
+  <%# -------- Member Accordion -------- %>
+  <% if user_signed_in? && current_user.member? %>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="memberHeading">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+          data-bs-target="#memberMenu" aria-expanded="false" aria-controls="memberMenu">
+          会員設定
+        </button>
+      </h2>
+      <div id="memberMenu" class="accordion-collapse collapse" aria-labelledby="memberHeading"
+        data-bs-parent="#globalAccordion">
+        <div class="accordion-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <%= link_to "基本設定", edit_user_registration_path, class: "text-decoration-none" %>
+            </li>
+            <%# li class="list-group-item" %>
+              <%# %= link_to "送付先アドレス設定", member_shipping_addresses_path, class: "text-decoration-none" % %>
+            <%# /li %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
