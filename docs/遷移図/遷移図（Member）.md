@@ -1,22 +1,29 @@
 ```mermaid
-%% Member ロール画面遷移図（Mermaid v3: ラベルから括弧を除去）
+%% Member ロール画面遷移図（Mermaid v4: Menu クラスタ＋色付け）
 flowchart TD
-    %% === 共通ノード ===
+    %% ===== 共通ノード =====
     T[Header<br/>T]
     M01[ユーザー新規登録<br/>M01]
     M23[ログイン<br/>M23]
 
-    %% === メニュー起点ノード ===
-    MENU_PARTS[Menu<br/>部品]
-    MENU_RECIPES[Menu<br/>レシピ]
-    MENU_CARTS[Menu<br/>カート]
-    MENU_REQUESTS[Menu<br/>見積依頼]
-    MENU_QUOTES[Menu<br/>見積]
-    MENU_ORDERS[Menu<br/>発注]
-    MENU_ARTICLES[Menu<br/>記事]
-    MENU_PROFILE[Menu<br/>ユーザー情報]
+    %% ===== メニュークラスタ =====
+    subgraph メニュー
+        direction TB
+        MENU_PARTS[部品]
+        MENU_RECIPES[レシピ]
+        MENU_CARTS[カート]
+        MENU_REQUESTS[見積依頼]
+        MENU_QUOTES[見積]
+        MENU_ORDERS[発注]
+        MENU_ARTICLES[記事]
+        MENU_PROFILE[ユーザー情報]
+    end
 
-    %% === 部品クラスタ ===
+    %% assign style to menu nodes
+    classDef menu fill:#FFF3CD,stroke:#D39E00,stroke-width:2px,color:#000;
+    class MENU_PARTS,MENU_RECIPES,MENU_CARTS,MENU_REQUESTS,MENU_QUOTES,MENU_ORDERS,MENU_ARTICLES,MENU_PROFILE menu;
+
+    %% ===== 部品クラスタ =====
     subgraph 部品
         direction TB
         M02[部品一覧<br/>M02]
@@ -27,7 +34,7 @@ flowchart TD
         M03 -->|決定| M04
     end
 
-    %% === レシピクラスタ ===
+    %% ===== レシピクラスタ =====
     subgraph レシピ
         direction TB
         M05[レシピ一覧<br/>M05]
@@ -38,7 +45,7 @@ flowchart TD
         M06 -->|決定| M07
     end
 
-    %% === カートクラスタ ===
+    %% ===== カートクラスタ =====
     subgraph カート
         direction TB
         M08[カート一覧<br/>M08]
@@ -49,7 +56,7 @@ flowchart TD
         M09 -->|決定| M10
     end
 
-    %% === 見積依頼クラスタ ===
+    %% ===== 見積依頼クラスタ =====
     subgraph 見積依頼
         direction TB
         M11[見積依頼一覧<br/>M11]
@@ -57,7 +64,7 @@ flowchart TD
         M11 --> M12
     end
 
-    %% === 見積クラスタ ===
+    %% ===== 見積クラスタ =====
     subgraph 見積
         direction TB
         M13[見積一覧<br/>M13]
@@ -65,7 +72,7 @@ flowchart TD
         M13 --> M14
     end
 
-    %% === 発注クラスタ ===
+    %% ===== 発注クラスタ =====
     subgraph 発注
         direction TB
         M15[発注一覧<br/>M15]
@@ -73,7 +80,7 @@ flowchart TD
         M15 --> M16
     end
 
-    %% === 記事クラスタ ===
+    %% ===== 記事クラスタ =====
     subgraph 記事
         direction TB
         M17[記事一覧 / TOP<br/>M17]
@@ -87,35 +94,35 @@ flowchart TD
         M20 -->|更新| M18
     end
 
-    %% === ユーザー情報クラスタ ===
+    %% ===== ユーザー情報クラスタ =====
     subgraph ユーザー情報
         direction TB
         M21[基本情報編集<br/>M21]
         M22[送付先情報編集<br/>M22]
     end
 
-    %% === メニュー → 機能 ===
-    MENU_PARTS -- 部品一覧 --> M02
-    MENU_PARTS -- 部品新規 --> M03
-    MENU_RECIPES -- レシピ一覧 --> M05
-    MENU_RECIPES -- レシピ新規 --> M06
-    MENU_CARTS -- カート一覧 --> M08
-    MENU_CARTS -- カート新規 --> M09
-    MENU_REQUESTS -- 見積依頼一覧 --> M11
-    MENU_QUOTES -- 見積一覧 --> M13
-    MENU_ORDERS -- 発注一覧 --> M15
-    MENU_ARTICLES -- 記事一覧 --> M17
-    MENU_ARTICLES -- 記事新規 --> M19
-    MENU_PROFILE -- 基本情報 --> M21
-    MENU_PROFILE -- 送付先情報 --> M22
+    %% ===== メニュー → 機能 =====
+    MENU_PARTS     -- 部品一覧 --> M02
+    MENU_PARTS     -- 部品新規 --> M03
+    MENU_RECIPES   -- レシピ一覧 --> M05
+    MENU_RECIPES   -- レシピ新規 --> M06
+    MENU_CARTS     -- カート一覧 --> M08
+    MENU_CARTS     -- カート新規 --> M09
+    MENU_REQUESTS  -- 見積依頼一覧 --> M11
+    MENU_QUOTES    -- 見積一覧 --> M13
+    MENU_ORDERS    -- 発注一覧 --> M15
+    MENU_ARTICLES  -- 記事一覧 --> M17
+    MENU_ARTICLES  -- 記事新規 --> M19
+    MENU_PROFILE   -- 基本情報 --> M21
+    MENU_PROFILE   -- 送付先情報 --> M22
 
-    %% === ヘッダー・認証 ===
+    %% ===== ヘッダー・認証 =====
     T -- 新規登録 --> M01
     T -- ログイン --> M23
     M23 -- ログイン成功 --> M17
     M01 -- 登録完了 --> M17
 
-    %% === クロス機能遷移 ===
+    %% ===== クロス機能遷移 =====
     M04 -- 新規レシピに追加 --> M06
     M04 -- 既存レシピに追加 --> M07
     M04 -- 新規カートに追加 --> M09
