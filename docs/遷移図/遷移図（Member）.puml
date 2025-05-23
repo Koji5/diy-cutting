@@ -1,0 +1,152 @@
+@startuml
+' Member ロール画面遷移図（機能別クラスタ版 v6）
+' --------------------------------------------------
+' M13 への遷移を追加
+'
+' 画面ID 対応一覧（略号）
+'  M01 ユーザー新規登録   M02–M04 部品
+'  M05–M07 レシピ        M08–M10 カート
+'  M11–M12 見積依頼      M13–M14 見積
+'  M15–M16 発注          M17–M20 記事
+'  M21–M22 プロフィール   M23 ログイン
+'
+'==================================================================
+title Member Role Screen Flow (Functional Groups)
+
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+' === 共通ノード ===
+state "Header (T)" as T
+state "ユーザー新規登録\n(M01)" as M01
+state "ログイン\n(M23)" as M23
+
+' === 機能起点メニュー ===
+state "Menu: 部品"        as MENU_PARTS
+state "Menu: レシピ"      as MENU_RECIPES
+state "Menu: カート"      as MENU_CARTS
+state "Menu: 見積依頼"    as MENU_REQUESTS
+state "Menu: 見積"        as MENU_QUOTES
+state "Menu: 発注"        as MENU_ORDERS
+state "Menu: 記事"        as MENU_ARTICLES
+state "Menu: ユーザー情報" as MENU_PROFILE
+
+' === 機能クラスタ ===
+state "部品" as PARTS {
+  state "部品一覧\n(M02)" as M02
+  state "部品新規作成\n(M03)" as M03
+  state "部品詳細・編集\n(M04)" as M04
+  M02 --> M03 : 新規作成
+  M02 --> M04 : 詳細/編集
+  M03 --> M04 : 決定
+}
+
+state "レシピ" as RECIPES {
+  state "レシピ一覧\n(M05)" as M05
+  state "レシピ新規作成\n(M06)" as M06
+  state "レシピ詳細・編集\n(M07)" as M07
+  M05 --> M06 : 新規作成
+  M05 --> M07 : 詳細/編集
+  M06 --> M07 : 決定
+}
+
+state "カート" as CARTS {
+  state "カート一覧\n(M08)" as M08
+  state "カート新規作成\n(M09)" as M09
+  state "カート詳細・編集\n(M10)" as M10
+  M08 --> M09 : 新規作成
+  M08 --> M10 : 詳細/編集
+  M09 --> M10 : 決定
+}
+
+state "見積依頼" as REQUESTS {
+  state "見積依頼一覧\n(M11)" as M11
+  state "見積依頼詳細・編集\n(M12)" as M12
+  M11 --> M12 : 詳細
+}
+
+state "見積" as QUOTES {
+  state "見積一覧\n(M13)" as M13
+  state "見積詳細\n(M14)" as M14
+  M13 --> M14 : 詳細
+}
+
+state "発注" as ORDERS {
+  state "発注一覧\n(M15)" as M15
+  state "発注詳細\n(M16)" as M16
+  M15 --> M16 : 詳細
+}
+
+state "記事" as ARTICLES {
+  state "記事一覧 (TOP)\n(M17)" as M17
+  state "記事詳細\n(M18)" as M18
+  state "記事新規作成\n(M19)" as M19
+  state "記事編集\n(M20)" as M20
+  M17 --> M18 : 記事クリック
+  M17 --> M19 : 新規作成
+  M17 --> M20 : 編集
+  M19 --> M17 : 決定
+  M20 --> M18 : 更新
+}
+
+state "ユーザー情報" as PROFILE {
+  state "基本情報編集\n(M21)" as M21
+  state "送付先情報編集\n(M22)" as M22
+}
+
+' === メニュー → 機能エントリ (複数遷移対応) ===
+MENU_PARTS     --> M02 : 部品一覧
+MENU_PARTS     --> M03 : 部品新規作成
+
+MENU_RECIPES   --> M05 : レシピ一覧
+MENU_RECIPES   --> M06 : レシピ新規作成
+
+MENU_CARTS     --> M08 : カート一覧
+MENU_CARTS     --> M09 : カート新規作成
+
+MENU_REQUESTS  --> M11 : 見積依頼一覧
+
+MENU_QUOTES    --> M13 : 見積一覧
+
+MENU_ORDERS    --> M15 : 発注一覧
+
+MENU_ARTICLES  --> M17 : 記事一覧
+MENU_ARTICLES  --> M19 : 記事新規作成
+
+MENU_PROFILE   --> M21 : 基本情報
+MENU_PROFILE   --> M22 : 送付先情報
+
+' === ヘッダー・認証フロー ===
+T --> M01 : 新規登録
+T --> M23 : ログイン
+M23 --> M17 : ログイン成功 (TOP)
+M01 --> M17 : 登録完了 (TOP)
+
+' === クロス機能遷移 ===
+' 部品 → レシピ/カート
+M04 --> M06 : 新規レシピに追加
+M04 --> M07 : 既存レシピに追加
+M04 --> M09 : 新規カートに追加
+M04 --> M10 : 既存カートに追加
+
+' レシピ → カート
+M06 --> M09 : 新規カートに追加
+M07 --> M09 : 新規カートに追加
+M07 --> M10 : 既存カートに追加
+
+' 記事 → レシピ
+M18 --> M07 : レシピをコピー
+
+' カート → 見積依頼
+M10 --> M12 : 見積依頼作成
+
+' 見積依頼 → 見積一覧
+M11 --> M13 : 見積一覧ボタン
+M12 --> M13 : 見積一覧ボタン
+
+' 見積 → 発注
+M14 --> M16 : 発注ボタン
+
+@enduml

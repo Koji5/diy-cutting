@@ -297,7 +297,9 @@
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+### メモ
+
+* 能力・対応地域は`vendor_capabilities`、`vendor_service_areas`、`vendor_materials` テーブルへ正規化。  
 <!-- NOTE END -->
 
 <!-- TABLE_END vendor_details -->
