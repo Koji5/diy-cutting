@@ -2,6 +2,306 @@
 
 生成日: 2025-05-23 13:59 JST
 
+<!-- SECTION_BEGIN ユーザー系 -->
+# ユーザー系
+<!-- SECTION_END ユーザー系 -->
+
+<!-- TABLE_BEGIN users -->
+## users — ユーザー
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| public_uid | character varying(32) | × |  | 外部公開 ID |
+| email | character varying | × |  | ログイン用メール |
+| encrypted_password | character varying | × |  | ハッシュ |
+| role | smallint | × |  | `0=member` `1=vendor` `2=admin` `3=affiliate` 役割は 1 つ |
+| password_changed_at | timestamp(6) without time zone | × |  | 変更日時 |
+| password_expires_at | timestamp(6) without time zone | ○ |  | 有効期限 |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| reset_password_token | character varying | ○ |  | devise |
+| reset_password_sent_at | timestamp(6) without time zone | ○ |  | devise |
+| remember_created_at | timestamp(6) without time zone | ○ |  | devise |
+| sign_in_count | integer | × | 0 | devise |
+| current_sign_in_at | timestamp(6) without time zone | ○ |  | devise |
+| last_sign_in_at | timestamp(6) without time zone | ○ |  | devise |
+| current_sign_in_ip | character varying | ○ |  | devise |
+| last_sign_in_ip | character varying | ○ |  | devise |
+| failed_attempts | integer | × | 0 | devise |
+| unlock_token | character varying | ○ |  | devise |
+| locked_at | timestamp(6) without time zone | ○ |  | devise |
+
+**インデックス**:
+- index_users_on_created_by_id
+- index_users_on_deleted_by_id
+- index_users_on_email
+- index_users_on_public_uid
+- index_users_on_reset_password_token
+- index_users_on_unlock_token
+- index_users_on_updated_by_id
+
+**外部キー**:
+- (deleted_by_id) → users.id
+- (updated_by_id) → users.id
+- (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+### メモ
+* role の詳細テーブルと**1:1** 参照
+<!-- NOTE END -->
+
+<!-- TABLE_END users -->
+
+<!-- TABLE_BEGIN user_authorities -->
+## user_authorities — ユーザー権限
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  | 対象ユーザー |
+| authority_code | character varying(30) | × |  | 付与する権限 |
+| grant_state | smallint | × | 1 | 例外無効化にも対応 |
+| valid_from | timestamp(6) without time zone | ○ |  | 有効開始 |
+| valid_to | timestamp(6) without time zone | ○ |  | 有効終了 |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- index_user_authorities_on_user_id
+- index_user_authorities_on_user_id_and_authority_code
+
+**外部キー**:
+- (authority_code) → m_authorities.code
+- (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+### メモ
+
+* **UNIQUE** **(user_id, authority_code)** 重複付与防止  
+* *grant_state = deny* で “ロールで自動付与されたが個別に外す” も表現可能。  
+* **valid_to** をセットすれば「○日だけ管理権限」など一時付与も実装できます。
+<!-- NOTE END -->
+
+<!-- TABLE_END user_authorities -->
+
+<!-- TABLE_BEGIN member_details -->
+## member_details — 会員ユーザー詳細
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| user_id | bigint | × |  |  |
+| nickname | character varying(50) | ○ |  | ニックネーム |
+| icon_url | character varying | ○ |  | プロフィールアイコン URL |
+| legal_type | smallint | × |  | 個人／法人 |
+| legal_name | character varying | × |  | 氏名 or 法人名 |
+| legal_name_kana | character varying | ○ |  | フリガナ／法人名カナ |
+| birthday | date | ○ |  | 生年月日 |
+| gender | character varying(1) | ○ |  | 性別 |
+| billing_postal_code | character varying(20) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
+| billing_prefecture_code | character varying(2) | ○ |  | 請求先 都道府県コード |
+| billing_city_code | character varying(5) | × |  | 請求先 市区町村コード |
+| billing_address_line | character varying(200) | × |  | 請求先 番地・建物名ほか |
+| billing_department | character varying(100) | ○ |  | 請求先 部署 |
+| billing_phone_number | character varying(30) | ○ |  | 請求先 電話番号 |
+| primary_shipping_id | bigint | ○ |  | デフォルトの発送先<br>*TODO:**これは必要か？*** |
+| stripe_customer_id | character varying | ○ |  | PaymentIntent で `customer` を渡すための顧客 ID。カードを保存する場合にも必須<br>初めて決済を行う際に作成される |
+| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合の登録元**アフィリエイト** |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| membership_plan | integer | × | 0 | 課金状態（当面無料のみ） |
+
+**インデックス**:
+- index_member_details_on_created_by_id
+- index_member_details_on_deleted_by_id
+- index_member_details_on_registered_affiliate_id
+- index_member_details_on_stripe_customer_id
+- index_member_details_on_updated_by_id
+
+**外部キー**:
+- (billing_city_code) → m_cities.code
+- (primary_shipping_id) → member_shipping_addresses.id
+- (user_id) → users.id
+- (registered_affiliate_id) → users.id
+- (updated_by_id) → users.id
+- (deleted_by_id) → users.id
+- (billing_city_code) → m_cities.code
+- (billing_prefecture_code) → m_prefectures.code
+- (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+### メモ
+
+* アフィリエイト連携判定は `registered_affiliate_id IS NOT NULL`  
+   *この列は「発番時のアフィリエイト」を永続的に保持し、注文時は orders が参照します。*  
+* **顧客 ID (`stripe_customer_id`) はすべて Stripe が自動生成**（`cus_` プレフィクス）。
+* **実装ポイント（参考）**
+  1. 外部キー制約  
+     ```sql
+     ALTER TABLE member_details
+       ADD CONSTRAINT fk_affiliate_user
+         FOREIGN KEY (affiliate_user_id)
+         REFERENCES users(id);
+     ```
+  1. 役割整合性（PostgreSQL CHECK 例）  
+     ```sql
+     ALTER TABLE member_details
+     ADD CONSTRAINT chk_affiliate_role
+       CHECK (
+         affiliate_user_id IS NULL
+         OR EXISTS (
+             SELECT 1 FROM users
+              WHERE id = affiliate_user_id
+                AND role = 3  -- 3 = affiliate
+         )
+       );
+     ```
+  1. Rails Associations
+     ```ruby
+     class MemberDetail < ApplicationRecord
+       belongs_to :user           # 会員本人
+       belongs_to :affiliate_user, -> { where(role: :affiliate) },
+                  class_name: "User", optional: true
+     end
+     ```
+<!-- NOTE END -->
+
+<!-- TABLE_END member_details -->
+
+<!-- TABLE_BEGIN member_shipping_addresses -->
+## member_shipping_addresses — 会員ユーザーの送付先アドレス
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| member_id | bigint | × |  | 会員ユーザー (member_details) |
+| label | character varying(50) | ○ |  | 宛名ラベル（例 `自宅` `会社`） |
+| recipient_name | character varying(100) | × |  | 受取人氏名／法人名 |
+| postal_code | character varying(8) | × |  | 送付先 郵便番号<br>*TODO:**7桁に*** |
+| prefecture_code | character varying(2) | × |  | 送付先 都道府県コード |
+| city_code | character varying(5) | × |  | 送付先 市区町村コード |
+| address_line | character varying(200) | × |  | 送付先 番地・建物名ほか |
+| phone_number | character varying(20) | ○ |  | 送付先 電話番号 |
+| is_default | boolean | × | false | デフォルトの送付先かどうか |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| department | character varying(100) | ○ |  | 送付先 部署 |
+
+**インデックス**:
+- index_member_shipping_addresses_on_created_by_id
+- index_member_shipping_addresses_on_deleted_by_id
+- index_member_shipping_addresses_on_member_id
+- index_member_shipping_addresses_on_updated_by_id
+- uq_member_default_address
+
+**外部キー**:
+- (city_code) → m_cities.code
+- (member_id) → member_details.user_id
+- (prefecture_code) → m_prefectures.code
+- (city_code) → m_cities.code
+- (updated_by_id) → users.id
+- (deleted_by_id) → users.id
+- (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+### メモ
+
+* **追加インデックス・制約**
+   ```sql
+   -- 会員ごとに「デフォルト」は最大 1 件に制限（部分 UNIQUE）
+   CREATE UNIQUE INDEX uq_member_default_address
+     ON member_shipping_addresses (member_id)
+     WHERE is_default = true;
+   ```
+* これにより **1 人の会員が複数の送付先を登録可能** かつ  
+   **デフォルトの送付先住所は常に 0 または 1 行** に保てます。
+<!-- NOTE END -->
+
+<!-- TABLE_END member_shipping_addresses -->
+
+<!-- TABLE_BEGIN vendor_details -->
+## vendor_details — 加工業者ユーザー詳細
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| user_id | bigint | × |  |  |
+| nickname | character varying(50) | ○ |  | ニックネーム |
+| profile_icon_url | character varying(500) | ○ |  | プロフィールアイコン URL |
+| vendor_name | character varying(100) | × |  | 事業者名 |
+| vendor_name_kana | character varying(100) | ○ |  | 事業者名カナ |
+| invoice_number | character varying(20) | ○ |  | 適格請求書発行事業者番号 |
+| contact_person_name | character varying(80) | × |  | 窓口担当者名 |
+| contact_person_kana | character varying(80) | ○ |  | 担当者名カナ |
+| contact_phone_number | character varying(20) | ○ |  | 担当者直通電話番号 |
+| office_postal_code | character varying(8) | ○ |  | 事業所郵便番号<br>*TODO:**7桁に*** |
+| office_prefecture_code | character varying(2) | × |  | 事業所都道府県コード |
+| office_city_code | character varying(5) | × |  | 事業所市区町村コード |
+| office_address_line | character varying(200) | × |  | 事業所番地・建物名ほか |
+| office_phone_number | character varying(20) | ○ |  | 代表電話番号 |
+| bank_name | character varying(60) | ○ |  | 振込銀行名 |
+| account_type | smallint | ○ |  | 口座種別 `0=普通 1=当座` |
+| account_number | character varying(20) | ○ |  | 口座番号 |
+| account_name | character varying(100) | ○ |  | 口座名義 |
+| shipping_base_address_json | jsonb | ○ |  | 業者からの出荷元住所情報（郵便番号、住所、電話番号） |
+| notes | text | ○ |  | メモ |
+| charges_enabled | boolean | × | false | Webhook `account.updated` で同期。入金停止などの UI 表示に利用 |
+| payouts_enabled | boolean | × | false | ebhook `account.updated` で同期。入金停止などの UI 表示に利用 |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| coverage_scope | integer | × | 0 | 対応地域単位 `0 : all_japan` `1 : prefectures` `2 : cities` |
+
+**インデックス**:
+- index_vendor_details_on_coverage_scope
+- index_vendor_details_on_created_by_id
+- index_vendor_details_on_deleted_by_id
+- index_vendor_details_on_invoice_number
+- index_vendor_details_on_updated_by_id
+
+**外部キー**:
+- (office_city_code) → m_cities.code
+- (deleted_by_id) → users.id
+- (office_prefecture_code) → m_prefectures.code
+- (created_by_id) → users.id
+- (user_id) → users.id
+- (updated_by_id) → users.id
+- (office_city_code) → m_cities.code
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END vendor_details -->
+
 <!-- TABLE_BEGIN admin_details -->
 ## admin_details ー 管理者詳細テーブル
 
@@ -9,7 +309,7 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | user_id | bigint | × |  |  |
-| nickname | character varying(50) | ○ |  | あああ |
+| nickname | character varying(50) | ○ |  |  |
 | icon_url | character varying(255) | ○ |  |  |
 | department | character varying(100) | ○ |  |  |
 | created_by_id | bigint | ○ |  |  |
@@ -34,14 +334,11 @@
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->ああああああ
+<!-- 任意のメモを書いてください -->
 <!-- NOTE END -->
 
 <!-- TABLE_END admin_details -->
 
-<!-- SECTION_BEGIN 新グループ -->
-# 新グループ
-<!-- SECTION_END 新グループ -->
 
 <!-- TABLE_BEGIN affiliate_signups -->
 ## affiliate_signups
@@ -1407,63 +1704,6 @@
 
 <!-- TABLE_END schema_migrations -->
 
-<!-- TABLE_BEGIN member_details -->
-## member_details
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| user_id | bigint | × |  |  |
-| nickname | character varying(50) | ○ |  |  |
-| icon_url | character varying | ○ |  |  |
-| legal_type | smallint | × |  |  |
-| legal_name | character varying | × |  |  |
-| legal_name_kana | character varying | ○ |  |  |
-| birthday | date | ○ |  |  |
-| gender | character varying(1) | ○ |  |  |
-| billing_postal_code | character varying(20) | ○ |  |  |
-| billing_prefecture_code | character varying(2) | ○ |  |  |
-| billing_city_code | character varying(5) | × |  |  |
-| billing_address_line | character varying(200) | × |  |  |
-| billing_department | character varying(100) | ○ |  |  |
-| billing_phone_number | character varying(30) | ○ |  |  |
-| primary_shipping_id | bigint | ○ |  |  |
-| stripe_customer_id | character varying | ○ |  |  |
-| registered_affiliate_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| membership_plan | integer | × | 0 |  |
-
-**インデックス**:
-- index_member_details_on_created_by_id
-- index_member_details_on_deleted_by_id
-- index_member_details_on_registered_affiliate_id
-- index_member_details_on_stripe_customer_id
-- index_member_details_on_updated_by_id
-
-**外部キー**:
-- (billing_city_code) → m_cities.code
-- (primary_shipping_id) → member_shipping_addresses.id
-- (user_id) → users.id
-- (registered_affiliate_id) → users.id
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (billing_city_code) → m_cities.code
-- (billing_prefecture_code) → m_prefectures.code
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END member_details -->
-
 <!-- TABLE_BEGIN payouts -->
 ## payouts
 
@@ -1622,36 +1862,6 @@
 
 <!-- TABLE_END stripe_payments -->
 
-<!-- TABLE_BEGIN user_authorities -->
-## user_authorities
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
-| authority_code | character varying(30) | × |  |  |
-| grant_state | smallint | × | 1 |  |
-| valid_from | timestamp(6) without time zone | ○ |  |  |
-| valid_to | timestamp(6) without time zone | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_user_authorities_on_user_id
-- index_user_authorities_on_user_id_and_authority_code
-
-**外部キー**:
-- (authority_code) → m_authorities.code
-- (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END user_authorities -->
-
 <!-- TABLE_BEGIN vendor_capabilities -->
 ## vendor_capabilities
 
@@ -1808,66 +2018,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END stripe_refunds -->
-
-<!-- TABLE_BEGIN vendor_details -->
-## vendor_details
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| user_id | bigint | × |  |  |
-| nickname | character varying(50) | ○ |  |  |
-| profile_icon_url | character varying(500) | ○ |  |  |
-| vendor_name | character varying(100) | × |  |  |
-| vendor_name_kana | character varying(100) | ○ |  |  |
-| invoice_number | character varying(20) | ○ |  |  |
-| contact_person_name | character varying(80) | × |  |  |
-| contact_person_kana | character varying(80) | ○ |  |  |
-| contact_phone_number | character varying(20) | ○ |  |  |
-| office_postal_code | character varying(8) | ○ |  |  |
-| office_prefecture_code | character varying(2) | × |  |  |
-| office_city_code | character varying(5) | × |  |  |
-| office_address_line | character varying(200) | × |  |  |
-| office_phone_number | character varying(20) | ○ |  |  |
-| bank_name | character varying(60) | ○ |  |  |
-| account_type | smallint | ○ |  |  |
-| account_number | character varying(20) | ○ |  |  |
-| account_name | character varying(100) | ○ |  |  |
-| shipping_base_address_json | jsonb | ○ |  |  |
-| notes | text | ○ |  |  |
-| charges_enabled | boolean | × | false |  |
-| payouts_enabled | boolean | × | false |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| coverage_scope | integer | × | 0 |  |
-
-**インデックス**:
-- index_vendor_details_on_coverage_scope
-- index_vendor_details_on_created_by_id
-- index_vendor_details_on_deleted_by_id
-- index_vendor_details_on_invoice_number
-- index_vendor_details_on_updated_by_id
-
-**外部キー**:
-- (office_city_code) → m_cities.code
-- (deleted_by_id) → users.id
-- (office_prefecture_code) → m_prefectures.code
-- (created_by_id) → users.id
-- (user_id) → users.id
-- (updated_by_id) → users.id
-- (office_city_code) → m_cities.code
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_details -->
 
 <!-- TABLE_BEGIN h_article_views_202510 -->
 ## h_article_views_202510
@@ -2713,59 +2863,6 @@
 
 <!-- TABLE_END h_error_logs_202604 -->
 
-<!-- TABLE_BEGIN users -->
-## users
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| public_uid | character varying(32) | × |  |  |
-| email | character varying | × |  |  |
-| encrypted_password | character varying | × |  |  |
-| role | smallint | × |  |  |
-| password_changed_at | timestamp(6) without time zone | × |  |  |
-| password_expires_at | timestamp(6) without time zone | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| reset_password_token | character varying | ○ |  |  |
-| reset_password_sent_at | timestamp(6) without time zone | ○ |  |  |
-| remember_created_at | timestamp(6) without time zone | ○ |  |  |
-| sign_in_count | integer | × | 0 |  |
-| current_sign_in_at | timestamp(6) without time zone | ○ |  |  |
-| last_sign_in_at | timestamp(6) without time zone | ○ |  |  |
-| current_sign_in_ip | character varying | ○ |  |  |
-| last_sign_in_ip | character varying | ○ |  |  |
-| failed_attempts | integer | × | 0 |  |
-| unlock_token | character varying | ○ |  |  |
-| locked_at | timestamp(6) without time zone | ○ |  |  |
-
-**インデックス**:
-- index_users_on_created_by_id
-- index_users_on_deleted_by_id
-- index_users_on_email
-- index_users_on_public_uid
-- index_users_on_reset_password_token
-- index_users_on_unlock_token
-- index_users_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END users -->
-
 <!-- TABLE_BEGIN h_article_views_202505 -->
 ## h_article_views_202505
 
@@ -3293,54 +3390,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END vendor_service_prefectures -->
-
-<!-- TABLE_BEGIN member_shipping_addresses -->
-## member_shipping_addresses
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| member_id | bigint | × |  |  |
-| label | character varying(50) | ○ |  |  |
-| recipient_name | character varying(100) | × |  |  |
-| postal_code | character varying(8) | × |  |  |
-| prefecture_code | character varying(2) | × |  |  |
-| city_code | character varying(5) | × |  |  |
-| address_line | character varying(200) | × |  |  |
-| phone_number | character varying(20) | ○ |  |  |
-| is_default | boolean | × | false |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| department | character varying(100) | ○ |  |  |
-
-**インデックス**:
-- index_member_shipping_addresses_on_created_by_id
-- index_member_shipping_addresses_on_deleted_by_id
-- index_member_shipping_addresses_on_member_id
-- index_member_shipping_addresses_on_updated_by_id
-- uq_member_default_address
-
-**外部キー**:
-- (city_code) → m_cities.code
-- (member_id) → member_details.user_id
-- (prefecture_code) → m_prefectures.code
-- (city_code) → m_cities.code
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END member_shipping_addresses -->
 
 <!-- TABLE_BEGIN part_files -->
 ## part_files
