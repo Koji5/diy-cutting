@@ -45,5 +45,7 @@ module App
     # JavaScript を Sprockets で圧縮しない
     config.assets.js_compressor = nil
     config.javascript_build    = false
+    config.time_zone                    = 'Tokyo'      # ← 画面・ロジックで JST を使う
+    config.active_record.default_timezone = :local      # ← DB 保存時も JST を使う
   end
 end

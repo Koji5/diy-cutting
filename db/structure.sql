@@ -11,6 +11,23 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: forbid_origin_update(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.forbid_origin_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NEW.origin_snapshot_id IS DISTINCT FROM OLD.origin_snapshot_id
+     OR NEW.origin_owner_id IS DISTINCT FROM OLD.origin_owner_id THEN
+    RAISE EXCEPTION 'origin columns are immutable';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: tg_h_error_logs_compress(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -127,6 +144,48 @@ CREATE TABLE public.affiliate_details (
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+
+--
+-- Name: affiliate_recipe_commissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.affiliate_recipe_commissions (
+    id bigint NOT NULL,
+    original_user_id bigint NOT NULL,
+    fork_user_id bigint NOT NULL,
+    recipe_snapshot_id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    commission_cents bigint NOT NULL,
+    settled_flag boolean DEFAULT false NOT NULL,
+    settled_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint
+);
+
+
+--
+-- Name: affiliate_recipe_commissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.affiliate_recipe_commissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: affiliate_recipe_commissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.affiliate_recipe_commissions_id_seq OWNED BY public.affiliate_recipe_commissions.id;
 
 
 --
@@ -350,7 +409,9 @@ CREATE TABLE public.cart_items (
     part_id bigint NOT NULL,
     quantity integer DEFAULT 1 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    origin_snapshot_id bigint,
+    origin_owner_id bigint
 );
 
 
@@ -2102,6 +2163,8 @@ CREATE TABLE public.part_snapshots (
     deleted_by_id bigint,
     created_by_id bigint,
     updated_by_id bigint,
+    origin_snapshot_id bigint,
+    origin_owner_id bigint,
     CONSTRAINT chk_ps_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
 );
 
@@ -2155,6 +2218,8 @@ CREATE TABLE public.parts (
     deleted_by_id bigint,
     created_by_id bigint,
     updated_by_id bigint,
+    origin_snapshot_id bigint,
+    origin_owner_id bigint,
     CONSTRAINT chk_parts_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
 );
 
@@ -2371,7 +2436,9 @@ CREATE TABLE public.rfq_parts (
     part_snapshot_id bigint NOT NULL,
     quantity integer DEFAULT 1 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    origin_snapshot_id bigint NOT NULL,
+    origin_owner_id bigint NOT NULL
 );
 
 
@@ -3144,6 +3211,13 @@ ALTER TABLE ONLY public.affiliate_commissions ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: affiliate_recipe_commissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions ALTER COLUMN id SET DEFAULT nextval('public.affiliate_recipe_commissions_id_seq'::regclass);
+
+
+--
 -- Name: affiliate_signups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3417,6 +3491,14 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT affiliate_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: affiliate_recipe_commissions affiliate_recipe_commissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions
+    ADD CONSTRAINT affiliate_recipe_commissions_pkey PRIMARY KEY (id);
 
 
 --
@@ -5047,6 +5129,13 @@ CREATE INDEX idx_article_comments_author_polymorphic ON public.article_comments 
 
 
 --
+-- Name: idx_commission_settlement; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_commission_settlement ON public.affiliate_recipe_commissions USING btree (original_user_id, settled_flag);
+
+
+--
 -- Name: idx_hpe_logger; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5184,6 +5273,55 @@ CREATE UNIQUE INDEX index_affiliate_details_on_invoice_number ON public.affiliat
 --
 
 CREATE INDEX index_affiliate_details_on_updated_by_id ON public.affiliate_details USING btree (updated_by_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_created_by_id ON public.affiliate_recipe_commissions USING btree (created_by_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_deleted_by_id ON public.affiliate_recipe_commissions USING btree (deleted_by_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_fork_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_fork_user_id ON public.affiliate_recipe_commissions USING btree (fork_user_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_order_id ON public.affiliate_recipe_commissions USING btree (order_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_original_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_original_user_id ON public.affiliate_recipe_commissions USING btree (original_user_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_recipe_snapshot_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_recipe_snapshot_id ON public.affiliate_recipe_commissions USING btree (recipe_snapshot_id);
+
+
+--
+-- Name: index_affiliate_recipe_commissions_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_affiliate_recipe_commissions_on_updated_by_id ON public.affiliate_recipe_commissions USING btree (updated_by_id);
 
 
 --
@@ -6132,6 +6270,13 @@ CREATE INDEX index_part_snapshots_on_hole_json ON public.part_snapshots USING gi
 
 
 --
+-- Name: index_part_snapshots_on_origin_snapshot_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_part_snapshots_on_origin_snapshot_id ON public.part_snapshots USING btree (origin_snapshot_id);
+
+
+--
 -- Name: index_part_snapshots_on_part_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6178,6 +6323,13 @@ CREATE INDEX index_parts_on_deleted_by_id ON public.parts USING btree (deleted_b
 --
 
 CREATE INDEX index_parts_on_hole_json ON public.parts USING gin (hole_json);
+
+
+--
+-- Name: index_parts_on_origin_snapshot_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_origin_snapshot_id ON public.parts USING btree (origin_snapshot_id);
 
 
 --
@@ -6283,6 +6435,13 @@ CREATE INDEX index_recipes_on_latest_snapshot_id ON public.recipes USING btree (
 --
 
 CREATE INDEX index_recipes_on_user_id ON public.recipes USING btree (user_id);
+
+
+--
+-- Name: index_rfq_parts_on_origin_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_rfq_parts_on_origin_owner_id ON public.rfq_parts USING btree (origin_owner_id);
 
 
 --
@@ -6682,6 +6841,13 @@ CREATE INDEX index_vendor_service_areas_on_city_code ON public.vendor_service_ar
 --
 
 CREATE INDEX index_vendor_service_areas_on_vendor_id ON public.vendor_service_areas USING btree (vendor_id);
+
+
+--
+-- Name: uniq_commission_per_order_and_snapshot; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_commission_per_order_and_snapshot ON public.affiliate_recipe_commissions USING btree (order_id, recipe_snapshot_id);
 
 
 --
@@ -7623,6 +7789,20 @@ CREATE TRIGGER trg_h_error_logs_compress BEFORE INSERT ON public.h_error_logs FO
 
 
 --
+-- Name: part_snapshots trg_part_snapshots_origin_immutable; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_part_snapshots_origin_immutable BEFORE UPDATE ON public.part_snapshots FOR EACH ROW WHEN ((old.origin_snapshot_id IS NOT NULL)) EXECUTE FUNCTION public.forbid_origin_update();
+
+
+--
+-- Name: parts trg_parts_origin_immutable; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_parts_origin_immutable BEFORE UPDATE ON public.parts FOR EACH ROW WHEN ((old.origin_snapshot_id IS NOT NULL)) EXECUTE FUNCTION public.forbid_origin_update();
+
+
+--
 -- Name: affiliate_details fk_affiliate_details_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7764,6 +7944,14 @@ ALTER TABLE ONLY public.m_paint_colors
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_0e90e2812a FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: affiliate_recipe_commissions fk_rails_0fade2c78f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions
+    ADD CONSTRAINT fk_rails_0fade2c78f FOREIGN KEY (fork_user_id) REFERENCES public.users(id);
 
 
 --
@@ -8415,6 +8603,14 @@ ALTER TABLE ONLY public.order_reviews
 
 
 --
+-- Name: affiliate_recipe_commissions fk_rails_7280f3ef48; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions
+    ADD CONSTRAINT fk_rails_7280f3ef48 FOREIGN KEY (recipe_snapshot_id) REFERENCES public.recipe_snapshots(id);
+
+
+--
 -- Name: vendor_details fk_rails_74ee2893b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8516,6 +8712,14 @@ ALTER TABLE ONLY public.article_comments
 
 ALTER TABLE ONLY public.vendor_service_prefectures
     ADD CONSTRAINT fk_rails_8a9ace2194 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: affiliate_recipe_commissions fk_rails_8ac7a4e723; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions
+    ADD CONSTRAINT fk_rails_8ac7a4e723 FOREIGN KEY (order_id) REFERENCES public.orders(id);
 
 
 --
@@ -8951,6 +9155,14 @@ ALTER TABLE ONLY public.rfqs
 
 
 --
+-- Name: affiliate_recipe_commissions fk_rails_d31b25a08a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.affiliate_recipe_commissions
+    ADD CONSTRAINT fk_rails_d31b25a08a FOREIGN KEY (original_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: part_snapshots fk_rails_d38f648163; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9277,6 +9489,11 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250523023257'),
+('20250523021809'),
+('20250523021737'),
+('20250523021701'),
+('20250523021627'),
 ('20250522091453'),
 ('20250522085653'),
 ('20250522083547'),
