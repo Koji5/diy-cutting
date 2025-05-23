@@ -37,13 +37,21 @@ DIY 市場では、板材を希望のサイズ・形状にカットして届け�
 
 ```mermaid
 graph TD
-  A[Next.js (LP)] -->|REST| B(Rails API<br>(Hotwire))
-  B -- Turbo Stream / WebSocket --> C[Front‑end]
-  C -. returns .-> B
-  B --> D[Sidekiq]
-  D --> E[(PostgreSQL)]
-  E --> F[S3 Storage]
-  D --> G[SES / FCM]
+  A[Next.js (LP)]
+  B[Rails API / Hotwire]
+  C[Front‑end]
+  D[Sidekiq]
+  E[(PostgreSQL)]
+  F[S3 Storage]
+  G[SES / FCM]
+
+  A -->|REST| B
+  B -- "Turbo Stream / WebSocket" --> C
+  C -. "returns" .-> B
+  B --> D
+  D --> E
+  E --> F
+  D --> G
 ```
 
 * **Rails 8 + Hotwire** によるフルスタック構成
