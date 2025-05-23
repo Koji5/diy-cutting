@@ -36,22 +36,15 @@ DIY 市場では、板材を希望のサイズ・形状にカットして届け�
 ## アーキテクチャ概要
 
 ```mermaid
+%%{init: {'flowchart': {'lineBreakStyle': 'lf'}} }%%
 graph TD
-  A[Next.js (LP)]
-  B[Rails API / Hotwire]
-  C[Front‑end]
-  D[Sidekiq]
-  E[(PostgreSQL)]
-  F[S3 Storage]
-  G[SES / FCM]
-
-  A -->|REST| B
-  B -- "Turbo Stream / WebSocket" --> C
+  A["Next.js (LP)"] -->|REST| B["Rails API / Hotwire"]
+  B -- "Turbo Stream / WebSocket" --> C["Front‑end"]
   C -. "returns" .-> B
-  B --> D
-  D --> E
-  E --> F
-  D --> G
+  B --> D["Sidekiq"]
+  D --> E["PostgreSQL"]
+  E --> F["S3 Storage"]
+  D --> G["SES / FCM"]
 ```
 
 * **Rails 8 + Hotwire** によるフルスタック構成
