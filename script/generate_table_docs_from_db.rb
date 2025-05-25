@@ -138,16 +138,67 @@ ordered_items.each do |item|
       md << "| #{col.name} | #{col.sql_type} | #{nullable} | #{default} | #{desc} |\n"
     end
 
-    indexes = conn.indexes(table)
+    require 'ostruct'
+
+    # ① 通常インデックス（UNIQUE を含む）を取得
+    indexes = conn.indexes(table)  # ← 主キーは含まれない
+
+    # ② 主キーインデックスを手動で追加
+    pk_cols = Array(conn.primary_key(table))          # => ["id"] など / 複合 PK は要独自拡張
+    unless pk_cols.empty?
+      pk_name = "#{table}_pkey"
+      unless indexes.any? { |i| i.name == pk_name }
+        # OpenStruct で IndexDefinition もどきを作る
+        indexes.unshift(
+          OpenStruct.new(
+            name:    pk_name,
+            columns: pk_cols,
+            unique:  true,
+            primary: true    # 自前フラグ
+          )
+        )
+      end
+    end
+
     unless indexes.empty?
       md << "\n**インデックス**:\n"
-      indexes.each { |idx| md << "- #{idx.name}\n" }
+      indexes.each do |idx|
+        cols  = idx.columns.join(', ')
+        where = idx.respond_to?(:where) && idx.where ? " WHERE #{idx.where}" : ''
+
+        tag  =
+          if (idx.respond_to?(:primary) && idx.primary) || idx.name == "#{table}_pkey"
+            ' [PK]'
+          elsif idx.unique
+            ' [UNIQUE]'
+          else
+            ''
+          end
+        md << "- #{idx.name} (#{cols})#{where}#{tag}\n"
+      end
     end
 
     fks = conn.foreign_keys(table)
     unless fks.empty?
       md << "\n**外部キー**:\n"
-      fks.each { |fk| md << "- (#{fk.column}) → #{fk.to_table}.#{fk.primary_key}\n" }
+      fks.each do |fk|
+        actions = []
+        actions << "ON DELETE #{fk.on_delete.to_s.upcase}" if fk.on_delete
+        actions << "ON UPDATE #{fk.on_update.to_s.upcase}" if fk.on_update
+        action_str = actions.empty? ? "" : " #{actions.join(' ')}"
+        md << "- #{fk.name} (#{fk.column}) → #{fk.to_table}.#{fk.primary_key}#{action_str}\n"
+      end
+    end
+
+
+    # ==== CHECK 制約 ====
+    checks = conn.check_constraints(table)   # Rails 8 以降
+    unless checks.empty?
+      md << "\n**チェック制約**:\n"
+      checks.each do |ck|
+        status = ck.respond_to?(:validated?) && ck.validated? ? "" : " [NOT VALID]"
+        md << "- #{ck.name}: #{ck.expression}#{status}\n"
+      end
     end
 
     md << "<!-- AUTO END -->\n\n"

@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-23 13:59 JST
+生成日: 2025-05-25 11:49 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -39,18 +39,22 @@
 | locked_at | timestamp(6) without time zone | ○ |  | devise |
 
 **インデックス**:
-- index_users_on_created_by_id
-- index_users_on_deleted_by_id
-- index_users_on_email
-- index_users_on_public_uid
-- index_users_on_reset_password_token
-- index_users_on_unlock_token
-- index_users_on_updated_by_id
+- users_pkey (id) [PK]
+- index_users_on_created_by_id (created_by_id)
+- index_users_on_deleted_by_id (deleted_by_id)
+- index_users_on_email (email) [UNIQUE]
+- index_users_on_public_uid (public_uid) [UNIQUE]
+- index_users_on_reset_password_token (reset_password_token) [UNIQUE]
+- index_users_on_unlock_token (unlock_token) [UNIQUE]
+- index_users_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
+- fk_rails_205180732b (deleted_by_id) → users.id
+- fk_rails_355a7ffe95 (updated_by_id) → users.id
+- fk_rails_45307c95a3 (created_by_id) → users.id
+
+**チェック制約**:
+- users_role_value: role = ANY (ARRAY[0, 1, 2, 3])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -76,12 +80,16 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_user_authorities_on_user_id
-- index_user_authorities_on_user_id_and_authority_code
+- user_authorities_pkey (id) [PK]
+- index_user_authorities_on_user_id (user_id)
+- index_user_authorities_on_user_id_and_authority_code (user_id, authority_code) [UNIQUE]
 
 **外部キー**:
-- (authority_code) → m_authorities.code
-- (user_id) → users.id
+- fk_rails_64f628bee7 (authority_code) → m_authorities.code
+- fk_rails_6a8b2647b8 (user_id) → users.id
+
+**チェック制約**:
+- user_authorities_grant_state_chk: grant_state = ANY (ARRAY[0, 1])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -127,22 +135,23 @@
 | membership_plan | integer | × | 0 | 課金状態（当面無料のみ） |
 
 **インデックス**:
-- index_member_details_on_created_by_id
-- index_member_details_on_deleted_by_id
-- index_member_details_on_registered_affiliate_id
-- index_member_details_on_stripe_customer_id
-- index_member_details_on_updated_by_id
+- member_details_pkey (user_id) [PK]
+- index_member_details_on_created_by_id (created_by_id)
+- index_member_details_on_deleted_by_id (deleted_by_id)
+- index_member_details_on_registered_affiliate_id (registered_affiliate_id)
+- index_member_details_on_stripe_customer_id (stripe_customer_id)
+- index_member_details_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (billing_city_code) → m_cities.code
-- (primary_shipping_id) → member_shipping_addresses.id
-- (user_id) → users.id
-- (registered_affiliate_id) → users.id
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (billing_city_code) → m_cities.code
-- (billing_prefecture_code) → m_prefectures.code
-- (created_by_id) → users.id
+- fk_member_details_billing_city_code (billing_city_code) → m_cities.code
+- fk_rails_08851c9c2d (primary_shipping_id) → member_shipping_addresses.id
+- fk_rails_0e90e2812a (user_id) → users.id
+- fk_rails_55b88e8f8b (registered_affiliate_id) → users.id
+- fk_rails_64afa3893c (updated_by_id) → users.id
+- fk_rails_6cfc776564 (deleted_by_id) → users.id
+- fk_rails_aeb287d4a2 (billing_city_code) → m_cities.code
+- fk_rails_c2cdeb6f7c (billing_prefecture_code) → m_prefectures.code
+- fk_rails_f1af1cd707 (created_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -210,20 +219,21 @@
 | department | character varying(100) | ○ |  | 送付先 部署 |
 
 **インデックス**:
-- index_member_shipping_addresses_on_created_by_id
-- index_member_shipping_addresses_on_deleted_by_id
-- index_member_shipping_addresses_on_member_id
-- index_member_shipping_addresses_on_updated_by_id
-- uq_member_default_address
+- member_shipping_addresses_pkey (id) [PK]
+- index_member_shipping_addresses_on_created_by_id (created_by_id)
+- index_member_shipping_addresses_on_deleted_by_id (deleted_by_id)
+- index_member_shipping_addresses_on_member_id (member_id)
+- index_member_shipping_addresses_on_updated_by_id (updated_by_id)
+- uq_member_default_address (member_id) WHERE (is_default = true) [UNIQUE]
 
 **外部キー**:
-- (city_code) → m_cities.code
-- (member_id) → member_details.user_id
-- (prefecture_code) → m_prefectures.code
-- (city_code) → m_cities.code
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
+- fk_member_shipping_addresses_city_code (city_code) → m_cities.code
+- fk_rails_2997f898f1 (member_id) → member_details.user_id ON DELETE CASCADE
+- fk_rails_32761ffe09 (prefecture_code) → m_prefectures.code
+- fk_rails_63f1c23650 (city_code) → m_cities.code
+- fk_rails_66cc3b7a7e (updated_by_id) → users.id
+- fk_rails_99ee2a7033 (deleted_by_id) → users.id
+- fk_rails_aad71f9b0c (created_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -280,20 +290,21 @@
 | coverage_scope | integer | × | 0 | 対応地域単位 `0 : all_japan` `1 : prefectures` `2 : cities` |
 
 **インデックス**:
-- index_vendor_details_on_coverage_scope
-- index_vendor_details_on_created_by_id
-- index_vendor_details_on_deleted_by_id
-- index_vendor_details_on_invoice_number
-- index_vendor_details_on_updated_by_id
+- vendor_details_pkey (user_id) [PK]
+- index_vendor_details_on_coverage_scope (coverage_scope)
+- index_vendor_details_on_created_by_id (created_by_id)
+- index_vendor_details_on_deleted_by_id (deleted_by_id)
+- index_vendor_details_on_invoice_number (invoice_number) [UNIQUE]
+- index_vendor_details_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (office_city_code) → m_cities.code
-- (deleted_by_id) → users.id
-- (office_prefecture_code) → m_prefectures.code
-- (created_by_id) → users.id
-- (user_id) → users.id
-- (updated_by_id) → users.id
-- (office_city_code) → m_cities.code
+- fk_rails_15b36fb913 (office_city_code) → m_cities.code
+- fk_rails_6d15c353fd (deleted_by_id) → users.id
+- fk_rails_74ee2893b8 (office_prefecture_code) → m_prefectures.code
+- fk_rails_d0ad37f00a (created_by_id) → users.id
+- fk_rails_e57cb87d98 (user_id) → users.id
+- fk_rails_ecf03c70f6 (updated_by_id) → users.id
+- fk_vendor_details_office_city_code (office_city_code) → m_cities.code
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -304,243 +315,121 @@
 
 <!-- TABLE_END vendor_details -->
 
-<!-- TABLE_BEGIN admin_details -->
-## admin_details ー 管理者詳細テーブル
+<!-- TABLE_BEGIN vendor_capabilities -->
+## vendor_capabilities ― 業者⇔加工機能
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
-| user_id | bigint | × |  |  |
-| nickname | character varying(50) | ○ |  |  |
-| icon_url | character varying(255) | ○ |  |  |
-| department | character varying(100) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
+| vendor_id | bigint | × |  | 業者 ID |
+| capability_code | character varying(16) | × |  | 加工能力コード（例 `LASER`） |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_admin_details_on_created_by_id
-- index_admin_details_on_deleted_by_id
-- index_admin_details_on_nickname
-- index_admin_details_on_updated_by_id
+- vendor_capabilities_pkey (vendor_id, capability_code) [PK]
+- index_vendor_capabilities_on_capability_code (capability_code)
+- index_vendor_capabilities_on_vendor_id (vendor_id)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-- (user_id) → users.id
-- (updated_by_id) → users.id
+- fk_rails_9f0bc3a1c3 (vendor_id) → vendor_details.user_id ON DELETE CASCADE
+- fk_rails_a23e589077 (capability_code) → m_process_types.code
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+#### メモ
+
+* *複合プライマリキー：同一業者 × 同一加工能力 の重複を禁止*  
+   `PRIMARY KEY (vendor_id, capability_code)`  
+* ***TODO:** idを追加し、`unique (vendor_id, capability_code)`を張るか、とどちらかに統一したい。*
 <!-- NOTE END -->
 
-<!-- TABLE_END admin_details -->
+<!-- TABLE_END vendor_capabilities -->
 
-
-<!-- TABLE_BEGIN affiliate_signups -->
-## affiliate_signups
+<!-- TABLE_BEGIN vendor_service_prefectures -->
+## vendor_service_prefectures ― 業者⇔対応地域（都道府県）
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| affiliate_user_id | bigint | × |  |  |
-| affiliate_click_id | bigint | ○ |  |  |
-| signup_user_id | bigint | × |  |  |
-| signup_at | timestamp(6) without time zone | × |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
+| vendor_id | bigint | × |  | 業者 ID |
+| prefecture_code | character varying(2) | × |  | 対応都道府県コード (`13`=東京) |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_affiliate_signups_on_affiliate_click_id
-- index_affiliate_signups_on_affiliate_user_id
-- index_affiliate_signups_on_signup_user_id
+- vendor_service_prefectures_pkey (id) [PK]
+- idx_vsp_unique (vendor_id, prefecture_code) [UNIQUE]
 
 **外部キー**:
-- (deleted_by_id) → users.id
-- (signup_user_id) → users.id
-- (created_by_id) → users.id
-- (affiliate_click_id) → h_affiliate_clicks.id
-- (updated_by_id) → users.id
-- (affiliate_user_id) → users.id
+- fk_rails_8a9ace2194 (vendor_id) → vendor_details.user_id ON DELETE CASCADE
+- fk_rails_fe52c5e836 (prefecture_code) → m_prefectures.code
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+#### メモ
+
+* `unique (vendor_id, prefecture_code)`  
+* ***TODO:** `PRIMARY KEY (vendor_id, prefecture_code)` にするか、どちらかに統一したい。*  
 <!-- NOTE END -->
 
-<!-- TABLE_END affiliate_signups -->
+<!-- TABLE_END vendor_service_prefectures -->
 
-<!-- TABLE_BEGIN ar_internal_metadata -->
-## ar_internal_metadata
+<!-- TABLE_BEGIN vendor_service_areas -->
+## vendor_service_areas ― 業者⇔対応地域（市区町村）
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
-| key | character varying | × |  |  |
-| value | character varying | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END ar_internal_metadata -->
-
-<!-- TABLE_BEGIN article_media -->
-## article_media
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| article_id | bigint | × |  |  |
-| media_type | smallint | × |  |  |
-| file_url | character varying(500) | × |  |  |
-| caption | character varying(150) | ○ |  |  |
-| position | smallint | ○ |  |  |
-| meta_json | jsonb | ○ | "{}" |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
+| vendor_id | bigint | × |  |  |
+| city_code | character varying(5) | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_article_media_on_article_id
-- index_article_media_on_created_by_id
-- index_article_media_on_deleted_by_id
-- index_article_media_on_updated_by_id
+- idx_vsa_unique (vendor_id, city_code) [UNIQUE]
+- index_vendor_service_areas_on_city_code (city_code)
+- index_vendor_service_areas_on_vendor_id (vendor_id)
 
 **外部キー**:
-- (article_id) → articles.id
+- fk_rails_6af0406fe8 (vendor_id) → vendor_details.user_id ON DELETE CASCADE
+- fk_rails_7fc7dfd7b8 (city_code) → m_cities.code
+- fk_vendor_service_areas_city_code (city_code) → m_cities.code
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
 <!-- 任意のメモを書いてください -->
 <!-- NOTE END -->
 
-<!-- TABLE_END article_media -->
+<!-- TABLE_END vendor_service_areas -->
 
-<!-- TABLE_BEGIN h_affiliate_clicks -->
-## h_affiliate_clicks
+<!-- TABLE_BEGIN vendor_materials -->
+## vendor_materials
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| affiliate_user_id | bigint | × |  |  |
-| click_token | uuid | × |  |  |
-| referrer_url | character varying(500) | ○ |  |  |
-| landing_url | character varying(500) | ○ |  |  |
-| ip_address | inet | ○ |  |  |
-| user_agent | character varying(255) | ○ |  |  |
-| clicked_at | timestamp(6) without time zone | × |  |  |
+| vendor_id | bigint | × |  |  |
+| material_code | character varying(16) | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_h_affiliate_clicks_on_affiliate_user_id
-- uq_h_aff_click_token
+- vendor_materials_pkey (vendor_id, material_code) [PK]
+- index_vendor_materials_on_material_code (material_code)
+- index_vendor_materials_on_vendor_id (vendor_id)
 
 **外部キー**:
-- (affiliate_user_id) → users.id
+- fk_rails_24b9aa6af6 (material_code) → m_materials.code
+- fk_rails_651d8515a7 (vendor_id) → vendor_details.user_id ON DELETE CASCADE
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
 <!-- 任意のメモを書いてください -->
 <!-- NOTE END -->
 
-<!-- TABLE_END h_affiliate_clicks -->
-
-<!-- TABLE_BEGIN article_comments -->
-## article_comments
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| article_id | bigint | × |  |  |
-| parent_id | bigint | ○ |  |  |
-| author_type | character varying(20) | × |  |  |
-| author_id | bigint | × |  |  |
-| body | text | × |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- idx_article_comments_author_polymorphic
-- index_article_comments_on_article_id
-- index_article_comments_on_author_id
-- index_article_comments_on_created_by_id
-- index_article_comments_on_deleted_by_id
-- index_article_comments_on_parent_id
-- index_article_comments_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (article_id) → articles.id
-- (created_by_id) → users.id
-- (parent_id) → article_comments.id
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END article_comments -->
-
-<!-- TABLE_BEGIN h_article_views -->
-## h_article_views
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| article_id | bigint | × |  |  |
-| user_id | bigint | ○ |  |  |
-| ip_address | inet | ○ |  |  |
-| viewed_at | timestamp with time zone | × |  |  |
-| ua_hash | character(32) | ○ |  |  |
-| processed_flag | boolean | × | false |  |
-| created_at | timestamp with time zone | × |  |  |
-
-**インデックス**:
-- idx_article_views_unprocessed
-- index_h_article_views_on_article_id
-- index_h_article_views_on_id
-- index_h_article_views_on_user_id
-
-**外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END h_article_views -->
+<!-- TABLE_END vendor_materials -->
 
 <!-- TABLE_BEGIN affiliate_details -->
 ## affiliate_details
@@ -576,19 +465,20 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_affiliate_details_on_created_by_id
-- index_affiliate_details_on_deleted_by_id
-- index_affiliate_details_on_invoice_number
-- index_affiliate_details_on_updated_by_id
+- affiliate_details_pkey (user_id) [PK]
+- index_affiliate_details_on_created_by_id (created_by_id)
+- index_affiliate_details_on_deleted_by_id (deleted_by_id)
+- index_affiliate_details_on_invoice_number (invoice_number) [UNIQUE]
+- index_affiliate_details_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (city_code) → m_cities.code
-- (prefecture_code) → m_prefectures.code
-- (created_by_id) → users.id
-- (city_code) → m_cities.code
-- (deleted_by_id) → users.id
-- (user_id) → users.id
-- (updated_by_id) → users.id
+- fk_affiliate_details_city_code (city_code) → m_cities.code
+- fk_rails_1250f45d05 (prefecture_code) → m_prefectures.code
+- fk_rails_70a6bce611 (created_by_id) → users.id
+- fk_rails_7c046c89f6 (city_code) → m_cities.code
+- fk_rails_8b1030bd18 (deleted_by_id) → users.id
+- fk_rails_b810b35d18 (user_id) → users.id
+- fk_rails_ce9ab7214f (updated_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -596,6 +486,373 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END affiliate_details -->
+
+<!-- TABLE_BEGIN admin_details -->
+## admin_details ー 管理者詳細テーブル
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| user_id | bigint | × |  |  |
+| nickname | character varying(50) | ○ |  |  |
+| icon_url | character varying(255) | ○ |  |  |
+| department | character varying(100) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- admin_details_pkey (user_id) [PK]
+- index_admin_details_on_created_by_id (created_by_id)
+- index_admin_details_on_deleted_by_id (deleted_by_id)
+- index_admin_details_on_nickname (nickname) [UNIQUE]
+- index_admin_details_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_0434f99b3a (created_by_id) → users.id
+- fk_rails_45d29e92b6 (deleted_by_id) → users.id
+- fk_rails_4fcb60b766 (user_id) → users.id
+- fk_rails_560f5098d3 (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END admin_details -->
+
+<!-- SECTION_BEGIN 部品系 -->
+# 部品系
+<!-- SECTION_END 部品系 -->
+
+<!-- TABLE_BEGIN parts -->
+## parts — 部品
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  | パーツを所有するユーザー（設計者） |
+| name | character varying(50) | × |  | パーツ名称（ユーザー入力） |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| material_category_code | character varying(10) | × |  | 材質カテゴリコード（WOOD / METAL など） |
+| material_code | character varying(16) | × |  | 具体的な材質コード（樹種・金属種） |
+| shape_code | character varying(8) | × |  | 平面形状コード（RECT、TRIANGLE など） |
+| paint_type_code | character varying(4) | ○ |  | 塗装種別コード（ウレタン、自然塗装等） |
+| thickness_mm | numeric(8,2) | × |  | 厚み [mm] |
+| width1_mm | numeric(8,2) | × |  | 幅1 [mm]（矩形の場合は幅） |
+| width2_mm | numeric(8,2) | ○ |  | 幅2 [mm]（台形・三角形などで使用） |
+| length_mm | numeric(8,2) | × |  | 長さ [mm] |
+| shape_json | jsonb | ○ | {} | 面取り・角丸等の形状加工パラメータ |
+| corner_proc_json | jsonb | ○ | {} | 四隅の角加工設定 |
+| hole_json | jsonb | ○ | {} | 丸穴加工設定 |
+| sqhole_json | jsonb | ○ | {} | 角穴加工設定 |
+| edge_json | jsonb | ○ | {} | 断面加工（面取り／R など） |
+| paint_json | jsonb | ○ | {} | 塗装詳細（色・艶・導管処理等） |
+| note | text | ○ |  | 備考メモ |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| origin_snapshot_id | bigint | ○ |  |  |
+| origin_owner_id | bigint | ○ |  |  |
+
+**インデックス**:
+- parts_pkey (id) [PK]
+- index_parts_on_corner_proc_json (corner_proc_json)
+- index_parts_on_created_by_id (created_by_id)
+- index_parts_on_deleted_by_id (deleted_by_id)
+- index_parts_on_hole_json (hole_json)
+- index_parts_on_origin_snapshot_id (origin_snapshot_id)
+- index_parts_on_sqhole_json (sqhole_json)
+- index_parts_on_updated_by_id (updated_by_id)
+- index_parts_on_user_id (user_id)
+
+**外部キー**:
+- fk_rails_30be2232d9 (deleted_by_id) → users.id
+- fk_rails_9790700793 (material_category_code) → m_categories.code
+- fk_rails_a63b0793fa (material_code) → m_materials.code
+- fk_rails_b13d63e301 (shape_code) → m_shapes.code
+- fk_rails_b8a090e626 (updated_by_id) → users.id
+- fk_rails_d9a2b8fbeb (created_by_id) → users.id
+- fk_rails_da03c13c19 (paint_type_code) → m_paint_types.code
+- fk_rails_f85f1811f0 (user_id) → users.id
+
+**チェック制約**:
+- chk_parts_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+**メモ**:
+- 'origin_*' 列は **第一世代の公開情報を不変で保持** し、コピー後の編集でも変更不可。  
+* 材積・重量はアプリで自動計算とする。  
+* 加工関連はjsonで集約  
+  * **shape\_json**：加工設定  
+     例：`{"tl":3,"tr":0,"bl":5,"br":0}`  
+  * **corner\_proc\_json**：コーナー(角)加工  
+     例：`{ "tl":{ "proc":"ROUND", "dx":10,"dy":10,"r":5 }, "tr":{"proc":"NONE"}, "bl":{"proc":"CHAMFER","dx":5,"dy":5,"r":0}, "br":{"proc":"NONE"} }`  
+     **proc** = 加工区分 (`m_corner_processes.code`)  
+     **dx/dy/r** = 縦/横/半径
+  * **hole\_json**：丸穴加工  
+     例：`{"tl":{"flag":true,"dy":10,"dx":15,"dia":6},…}`  
+     **flag** = 丸穴加工 あり / なし (`true` / `false`)  
+     **dy** = 丸穴中心までの縦距離  
+     **dx** = 丸穴中心までの横距離  
+     **dia** = 丸穴直径 (`m_hole_diameters.code`)
+  * **sqhole\_json**：四角穴加工  
+     例：`{"bl":{"flag":true,"dy":20,"dx":25,"h":10,"w":8},…}`  
+  * **edge\_json**：断面加工  
+     例：`{"t":"BEVEL","b":"NONE",…}`  
+     `tl`/ `t`/ `tr` / `l` / `r` / `bl` / `b` / `br` = `m_edge_processes.code`  
+  * **paint\_json**：塗装状態  
+     例：`{"surface":"NOMAL", "color":"LT", "finish":"OPEN", "gloss":"ALL"}`  
+     surface：`m_paint_surfaces` 塗装面 (標準 / 全面)  
+     color：`m_paint_colors` 塗装色 (クリアー・ライト…)  
+     finish：`m_grain_finishes` 木目・導管の見え方 (セミ OP / CL …)  
+     gloss：`m_glosses` ツヤ (3 分・5 分・全ツヤ)  
+
+* **JSON 内値とマスタ行（コード）の関連付け**  
+   1. **一時的にラベルが欲しい場合（ビュー）**  
+      ```sql
+      CREATE VIEW vw_part_corner AS
+      SELECT qi.id,
+             cps_tl.name_ja AS corner_tl_label,
+             (qi.corner_proc_json->'tl'->>'r')::numeric AS radius_tl
+      FROM   parts qi
+      LEFT JOIN m_corner_processes cps_tl
+             ON cps_tl.code = qi.corner_proc_json->'tl'->>'proc';
+      ```
+   1. **頻繁に参照するなら 生成列＋外部キーも可**  
+      ```sql
+      ALTER TABLE parts
+        ADD COLUMN corner_tl_proc char(4)
+          GENERATED ALWAYS AS
+            (corner_proc_json->'tl'->>'proc') STORED;
+
+      ALTER TABLE parts
+        ADD CONSTRAINT fk_corner_tl_proc
+        FOREIGN KEY (corner_tl_proc)
+        REFERENCES m_corner_processes(code);
+      ```
+<!-- NOTE END -->
+
+<!-- TABLE_END parts -->
+
+<!-- TABLE_BEGIN affiliate_signups -->
+## affiliate_signups
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| affiliate_user_id | bigint | × |  |  |
+| affiliate_click_id | bigint | ○ |  |  |
+| signup_user_id | bigint | × |  |  |
+| signup_at | timestamp(6) without time zone | × |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- affiliate_signups_pkey (id) [PK]
+- index_affiliate_signups_on_affiliate_click_id (affiliate_click_id)
+- index_affiliate_signups_on_affiliate_user_id (affiliate_user_id)
+- index_affiliate_signups_on_signup_user_id (signup_user_id) [UNIQUE]
+
+**外部キー**:
+- fk_rails_00b8de6797 (deleted_by_id) → users.id
+- fk_rails_3ef6352d1f (signup_user_id) → users.id
+- fk_rails_c7cac3c3b6 (created_by_id) → users.id
+- fk_rails_da86bb4702 (affiliate_click_id) → h_affiliate_clicks.id
+- fk_rails_df4fe43808 (updated_by_id) → users.id
+- fk_rails_fd29361a59 (affiliate_user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END affiliate_signups -->
+
+<!-- TABLE_BEGIN ar_internal_metadata -->
+## ar_internal_metadata
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| key | character varying | × |  |  |
+| value | character varying | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- ar_internal_metadata_pkey (key) [PK]
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END ar_internal_metadata -->
+
+<!-- TABLE_BEGIN article_media -->
+## article_media
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| article_id | bigint | × |  |  |
+| media_type | smallint | × |  |  |
+| file_url | character varying(500) | × |  |  |
+| caption | character varying(150) | ○ |  |  |
+| position | smallint | ○ |  |  |
+| meta_json | jsonb | ○ | "{}" |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- article_media_pkey (id) [PK]
+- index_article_media_on_article_id (article_id)
+- index_article_media_on_created_by_id (created_by_id)
+- index_article_media_on_deleted_by_id (deleted_by_id)
+- index_article_media_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_5019b4f352 (article_id) → articles.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END article_media -->
+
+<!-- TABLE_BEGIN h_affiliate_clicks -->
+## h_affiliate_clicks
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| affiliate_user_id | bigint | × |  |  |
+| click_token | uuid | × |  |  |
+| referrer_url | character varying(500) | ○ |  |  |
+| landing_url | character varying(500) | ○ |  |  |
+| ip_address | inet | ○ |  |  |
+| user_agent | character varying(255) | ○ |  |  |
+| clicked_at | timestamp(6) without time zone | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- h_affiliate_clicks_pkey (id) [PK]
+- index_h_affiliate_clicks_on_affiliate_user_id (affiliate_user_id)
+- uq_h_aff_click_token (click_token) [UNIQUE]
+
+**外部キー**:
+- fk_rails_800550e991 (affiliate_user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END h_affiliate_clicks -->
+
+<!-- TABLE_BEGIN article_comments -->
+## article_comments
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| article_id | bigint | × |  |  |
+| parent_id | bigint | ○ |  |  |
+| author_type | character varying(20) | × |  |  |
+| author_id | bigint | × |  |  |
+| body | text | × |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- article_comments_pkey (id) [PK]
+- idx_article_comments_author_polymorphic (author_type, author_id)
+- index_article_comments_on_article_id (article_id)
+- index_article_comments_on_author_id (author_id)
+- index_article_comments_on_created_by_id (created_by_id)
+- index_article_comments_on_deleted_by_id (deleted_by_id)
+- index_article_comments_on_parent_id (parent_id)
+- index_article_comments_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_439c61b372 (deleted_by_id) → users.id
+- fk_rails_67982717fa (article_id) → articles.id
+- fk_rails_86c76f9c76 (created_by_id) → users.id
+- fk_rails_d931c2be38 (parent_id) → article_comments.id
+- fk_rails_f0e007d0f8 (updated_by_id) → users.id
+
+**チェック制約**:
+- chk_article_comments_author_type: author_type::text = ANY (ARRAY['MemberDetail'::character varying::text, 'VendorDetail'::character varying::text, 'AdminDetail'::character varying::text, 'AffiliateDetail'::character varying::text])
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END article_comments -->
+
+<!-- TABLE_BEGIN h_article_views -->
+## h_article_views
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| article_id | bigint | × |  |  |
+| user_id | bigint | ○ |  |  |
+| ip_address | inet | ○ |  |  |
+| viewed_at | timestamp with time zone | × |  |  |
+| ua_hash | character(32) | ○ |  |  |
+| processed_flag | boolean | × | false |  |
+| created_at | timestamp with time zone | × |  |  |
+
+**インデックス**:
+- idx_article_views_unprocessed (article_id) WHERE (processed_flag = false)
+- index_h_article_views_on_article_id (article_id)
+- index_h_article_views_on_id (id)
+- index_h_article_views_on_user_id (user_id)
+
+**外部キー**:
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END h_article_views -->
 
 <!-- TABLE_BEGIN affiliate_commissions -->
 ## affiliate_commissions
@@ -621,21 +878,26 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_affiliate_commissions_on_affiliate_user_id
-- index_affiliate_commissions_on_created_by_id
-- index_affiliate_commissions_on_deleted_by_id
-- index_affiliate_commissions_on_order_id
-- index_affiliate_commissions_on_referred_user_id
-- index_affiliate_commissions_on_updated_by_id
-- uq_aff_comm_order
+- affiliate_commissions_pkey (id) [PK]
+- index_affiliate_commissions_on_affiliate_user_id (affiliate_user_id)
+- index_affiliate_commissions_on_created_by_id (created_by_id)
+- index_affiliate_commissions_on_deleted_by_id (deleted_by_id)
+- index_affiliate_commissions_on_order_id (order_id)
+- index_affiliate_commissions_on_referred_user_id (referred_user_id)
+- index_affiliate_commissions_on_updated_by_id (updated_by_id)
+- uq_aff_comm_order (order_id) [UNIQUE]
 
 **外部キー**:
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (referred_user_id) → users.id
-- (affiliate_user_id) → users.id
-- (deleted_by_id) → users.id
-- (order_id) → orders.id
+- fk_rails_03512ee4df (updated_by_id) → users.id
+- fk_rails_71684630c8 (created_by_id) → users.id
+- fk_rails_8fd375453d (referred_user_id) → users.id
+- fk_rails_939dc7f310 (affiliate_user_id) → users.id
+- fk_rails_996822f75d (deleted_by_id) → users.id
+- fk_rails_ef4e150db0 (order_id) → orders.id
+
+**チェック制約**:
+- chk_aff_comm_amount_non_negative: commission_amount >= 0::numeric
+- chk_aff_comm_paid_consistency: NOT paid_flag OR paid_at IS NOT NULL
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -656,13 +918,14 @@
 | created_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_article_likes_on_article_id
-- index_article_likes_on_user_id
-- uq_article_likes_article_user
+- article_likes_pkey (id) [PK]
+- index_article_likes_on_article_id (article_id)
+- index_article_likes_on_user_id (user_id)
+- uq_article_likes_article_user (article_id, user_id) [UNIQUE]
 
 **外部キー**:
-- (user_id) → users.id
-- (article_id) → articles.id
+- fk_rails_2280bc43bb (user_id) → users.id
+- fk_rails_3f46dcc174 (article_id) → articles.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -698,18 +961,22 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_articles_on_author_type_and_author_id
-- index_articles_on_content_blocks
-- index_articles_on_likes_count
-- index_articles_on_order_id
-- index_articles_on_replies_count
-- index_articles_on_views_count
+- articles_pkey (id) [PK]
+- index_articles_on_author_type_and_author_id (author_type, author_id)
+- index_articles_on_content_blocks (content_blocks)
+- index_articles_on_likes_count (likes_count)
+- index_articles_on_order_id (order_id)
+- index_articles_on_replies_count (replies_count)
+- index_articles_on_views_count (views_count)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (order_id) → orders.id
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
+- fk_rails_35e2f292e3 (created_by_id) → users.id
+- fk_rails_4297cebbfe (order_id) → orders.id
+- fk_rails_60cb0a2f23 (updated_by_id) → users.id
+- fk_rails_d87756143c (deleted_by_id) → users.id
+
+**チェック制約**:
+- chk_articles_author_type: author_type::text = ANY (ARRAY['MemberDetail'::character varying::text, 'VendorDetail'::character varying::text, 'AdminDetail'::character varying::text, 'AffiliateDetail'::character varying::text])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -734,12 +1001,15 @@
 | changed_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- index_h_audit_trails_on_changed_by
-- index_h_audit_trails_on_id
-- index_h_audit_trails_on_table_name
+- index_h_audit_trails_on_changed_by (changed_by)
+- index_h_audit_trails_on_id (id)
+- index_h_audit_trails_on_table_name (table_name)
 
 **外部キー**:
-- (changed_by) → users.id
+- h_audit_trails_changed_by_fkey (changed_by) → users.id
+
+**チェック制約**:
+- h_audit_trails_action_check: action = ANY (ARRAY['I'::bpchar, 'U'::bpchar, 'D'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -773,14 +1043,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- index_h_error_logs_on_error_class
-- index_h_error_logs_on_id
-- index_h_error_logs_on_request_id
-- index_h_error_logs_on_request_path
-- index_h_error_logs_on_user_id
+- index_h_error_logs_on_error_class (error_class)
+- index_h_error_logs_on_id (id)
+- index_h_error_logs_on_request_id (request_id)
+- index_h_error_logs_on_request_path (request_path)
+- index_h_error_logs_on_user_id (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -804,12 +1077,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- index_h_login_attempts_on_id
-- index_h_login_attempts_on_ip_address
-- index_h_login_attempts_on_user_id
+- index_h_login_attempts_on_id (id)
+- index_h_login_attempts_on_ip_address (ip_address)
+- index_h_login_attempts_on_user_id (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_login_attempts_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_login_attempts_result_check: result = ANY (ARRAY[0, 1, 2])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -843,14 +1119,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202601_error_class_idx
-- h_error_logs_202601_id_idx
-- h_error_logs_202601_request_id_idx
-- h_error_logs_202601_request_path_idx
-- h_error_logs_202601_user_id_idx
+- h_error_logs_202601_error_class_idx (error_class)
+- h_error_logs_202601_id_idx (id)
+- h_error_logs_202601_request_id_idx (request_id)
+- h_error_logs_202601_request_path_idx (request_path)
+- h_error_logs_202601_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -879,11 +1158,14 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- idx_hpwebhook_gateway_event
+- idx_hpwebhook_gateway_event (gateway, event_id)
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -891,316 +1173,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END h_payment_webhooks -->
-
-<!-- TABLE_BEGIN m_corner_processes -->
-## m_corner_processes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| allow_corner_proc_json | text | × | {} |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_corner_processes_on_created_by_id
-- index_m_corner_processes_on_deleted_by_id
-- index_m_corner_processes_on_name_en
-- index_m_corner_processes_on_name_ja
-- index_m_corner_processes_on_updated_by_id
-
-**外部キー**:
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_corner_processes -->
-
-<!-- TABLE_BEGIN m_paint_surfaces -->
-## m_paint_surfaces
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(6) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_paint_surfaces_on_created_by_id
-- index_m_paint_surfaces_on_deleted_by_id
-- index_m_paint_surfaces_on_name_en
-- index_m_paint_surfaces_on_name_ja
-- index_m_paint_surfaces_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_paint_surfaces -->
-
-<!-- TABLE_BEGIN m_glosses -->
-## m_glosses
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(6) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| gloss_pct | smallint | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_glosses_on_created_by_id
-- index_m_glosses_on_deleted_by_id
-- index_m_glosses_on_updated_by_id
-
-**外部キー**:
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_glosses -->
-
-<!-- TABLE_BEGIN m_cities -->
-## m_cities
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(5) | × |  |  |
-| prefecture_code | character varying(2) | × |  |  |
-| name_ja | character varying(100) | × |  |  |
-| name_kana | character varying(100) | ○ |  |  |
-| name_en | character varying(100) | ○ |  |  |
-| sort_no | smallint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| latitude | numeric(9,6) | ○ |  |  |
-| longitude | numeric(9,6) | ○ |  |  |
-
-**インデックス**:
-- index_m_cities_on_code
-- index_m_cities_on_created_by_id
-- index_m_cities_on_deleted_by_id
-- index_m_cities_on_prefecture_code
-- index_m_cities_on_updated_by_id
-
-**外部キー**:
-- (prefecture_code) → m_prefectures.code
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_cities -->
-
-<!-- TABLE_BEGIN m_categories -->
-## m_categories
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| name_ja | character varying(20) | × |  |  |
-| name_en | character varying(20) | × |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_categories_on_code
-- index_m_categories_on_created_by_id
-- index_m_categories_on_deleted_by_id
-- index_m_categories_on_name_en
-- index_m_categories_on_name_ja
-- index_m_categories_on_updated_by_id
-
-**外部キー**:
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_categories -->
-
-<!-- TABLE_BEGIN m_edge_processes -->
-## m_edge_processes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| name_ja | character varying(20) | × |  |  |
-| name_en | character varying(10) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_edge_processes_on_created_by_id
-- index_m_edge_processes_on_deleted_by_id
-- index_m_edge_processes_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_edge_processes -->
-
-<!-- TABLE_BEGIN m_paint_colors -->
-## m_paint_colors
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(6) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_paint_colors_on_created_by_id
-- index_m_paint_colors_on_deleted_by_id
-- index_m_paint_colors_on_name_en
-- index_m_paint_colors_on_name_ja
-- index_m_paint_colors_on_updated_by_id
-
-**外部キー**:
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_paint_colors -->
-
-<!-- TABLE_BEGIN m_materials -->
-## m_materials
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(16) | × |  |  |
-| category_code | character varying(10) | × |  |  |
-| name_ja | character varying(40) | × |  |  |
-| name_en | character varying(40) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| jis_iso | character varying(12) | ○ |  |  |
-| density_kg_per_m3 | numeric(8,2) | × |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_materials_on_category_code
-- index_m_materials_on_created_by_id
-- index_m_materials_on_deleted_by_id
-- index_m_materials_on_name_en
-- index_m_materials_on_name_ja
-- index_m_materials_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-- (category_code) → m_categories.code
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_materials -->
 
 <!-- TABLE_BEGIN m_process_types -->
 ## m_process_types
@@ -1224,18 +1196,19 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_m_process_types_on_category_code
-- index_m_process_types_on_created_by_id
-- index_m_process_types_on_deleted_by_id
-- index_m_process_types_on_name_en
-- index_m_process_types_on_name_ja
-- index_m_process_types_on_updated_by_id
+- m_process_types_pkey (code) [PK]
+- index_m_process_types_on_category_code (category_code)
+- index_m_process_types_on_created_by_id (created_by_id)
+- index_m_process_types_on_deleted_by_id (deleted_by_id)
+- index_m_process_types_on_name_en (name_en) [UNIQUE]
+- index_m_process_types_on_name_ja (name_ja) [UNIQUE]
+- index_m_process_types_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (category_code) → m_categories.code
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
+- fk_rails_50d97028ce (created_by_id) → users.id
+- fk_rails_9a94eea366 (category_code) → m_categories.code
+- fk_rails_9ae1a206fd (updated_by_id) → users.id
+- fk_rails_9c515c2693 (deleted_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1243,117 +1216,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END m_process_types -->
-
-<!-- TABLE_BEGIN m_paint_types -->
-## m_paint_types
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| allow_paint_json | text | × | {} |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_paint_types_on_created_by_id
-- index_m_paint_types_on_deleted_by_id
-- index_m_paint_types_on_name_en
-- index_m_paint_types_on_name_ja
-- index_m_paint_types_on_updated_by_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_paint_types -->
-
-<!-- TABLE_BEGIN m_prefectures -->
-## m_prefectures
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(2) | × |  |  |
-| name_ja | character varying(10) | × |  |  |
-| name_en | character varying(20) | × |  |  |
-| kana | character varying(20) | × |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_prefectures_on_code
-- index_m_prefectures_on_created_by_id
-- index_m_prefectures_on_deleted_by_id
-- index_m_prefectures_on_name_ja
-- index_m_prefectures_on_updated_by_id
-
-**外部キー**:
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_prefectures -->
-
-<!-- TABLE_BEGIN m_hole_diameters -->
-## m_hole_diameters
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| hole_mm | numeric(8,2) | × |  |  |
-| name_ja | character varying(20) | × |  |  |
-| name_en | character varying(6) | × |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_hole_diameters_on_created_by_id
-- index_m_hole_diameters_on_deleted_by_id
-- index_m_hole_diameters_on_updated_by_id
-
-**外部キー**:
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_hole_diameters -->
 
 <!-- TABLE_BEGIN m_authorities -->
 ## m_authorities
@@ -1374,16 +1236,16 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_m_authorities_on_active_flag
-- index_m_authorities_on_code
-- index_m_authorities_on_created_by_id
-- index_m_authorities_on_deleted_by_id
-- index_m_authorities_on_updated_by_id
+- index_m_authorities_on_active_flag (active_flag)
+- index_m_authorities_on_code (code) [UNIQUE]
+- index_m_authorities_on_created_by_id (created_by_id)
+- index_m_authorities_on_deleted_by_id (deleted_by_id)
+- index_m_authorities_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
+- fk_rails_44f5207aff (deleted_by_id) → users.id
+- fk_rails_5230eda4ef (created_by_id) → users.id
+- fk_rails_e964d916b9 (updated_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1391,86 +1253,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END m_authorities -->
-
-<!-- TABLE_BEGIN m_postal_codes -->
-## m_postal_codes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| postal_code | character varying(7) | × |  |  |
-| city_code | character varying(5) | × |  |  |
-| city_town_name_kanji | text | × |  |  |
-| town_area_name_kanji | text | ○ |  |  |
-| multi_town_flag | boolean | × | false |  |
-| koaza_banchi_flag | boolean | × | false |  |
-| chome_flag | boolean | × | false |  |
-| multi_aza_flag | boolean | × | false |  |
-| deleted_flag | boolean | × | false |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| deleted_at | timestamp with time zone | ○ |  |  |
-
-**インデックス**:
-- idx_postal_code_area_unique
-- index_m_postal_codes_on_city_code
-- index_m_postal_codes_on_created_by_id
-- index_m_postal_codes_on_deleted_by_id
-- index_m_postal_codes_on_postal_code
-- index_m_postal_codes_on_updated_by_id
-
-**外部キー**:
-- (city_code) → m_cities.code
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_postal_codes -->
-
-<!-- TABLE_BEGIN m_grain_finishes -->
-## m_grain_finishes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(6) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_grain_finishes_on_created_by_id
-- index_m_grain_finishes_on_deleted_by_id
-- index_m_grain_finishes_on_updated_by_id
-
-**外部キー**:
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_grain_finishes -->
 
 <!-- TABLE_BEGIN h_payout_events -->
 ## h_payout_events
@@ -1488,13 +1270,17 @@
 | created_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- idx_hpe_logger
-- index_h_payout_events_on_event
-- index_h_payout_events_on_occurred_at
-- index_h_payout_events_on_payout_id
+- h_payout_events_pkey (id) [PK]
+- idx_hpe_logger (logged_by_type, logged_by_id)
+- index_h_payout_events_on_event (event)
+- index_h_payout_events_on_occurred_at (occurred_at)
+- index_h_payout_events_on_payout_id (payout_id)
 
 **外部キー**:
-- (payout_id) → payouts.id
+- fk_rails_bd2df7a8c8 (payout_id) → payouts.id
+
+**チェック制約**:
+- chk_hpe_logged_by_type: (logged_by_type::text = ANY (ARRAY['System'::character varying::text, 'User'::character varying::text, 'Admin'::character varying::text])) OR logged_by_type IS NULL
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1532,15 +1318,19 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- idx_notifications_recipient_status
-- idx_notifications_related
-- index_notifications_on_broadcast_id
-- index_notifications_on_notification_type
+- notifications_pkey (id) [PK]
+- idx_notifications_recipient_status (recipient_type, recipient_id, status)
+- idx_notifications_related (related_model_type, related_model_id)
+- index_notifications_on_broadcast_id (broadcast_id)
+- index_notifications_on_notification_type (notification_type)
 
 **外部キー**:
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
+- fk_rails_1b74717c67 (deleted_by_id) → users.id
+- fk_rails_5449be7f30 (updated_by_id) → users.id
+- fk_rails_ee2be4cca6 (created_by_id) → users.id
+
+**チェック制約**:
+- chk_notifications_recipient_type: recipient_type::text = ANY (ARRAY['MemberDetail'::character varying::text, 'VendorDetail'::character varying::text, 'AdminDetail'::character varying::text, 'AffiliateDetail'::character varying::text])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1578,24 +1368,25 @@
 | vendor_offer_id | bigint | × |  |  |
 
 **インデックス**:
-- index_orders_on_affiliate_id
-- index_orders_on_created_by_id
-- index_orders_on_deleted_by_id
-- index_orders_on_shipping_address_id
-- index_orders_on_updated_by_id
-- index_orders_on_user_id
-- index_orders_on_vendor_id
-- index_orders_on_vendor_offer_id
+- orders_pkey (id) [PK]
+- index_orders_on_affiliate_id (affiliate_id)
+- index_orders_on_created_by_id (created_by_id)
+- index_orders_on_deleted_by_id (deleted_by_id)
+- index_orders_on_shipping_address_id (shipping_address_id)
+- index_orders_on_updated_by_id (updated_by_id)
+- index_orders_on_user_id (user_id)
+- index_orders_on_vendor_id (vendor_id)
+- index_orders_on_vendor_offer_id (vendor_offer_id)
 
 **外部キー**:
-- (shipping_address_id) → transaction_shipping_addresses.id
-- (vendor_offer_id) → vendor_offers.id
-- (updated_by_id) → users.id
-- (affiliate_id) → users.id
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-- (vendor_id) → users.id
-- (user_id) → users.id
+- fk_rails_267c198c1b (shipping_address_id) → transaction_shipping_addresses.id ON DELETE RESTRICT
+- fk_rails_3785801b9a (vendor_offer_id) → vendor_offers.id
+- fk_rails_38adeaa02b (updated_by_id) → users.id
+- fk_rails_9a312b3a4c (affiliate_id) → users.id
+- fk_rails_9ac523da23 (created_by_id) → users.id
+- fk_rails_dc1006bb54 (deleted_by_id) → users.id
+- fk_rails_f6acf748cd (vendor_id) → users.id
+- fk_rails_f868b47f6a (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1628,20 +1419,21 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_order_reviews_on_created_by_id
-- index_order_reviews_on_deleted_by_id
-- index_order_reviews_on_order_id
-- index_order_reviews_on_reviewer_id
-- index_order_reviews_on_updated_by_id
-- index_order_reviews_on_vendor_id
+- order_reviews_pkey (id) [PK]
+- index_order_reviews_on_created_by_id (created_by_id)
+- index_order_reviews_on_deleted_by_id (deleted_by_id)
+- index_order_reviews_on_order_id (order_id) [UNIQUE]
+- index_order_reviews_on_reviewer_id (reviewer_id)
+- index_order_reviews_on_updated_by_id (updated_by_id)
+- index_order_reviews_on_vendor_id (vendor_id)
 
 **外部キー**:
-- (vendor_id) → users.id
-- (order_id) → orders.id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (reviewer_id) → users.id
-- (created_by_id) → users.id
+- fk_rails_19289e95c6 (vendor_id) → users.id
+- fk_rails_218234f6ac (order_id) → orders.id
+- fk_rails_7266ab26e5 (deleted_by_id) → users.id
+- fk_rails_91fa08e5f2 (updated_by_id) → users.id
+- fk_rails_b27d5eba1f (reviewer_id) → users.id
+- fk_rails_db794df21d (created_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1650,47 +1442,6 @@
 
 <!-- TABLE_END order_reviews -->
 
-<!-- TABLE_BEGIN m_shapes -->
-## m_shapes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| name_ja | character varying(30) | × |  |  |
-| name_en | character varying(30) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| allow_shape_json | text | × | {} |  |
-| allow_corner_json | text | × | {} |  |
-| allow_edge_json | text | × | {} |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_shapes_on_created_by_id
-- index_m_shapes_on_deleted_by_id
-- index_m_shapes_on_name_en
-- index_m_shapes_on_name_ja
-- index_m_shapes_on_updated_by_id
-
-**外部キー**:
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_shapes -->
-
 <!-- TABLE_BEGIN schema_migrations -->
 ## schema_migrations
 
@@ -1698,6 +1449,9 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | version | character varying | × |  |  |
+
+**インデックス**:
+- schema_migrations_pkey (version) [PK]
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1736,18 +1490,22 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_payouts_on_created_by_id
-- index_payouts_on_deleted_by_id
-- index_payouts_on_payee_type_and_payee_id
-- index_payouts_on_transaction_ref
-- index_payouts_on_updated_by_id
-- uq_payouts_period
+- payouts_pkey (id) [PK]
+- index_payouts_on_created_by_id (created_by_id)
+- index_payouts_on_deleted_by_id (deleted_by_id)
+- index_payouts_on_payee_type_and_payee_id (payee_type, payee_id)
+- index_payouts_on_transaction_ref (transaction_ref) [UNIQUE]
+- index_payouts_on_updated_by_id (updated_by_id)
+- uq_payouts_period (payee_type, payee_id, period_from, period_to) [UNIQUE]
 
 **外部キー**:
-- (transaction_ref) → stripe_payouts.payout_id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
+- fk_rails_1680a8e85c (transaction_ref) → stripe_payouts.payout_id
+- fk_rails_7e89b17246 (deleted_by_id) → users.id
+- fk_rails_8ae13af0e2 (updated_by_id) → users.id
+- fk_rails_c50a09411a (created_by_id) → users.id
+
+**チェック制約**:
+- chk_payouts_payee_type: payee_type::text = ANY (ARRAY['MemberDetail'::character varying::text, 'VendorDetail'::character varying::text, 'AdminDetail'::character varying::text, 'AffiliateDetail'::character varying::text])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1775,16 +1533,16 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_stripe_accounts_on_created_by_id
-- index_stripe_accounts_on_deleted_by_id
-- index_stripe_accounts_on_stripe_account_id
-- index_stripe_accounts_on_updated_by_id
+- index_stripe_accounts_on_created_by_id (created_by_id)
+- index_stripe_accounts_on_deleted_by_id (deleted_by_id)
+- index_stripe_accounts_on_stripe_account_id (stripe_account_id) [UNIQUE]
+- index_stripe_accounts_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (user_id) → users.id
-- (created_by_id) → users.id
+- fk_rails_5022b25805 (deleted_by_id) → users.id
+- fk_rails_5760439bf2 (updated_by_id) → users.id
+- fk_rails_764fb7bcbe (user_id) → users.id
+- fk_rails_7feb656bba (created_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1808,9 +1566,10 @@
 | status | character varying(16) | ○ |  |  |
 
 **インデックス**:
-- index_stripe_events_on_account_id
-- index_stripe_events_on_processed_at
-- index_stripe_events_on_status
+- stripe_events_pkey (event_id) [PK]
+- index_stripe_events_on_account_id (account_id)
+- index_stripe_events_on_processed_at (processed_at)
+- index_stripe_events_on_status (status)
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1845,17 +1604,18 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_stripe_payments_on_created_by_id
-- index_stripe_payments_on_deleted_by_id
-- index_stripe_payments_on_order_id
-- index_stripe_payments_on_payment_intent_id
-- index_stripe_payments_on_updated_by_id
+- stripe_payments_pkey (id) [PK]
+- index_stripe_payments_on_created_by_id (created_by_id)
+- index_stripe_payments_on_deleted_by_id (deleted_by_id)
+- index_stripe_payments_on_order_id (order_id) [UNIQUE]
+- index_stripe_payments_on_payment_intent_id (payment_intent_id) [UNIQUE]
+- index_stripe_payments_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (order_id) → orders.id
+- fk_rails_0c6d02e37c (created_by_id) → users.id
+- fk_rails_47bb1f7459 (updated_by_id) → users.id
+- fk_rails_4b62aa0798 (deleted_by_id) → users.id
+- fk_rails_7d60b0916f (order_id) → orders.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1863,32 +1623,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END stripe_payments -->
-
-<!-- TABLE_BEGIN vendor_capabilities -->
-## vendor_capabilities
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| vendor_id | bigint | × |  |  |
-| capability_code | character varying(16) | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_vendor_capabilities_on_capability_code
-- index_vendor_capabilities_on_vendor_id
-
-**外部キー**:
-- (vendor_id) → vendor_details.user_id
-- (capability_code) → m_process_types.code
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_capabilities -->
 
 <!-- TABLE_BEGIN stripe_payouts -->
 ## stripe_payouts
@@ -1911,16 +1645,17 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_stripe_payouts_on_created_by_id
-- index_stripe_payouts_on_deleted_by_id
-- index_stripe_payouts_on_stripe_account_id
-- index_stripe_payouts_on_updated_by_id
+- stripe_payouts_pkey (payout_id) [PK]
+- index_stripe_payouts_on_created_by_id (created_by_id)
+- index_stripe_payouts_on_deleted_by_id (deleted_by_id)
+- index_stripe_payouts_on_stripe_account_id (stripe_account_id)
+- index_stripe_payouts_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (stripe_account_id) → stripe_accounts.stripe_account_id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
+- fk_rails_0164871fc3 (created_by_id) → users.id
+- fk_rails_981e366b28 (stripe_account_id) → stripe_accounts.stripe_account_id
+- fk_rails_dc468b0d39 (deleted_by_id) → users.id
+- fk_rails_ec98cdcaa7 (updated_by_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -1928,60 +1663,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END stripe_payouts -->
-
-<!-- TABLE_BEGIN vendor_service_areas -->
-## vendor_service_areas
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| vendor_id | bigint | × |  |  |
-| city_code | character varying(5) | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- idx_vsa_unique
-- index_vendor_service_areas_on_city_code
-- index_vendor_service_areas_on_vendor_id
-
-**外部キー**:
-- (vendor_id) → vendor_details.user_id
-- (city_code) → m_cities.code
-- (city_code) → m_cities.code
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_service_areas -->
-
-<!-- TABLE_BEGIN vendor_materials -->
-## vendor_materials
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| vendor_id | bigint | × |  |  |
-| material_code | character varying(16) | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_vendor_materials_on_material_code
-- index_vendor_materials_on_vendor_id
-
-**外部キー**:
-- (material_code) → m_materials.code
-- (vendor_id) → vendor_details.user_id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_materials -->
 
 <!-- TABLE_BEGIN stripe_refunds -->
 ## stripe_refunds
@@ -2003,16 +1684,17 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_stripe_refunds_on_created_by_id
-- index_stripe_refunds_on_deleted_by_id
-- index_stripe_refunds_on_payment_intent_id
-- index_stripe_refunds_on_updated_by_id
+- stripe_refunds_pkey (refund_id) [PK]
+- index_stripe_refunds_on_created_by_id (created_by_id)
+- index_stripe_refunds_on_deleted_by_id (deleted_by_id)
+- index_stripe_refunds_on_payment_intent_id (payment_intent_id)
+- index_stripe_refunds_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (created_by_id) → users.id
-- (deleted_by_id) → users.id
-- (updated_by_id) → users.id
-- (payment_intent_id) → stripe_payments.payment_intent_id
+- fk_rails_27113da1c6 (created_by_id) → users.id
+- fk_rails_7b3495b678 (deleted_by_id) → users.id
+- fk_rails_9e3b8e9a53 (updated_by_id) → users.id
+- fk_rails_b61ac62e9e (payment_intent_id) → stripe_payments.payment_intent_id ON DELETE CASCADE
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2037,15 +1719,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202510_article_id_idx
-- h_article_views_202510_article_id_idx1
-- h_article_views_202510_id_idx
-- h_article_views_202510_unproc_idx
-- h_article_views_202510_user_id_idx
+- h_article_views_202510_article_id_idx (article_id)
+- h_article_views_202510_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202510_id_idx (id)
+- h_article_views_202510_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202510_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2070,15 +1752,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202512_article_id_idx
-- h_article_views_202512_article_id_idx1
-- h_article_views_202512_id_idx
-- h_article_views_202512_unproc_idx
-- h_article_views_202512_user_id_idx
+- h_article_views_202512_article_id_idx (article_id)
+- h_article_views_202512_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202512_id_idx (id)
+- h_article_views_202512_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202512_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2103,15 +1785,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202601_article_id_idx
-- h_article_views_202601_article_id_idx1
-- h_article_views_202601_id_idx
-- h_article_views_202601_unproc_idx
-- h_article_views_202601_user_id_idx
+- h_article_views_202601_article_id_idx (article_id)
+- h_article_views_202601_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202601_id_idx (id)
+- h_article_views_202601_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202601_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2136,15 +1818,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202602_article_id_idx
-- h_article_views_202602_article_id_idx1
-- h_article_views_202602_id_idx
-- h_article_views_202602_unproc_idx
-- h_article_views_202602_user_id_idx
+- h_article_views_202602_article_id_idx (article_id)
+- h_article_views_202602_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202602_id_idx (id)
+- h_article_views_202602_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202602_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2169,15 +1851,18 @@
 | changed_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_audit_trails_202505_changed_by_idx
-- h_audit_trails_202505_changed_by_idx1
-- h_audit_trails_202505_id_idx
-- h_audit_trails_202505_id_idx1
-- h_audit_trails_202505_table_name_idx
-- h_audit_trails_202505_table_name_idx1
+- h_audit_trails_202505_changed_by_idx (changed_by)
+- h_audit_trails_202505_changed_by_idx1 (changed_by)
+- h_audit_trails_202505_id_idx (id)
+- h_audit_trails_202505_id_idx1 (id)
+- h_audit_trails_202505_table_name_idx (table_name)
+- h_audit_trails_202505_table_name_idx1 (table_name)
 
 **外部キー**:
-- (changed_by) → users.id
+- h_audit_trails_changed_by_fkey (changed_by) → users.id
+
+**チェック制約**:
+- h_audit_trails_action_check: action = ANY (ARRAY['I'::bpchar, 'U'::bpchar, 'D'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2201,15 +1886,18 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_login_attempts_202505_id_idx
-- h_login_attempts_202505_id_idx1
-- h_login_attempts_202505_ip_address_idx
-- h_login_attempts_202505_ip_address_idx1
-- h_login_attempts_202505_user_id_idx
-- h_login_attempts_202505_user_id_idx1
+- h_login_attempts_202505_id_idx (id)
+- h_login_attempts_202505_id_idx1 (id)
+- h_login_attempts_202505_ip_address_idx (ip_address)
+- h_login_attempts_202505_ip_address_idx1 (ip_address)
+- h_login_attempts_202505_user_id_idx (user_id)
+- h_login_attempts_202505_user_id_idx1 (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_login_attempts_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_login_attempts_result_check: result = ANY (ARRAY[0, 1, 2])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2238,12 +1926,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202505_gateway_event_id_idx
-- h_payment_webhooks_202505_uq
+- h_payment_webhooks_202505_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202505_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2272,12 +1963,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202506_gateway_event_id_idx
-- h_payment_webhooks_202506_uq
+- h_payment_webhooks_202506_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202506_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2306,12 +2000,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202507_gateway_event_id_idx
-- h_payment_webhooks_202507_uq
+- h_payment_webhooks_202507_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202507_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2340,12 +2037,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202508_gateway_event_id_idx
-- h_payment_webhooks_202508_uq
+- h_payment_webhooks_202508_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202508_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2374,12 +2074,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202510_gateway_event_id_idx
-- h_payment_webhooks_202510_uq
+- h_payment_webhooks_202510_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202510_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2413,14 +2116,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202505_error_class_idx
-- h_error_logs_202505_id_idx
-- h_error_logs_202505_request_id_idx
-- h_error_logs_202505_request_path_idx
-- h_error_logs_202505_user_id_idx
+- h_error_logs_202505_error_class_idx (error_class)
+- h_error_logs_202505_id_idx (id)
+- h_error_logs_202505_request_id_idx (request_id)
+- h_error_logs_202505_request_path_idx (request_path)
+- h_error_logs_202505_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2454,14 +2160,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202506_error_class_idx
-- h_error_logs_202506_id_idx
-- h_error_logs_202506_request_id_idx
-- h_error_logs_202506_request_path_idx
-- h_error_logs_202506_user_id_idx
+- h_error_logs_202506_error_class_idx (error_class)
+- h_error_logs_202506_id_idx (id)
+- h_error_logs_202506_request_id_idx (request_id)
+- h_error_logs_202506_request_path_idx (request_path)
+- h_error_logs_202506_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2495,14 +2204,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202507_error_class_idx
-- h_error_logs_202507_id_idx
-- h_error_logs_202507_request_id_idx
-- h_error_logs_202507_request_path_idx
-- h_error_logs_202507_user_id_idx
+- h_error_logs_202507_error_class_idx (error_class)
+- h_error_logs_202507_id_idx (id)
+- h_error_logs_202507_request_id_idx (request_id)
+- h_error_logs_202507_request_path_idx (request_path)
+- h_error_logs_202507_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2525,10 +2237,11 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_recipe_snapshots_on_recipe_id
+- recipe_snapshots_pkey (id) [PK]
+- index_recipe_snapshots_on_recipe_id (recipe_id)
 
 **外部キー**:
-- (recipe_id) → recipes.id
+- fk_rails_c19cfa2d34 (recipe_id) → recipes.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2562,14 +2275,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202508_error_class_idx
-- h_error_logs_202508_id_idx
-- h_error_logs_202508_request_id_idx
-- h_error_logs_202508_request_path_idx
-- h_error_logs_202508_user_id_idx
+- h_error_logs_202508_error_class_idx (error_class)
+- h_error_logs_202508_id_idx (id)
+- h_error_logs_202508_request_id_idx (request_id)
+- h_error_logs_202508_request_path_idx (request_path)
+- h_error_logs_202508_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2603,14 +2319,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202509_error_class_idx
-- h_error_logs_202509_id_idx
-- h_error_logs_202509_request_id_idx
-- h_error_logs_202509_request_path_idx
-- h_error_logs_202509_user_id_idx
+- h_error_logs_202509_error_class_idx (error_class)
+- h_error_logs_202509_id_idx (id)
+- h_error_logs_202509_request_id_idx (request_id)
+- h_error_logs_202509_request_path_idx (request_path)
+- h_error_logs_202509_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2644,14 +2363,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202510_error_class_idx
-- h_error_logs_202510_id_idx
-- h_error_logs_202510_request_id_idx
-- h_error_logs_202510_request_path_idx
-- h_error_logs_202510_user_id_idx
+- h_error_logs_202510_error_class_idx (error_class)
+- h_error_logs_202510_id_idx (id)
+- h_error_logs_202510_request_id_idx (request_id)
+- h_error_logs_202510_request_path_idx (request_path)
+- h_error_logs_202510_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2685,14 +2407,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202511_error_class_idx
-- h_error_logs_202511_id_idx
-- h_error_logs_202511_request_id_idx
-- h_error_logs_202511_request_path_idx
-- h_error_logs_202511_user_id_idx
+- h_error_logs_202511_error_class_idx (error_class)
+- h_error_logs_202511_id_idx (id)
+- h_error_logs_202511_request_id_idx (request_id)
+- h_error_logs_202511_request_path_idx (request_path)
+- h_error_logs_202511_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2726,14 +2451,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202512_error_class_idx
-- h_error_logs_202512_id_idx
-- h_error_logs_202512_request_id_idx
-- h_error_logs_202512_request_path_idx
-- h_error_logs_202512_user_id_idx
+- h_error_logs_202512_error_class_idx (error_class)
+- h_error_logs_202512_id_idx (id)
+- h_error_logs_202512_request_id_idx (request_id)
+- h_error_logs_202512_request_path_idx (request_path)
+- h_error_logs_202512_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2767,14 +2495,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202602_error_class_idx
-- h_error_logs_202602_id_idx
-- h_error_logs_202602_request_id_idx
-- h_error_logs_202602_request_path_idx
-- h_error_logs_202602_user_id_idx
+- h_error_logs_202602_error_class_idx (error_class)
+- h_error_logs_202602_id_idx (id)
+- h_error_logs_202602_request_id_idx (request_id)
+- h_error_logs_202602_request_path_idx (request_path)
+- h_error_logs_202602_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2808,14 +2539,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202603_error_class_idx
-- h_error_logs_202603_id_idx
-- h_error_logs_202603_request_id_idx
-- h_error_logs_202603_request_path_idx
-- h_error_logs_202603_user_id_idx
+- h_error_logs_202603_error_class_idx (error_class)
+- h_error_logs_202603_id_idx (id)
+- h_error_logs_202603_request_id_idx (request_id)
+- h_error_logs_202603_request_path_idx (request_path)
+- h_error_logs_202603_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2849,14 +2583,17 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_error_logs_202604_error_class_idx
-- h_error_logs_202604_id_idx
-- h_error_logs_202604_request_id_idx
-- h_error_logs_202604_request_path_idx
-- h_error_logs_202604_user_id_idx
+- h_error_logs_202604_error_class_idx (error_class)
+- h_error_logs_202604_id_idx (id)
+- h_error_logs_202604_request_id_idx (request_id)
+- h_error_logs_202604_request_path_idx (request_path)
+- h_error_logs_202604_user_id_idx (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- h_error_logs_user_id_fkey (user_id) → users.id
+
+**チェック制約**:
+- h_error_logs_environment_check: environment = ANY (ARRAY['prod'::bpchar, 'stg'::bpchar, 'dev'::bpchar])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2881,15 +2618,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202505_article_id_idx
-- h_article_views_202505_article_id_idx1
-- h_article_views_202505_id_idx
-- h_article_views_202505_unproc_idx
-- h_article_views_202505_user_id_idx
+- h_article_views_202505_article_id_idx (article_id)
+- h_article_views_202505_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202505_id_idx (id)
+- h_article_views_202505_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202505_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2914,15 +2651,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202506_article_id_idx
-- h_article_views_202506_article_id_idx1
-- h_article_views_202506_id_idx
-- h_article_views_202506_unproc_idx
-- h_article_views_202506_user_id_idx
+- h_article_views_202506_article_id_idx (article_id)
+- h_article_views_202506_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202506_id_idx (id)
+- h_article_views_202506_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202506_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2947,15 +2684,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202507_article_id_idx
-- h_article_views_202507_article_id_idx1
-- h_article_views_202507_id_idx
-- h_article_views_202507_unproc_idx
-- h_article_views_202507_user_id_idx
+- h_article_views_202507_article_id_idx (article_id)
+- h_article_views_202507_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202507_id_idx (id)
+- h_article_views_202507_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202507_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -2980,15 +2717,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202508_article_id_idx
-- h_article_views_202508_article_id_idx1
-- h_article_views_202508_id_idx
-- h_article_views_202508_unproc_idx
-- h_article_views_202508_user_id_idx
+- h_article_views_202508_article_id_idx (article_id)
+- h_article_views_202508_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202508_id_idx (id)
+- h_article_views_202508_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202508_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3013,15 +2750,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202509_article_id_idx
-- h_article_views_202509_article_id_idx1
-- h_article_views_202509_id_idx
-- h_article_views_202509_unproc_idx
-- h_article_views_202509_user_id_idx
+- h_article_views_202509_article_id_idx (article_id)
+- h_article_views_202509_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202509_id_idx (id)
+- h_article_views_202509_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202509_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3046,15 +2783,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202511_article_id_idx
-- h_article_views_202511_article_id_idx1
-- h_article_views_202511_id_idx
-- h_article_views_202511_unproc_idx
-- h_article_views_202511_user_id_idx
+- h_article_views_202511_article_id_idx (article_id)
+- h_article_views_202511_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202511_id_idx (id)
+- h_article_views_202511_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202511_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3079,15 +2816,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202603_article_id_idx
-- h_article_views_202603_article_id_idx1
-- h_article_views_202603_id_idx
-- h_article_views_202603_unproc_idx
-- h_article_views_202603_user_id_idx
+- h_article_views_202603_article_id_idx (article_id)
+- h_article_views_202603_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202603_id_idx (id)
+- h_article_views_202603_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202603_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3112,15 +2849,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_article_views_202604_article_id_idx
-- h_article_views_202604_article_id_idx1
-- h_article_views_202604_id_idx
-- h_article_views_202604_unproc_idx
-- h_article_views_202604_user_id_idx
+- h_article_views_202604_article_id_idx (article_id)
+- h_article_views_202604_article_id_idx1 (article_id) WHERE (processed_flag = false)
+- h_article_views_202604_id_idx (id)
+- h_article_views_202604_unproc_idx (article_id) WHERE (processed_flag = false)
+- h_article_views_202604_user_id_idx (user_id)
 
 **外部キー**:
-- (article_id) → articles.id
-- (user_id) → users.id
+- h_article_views_article_id_fkey (article_id) → articles.id
+- h_article_views_user_id_fkey (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3149,12 +2886,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202509_gateway_event_id_idx
-- h_payment_webhooks_202509_uq
+- h_payment_webhooks_202509_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202509_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3183,12 +2923,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202511_gateway_event_id_idx
-- h_payment_webhooks_202511_uq
+- h_payment_webhooks_202511_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202511_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3217,12 +2960,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202512_gateway_event_id_idx
-- h_payment_webhooks_202512_uq
+- h_payment_webhooks_202512_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202512_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3251,12 +2997,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202601_gateway_event_id_idx
-- h_payment_webhooks_202601_uq
+- h_payment_webhooks_202601_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202601_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3285,12 +3034,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202602_gateway_event_id_idx
-- h_payment_webhooks_202602_uq
+- h_payment_webhooks_202602_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202602_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3319,12 +3071,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202603_gateway_event_id_idx
-- h_payment_webhooks_202603_uq
+- h_payment_webhooks_202603_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202603_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3353,12 +3108,15 @@
 | created_at | timestamp with time zone | × |  |  |
 
 **インデックス**:
-- h_payment_webhooks_202604_gateway_event_id_idx
-- h_payment_webhooks_202604_uq
+- h_payment_webhooks_202604_gateway_event_id_idx (gateway, event_id)
+- h_payment_webhooks_202604_uq (gateway, event_id) [UNIQUE]
 
 **外部キー**:
-- (order_id) → orders.id
-- (payout_id) → payouts.id
+- h_payment_webhooks_order_id_fkey (order_id) → orders.id
+- h_payment_webhooks_payout_id_fkey (payout_id) → payouts.id
+
+**チェック制約**:
+- h_payment_webhooks_processing_result_check: processing_result IS NULL OR (processing_result = ANY (ARRAY[0, 1, 2]))
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3366,32 +3124,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END h_payment_webhooks_202604 -->
-
-<!-- TABLE_BEGIN vendor_service_prefectures -->
-## vendor_service_prefectures
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| vendor_id | bigint | × |  |  |
-| prefecture_code | character varying(2) | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- idx_vsp_unique
-
-**外部キー**:
-- (vendor_id) → vendor_details.user_id
-- (prefecture_code) → m_prefectures.code
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_service_prefectures -->
 
 <!-- TABLE_BEGIN part_files -->
 ## part_files
@@ -3406,10 +3138,11 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_part_files_on_part_id
+- part_files_pkey (id) [PK]
+- index_part_files_on_part_id (part_id)
 
 **外部キー**:
-- (part_id) → parts.id
+- fk_rails_0484e77ee6 (part_id) → parts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3433,11 +3166,12 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_recipes_on_latest_snapshot_id
-- index_recipes_on_user_id
+- recipes_pkey (id) [PK]
+- index_recipes_on_latest_snapshot_id (latest_snapshot_id)
+- index_recipes_on_user_id (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- fk_rails_9606fce865 (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3447,29 +3181,33 @@
 <!-- TABLE_END recipes -->
 
 <!-- TABLE_BEGIN recipe_parts -->
-## recipe_parts
+## recipe_parts — レシピを構成する部品リスト （中間テーブル）
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| recipe_id | bigint | × |  |  |
-| part_id | bigint | × |  |  |
-| quantity | integer | × | 1 |  |
+| recipe_id | bigint | × |  | 親レシピ (recipes.id) |
+| part_id | bigint | × |  | 構成部品 (parts.id) |
+| quantity | integer | × | 1 | 	レシピ内で使用する数量 |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_recipe_parts_on_part_id
-- index_recipe_parts_on_recipe_id
+- recipe_parts_pkey (id) [PK]
+- index_recipe_parts_on_part_id (part_id)
+- index_recipe_parts_on_recipe_id (recipe_id)
 
 **外部キー**:
-- (recipe_id) → recipes.id
-- (part_id) → parts.id
+- fk_rails_220f43ebf6 (recipe_id) → recipes.id
+- fk_rails_7138980aad (part_id) → parts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+**メモ**:
+- **同一レシピ内で同じ部品を重複させたくない** 場合は`UNIQUE (recipe_id, part_id)` 制約を追加。
+- `quantity` は正整数のみ許容。モデル側で `numericality: { greater_than: 0 }` を付ける。
+- リレーションは `Recipe has_many :recipe_parts` / `Part has_many :recipe_parts` を想定。
 <!-- NOTE END -->
 
 <!-- TABLE_END recipe_parts -->
@@ -3488,12 +3226,13 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_recipe_snapshot_parts_on_part_snapshot_id
-- index_recipe_snapshot_parts_on_recipe_snapshot_id
+- recipe_snapshot_parts_pkey (id) [PK]
+- index_recipe_snapshot_parts_on_part_snapshot_id (part_snapshot_id)
+- index_recipe_snapshot_parts_on_recipe_snapshot_id (recipe_snapshot_id)
 
 **外部キー**:
-- (recipe_snapshot_id) → recipe_snapshots.id
-- (part_snapshot_id) → part_snapshots.id
+- fk_rails_0989e6ad85 (recipe_snapshot_id) → recipe_snapshots.id
+- fk_rails_eede368e91 (part_snapshot_id) → part_snapshots.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3517,11 +3256,12 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_carts_on_shipping_address_id
-- index_carts_on_user_id
+- carts_pkey (id) [PK]
+- index_carts_on_shipping_address_id (shipping_address_id)
+- index_carts_on_user_id (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- fk_rails_ea59a35211 (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3544,11 +3284,12 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
-- index_rfqs_on_shipping_address_id
-- index_rfqs_on_user_id
+- rfqs_pkey (id) [PK]
+- index_rfqs_on_shipping_address_id (shipping_address_id)
+- index_rfqs_on_user_id (user_id)
 
 **外部キー**:
-- (user_id) → users.id
+- fk_rails_d1a7ab1876 (user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3573,12 +3314,13 @@
 | origin_owner_id | bigint | ○ |  |  |
 
 **インデックス**:
-- index_cart_items_on_cart_id
-- index_cart_items_on_part_id
+- cart_items_pkey (id) [PK]
+- index_cart_items_on_cart_id (cart_id)
+- index_cart_items_on_part_id (part_id)
 
 **外部キー**:
-- (part_id) → parts.id
-- (cart_id) → carts.id
+- fk_rails_592e298682 (part_id) → parts.id
+- fk_rails_6cdb1f0139 (cart_id) → carts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3588,32 +3330,37 @@
 <!-- TABLE_END cart_items -->
 
 <!-- TABLE_BEGIN rfq_parts -->
-## rfq_parts
+## rfq_parts — 見積依頼 (RFQ) を構成する部品スナップショット明細テーブル
 
 <!-- AUTO BEGIN -->
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| rfq_id | bigint | × |  |  |
-| part_snapshot_id | bigint | × |  |  |
-| quantity | integer | × | 1 |  |
+| rfq_id | bigint | × |  | 見積依頼ヘッダ (rfqs.id) |
+| part_snapshot_id | bigint | × |  | 対象部品スナップショット (part_snapshots.id) |
+| quantity | integer | × | 1 | 見積対象数量 |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
-| origin_snapshot_id | bigint | × |  |  |
-| origin_owner_id | bigint | × |  |  |
+| origin_snapshot_id | bigint | × |  | 部品が初出公開されたレシピ‐snapshot ID |
+| origin_owner_id | bigint | × |  | 初出公開者ユーザー ID |
 
 **インデックス**:
-- index_rfq_parts_on_origin_owner_id
-- index_rfq_parts_on_part_snapshot_id
-- index_rfq_parts_on_rfq_id
+- rfq_parts_pkey (id) [PK]
+- index_rfq_parts_on_origin_owner_id (origin_owner_id)
+- index_rfq_parts_on_part_snapshot_id (part_snapshot_id)
+- index_rfq_parts_on_rfq_id (rfq_id)
 
 **外部キー**:
-- (part_snapshot_id) → part_snapshots.id
-- (rfq_id) → rfqs.id
+- fk_rails_923102ee88 (part_snapshot_id) → part_snapshots.id
+- fk_rails_dea4f7c049 (rfq_id) → rfqs.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+**メモ**
+- `origin_*` 列は **部品単価報酬先** を決定するキー。  
+  *origin が NULL の部品は、`part_snapshot.owner_user_id` を報酬先とみなす。*
+- `quantity` は正整数のみ許容。
+- `rfq_parts` → `vendor_offer_items` → `orders` と進むことで、部品単価の見積・採用・売上が一貫してトレース可能。
 <!-- NOTE END -->
 
 <!-- TABLE_END rfq_parts -->
@@ -3643,22 +3390,23 @@
 | deleted_by_id | bigint | ○ |  |  |
 
 **インデックス**:
-- index_vendor_offers_on_created_by_id
-- index_vendor_offers_on_deleted_by_id
-- index_vendor_offers_on_rfq_id
-- index_vendor_offers_on_rfq_id_and_status
-- index_vendor_offers_on_status
-- index_vendor_offers_on_updated_by_id
-- index_vendor_offers_on_vendor_id
-- index_vendor_offers_on_vendor_id_and_status
-- uniq_vendor_offer_per_rfq
+- vendor_offers_pkey (id) [PK]
+- index_vendor_offers_on_created_by_id (created_by_id)
+- index_vendor_offers_on_deleted_by_id (deleted_by_id)
+- index_vendor_offers_on_rfq_id (rfq_id)
+- index_vendor_offers_on_rfq_id_and_status (rfq_id, status)
+- index_vendor_offers_on_status (status)
+- index_vendor_offers_on_updated_by_id (updated_by_id)
+- index_vendor_offers_on_vendor_id (vendor_id)
+- index_vendor_offers_on_vendor_id_and_status (vendor_id, status)
+- uniq_vendor_offer_per_rfq (rfq_id, vendor_id) WHERE (deleted_flag = false) [UNIQUE]
 
 **外部キー**:
-- (updated_by_id) → users.id
-- (deleted_by_id) → users.id
-- (created_by_id) → users.id
-- (rfq_id) → rfqs.id
-- (vendor_id) → users.id
+- fk_rails_37424dfe2f (updated_by_id) → users.id
+- fk_rails_4fe5613415 (deleted_by_id) → users.id
+- fk_rails_8ad36f27c5 (created_by_id) → users.id
+- fk_rails_a3eca65d17 (rfq_id) → rfqs.id
+- fk_rails_b8710e984c (vendor_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3681,6 +3429,9 @@
 | address_line | character varying | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- transaction_shipping_addresses_pkey (id) [PK]
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3710,16 +3461,17 @@
 | deleted_by_id | bigint | ○ |  |  |
 
 **インデックス**:
-- index_vendor_offer_items_on_created_by_id
-- index_vendor_offer_items_on_deleted_by_id
-- index_vendor_offer_items_on_rfq_part_id
-- index_vendor_offer_items_on_updated_by_id
-- index_vendor_offer_items_on_vendor_offer_id
-- uniq_offer_item
+- vendor_offer_items_pkey (id) [PK]
+- index_vendor_offer_items_on_created_by_id (created_by_id)
+- index_vendor_offer_items_on_deleted_by_id (deleted_by_id)
+- index_vendor_offer_items_on_rfq_part_id (rfq_part_id)
+- index_vendor_offer_items_on_updated_by_id (updated_by_id)
+- index_vendor_offer_items_on_vendor_offer_id (vendor_offer_id)
+- uniq_offer_item (vendor_offer_id, rfq_part_id) [UNIQUE]
 
 **外部キー**:
-- (rfq_part_id) → rfq_parts.id
-- (vendor_offer_id) → vendor_offers.id
+- fk_rails_276f1f2b18 (rfq_part_id) → rfq_parts.id
+- fk_rails_8605eefbf2 (vendor_offer_id) → vendor_offers.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3727,67 +3479,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END vendor_offer_items -->
-
-<!-- TABLE_BEGIN parts -->
-## parts
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
-| name | character varying(50) | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| material_category_code | character varying(10) | × |  |  |
-| material_code | character varying(16) | × |  |  |
-| shape_code | character varying(8) | × |  |  |
-| paint_type_code | character varying(4) | ○ |  |  |
-| thickness_mm | numeric(8,2) | × |  |  |
-| width1_mm | numeric(8,2) | × |  |  |
-| width2_mm | numeric(8,2) | ○ |  |  |
-| length_mm | numeric(8,2) | × |  |  |
-| shape_json | jsonb | ○ | {} |  |
-| corner_proc_json | jsonb | ○ | {} |  |
-| hole_json | jsonb | ○ | {} |  |
-| sqhole_json | jsonb | ○ | {} |  |
-| edge_json | jsonb | ○ | {} |  |
-| paint_json | jsonb | ○ | {} |  |
-| note | text | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| origin_snapshot_id | bigint | ○ |  |  |
-| origin_owner_id | bigint | ○ |  |  |
-
-**インデックス**:
-- index_parts_on_corner_proc_json
-- index_parts_on_created_by_id
-- index_parts_on_deleted_by_id
-- index_parts_on_hole_json
-- index_parts_on_origin_snapshot_id
-- index_parts_on_sqhole_json
-- index_parts_on_updated_by_id
-- index_parts_on_user_id
-
-**外部キー**:
-- (deleted_by_id) → users.id
-- (material_category_code) → m_categories.code
-- (material_code) → m_materials.code
-- (shape_code) → m_shapes.code
-- (updated_by_id) → users.id
-- (created_by_id) → users.id
-- (paint_type_code) → m_paint_types.code
-- (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END parts -->
 
 <!-- TABLE_BEGIN part_snapshots -->
 ## part_snapshots
@@ -3824,25 +3515,29 @@
 | origin_owner_id | bigint | ○ |  |  |
 
 **インデックス**:
-- index_part_snapshots_on_checksum
-- index_part_snapshots_on_corner_proc_json
-- index_part_snapshots_on_created_by_id
-- index_part_snapshots_on_deleted_by_id
-- index_part_snapshots_on_hole_json
-- index_part_snapshots_on_origin_snapshot_id
-- index_part_snapshots_on_part_id
-- index_part_snapshots_on_sqhole_json
-- index_part_snapshots_on_updated_by_id
+- part_snapshots_pkey (id) [PK]
+- index_part_snapshots_on_checksum (checksum)
+- index_part_snapshots_on_corner_proc_json (corner_proc_json)
+- index_part_snapshots_on_created_by_id (created_by_id)
+- index_part_snapshots_on_deleted_by_id (deleted_by_id)
+- index_part_snapshots_on_hole_json (hole_json)
+- index_part_snapshots_on_origin_snapshot_id (origin_snapshot_id)
+- index_part_snapshots_on_part_id (part_id)
+- index_part_snapshots_on_sqhole_json (sqhole_json)
+- index_part_snapshots_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- (paint_type_code) → m_paint_types.code
-- (material_code) → m_materials.code
-- (material_category_code) → m_categories.code
-- (created_by_id) → users.id
-- (updated_by_id) → users.id
-- (part_id) → parts.id
-- (shape_code) → m_shapes.code
-- (deleted_by_id) → users.id
+- fk_rails_0a3ba229b5 (paint_type_code) → m_paint_types.code
+- fk_rails_140f6f0234 (material_code) → m_materials.code
+- fk_rails_44200a9608 (material_category_code) → m_categories.code
+- fk_rails_4a942da875 (created_by_id) → users.id
+- fk_rails_c44e04702a (updated_by_id) → users.id
+- fk_rails_c87b5a313e (part_id) → parts.id
+- fk_rails_d38f648163 (shape_code) → m_shapes.code
+- fk_rails_dc20f86c16 (deleted_by_id) → users.id
+
+**チェック制約**:
+- chk_ps_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3874,21 +3569,22 @@
 | deleted_by_id | bigint | ○ |  |  |
 
 **インデックス**:
-- idx_commission_settlement
-- index_affiliate_recipe_commissions_on_created_by_id
-- index_affiliate_recipe_commissions_on_deleted_by_id
-- index_affiliate_recipe_commissions_on_fork_user_id
-- index_affiliate_recipe_commissions_on_order_id
-- index_affiliate_recipe_commissions_on_original_user_id
-- index_affiliate_recipe_commissions_on_recipe_snapshot_id
-- index_affiliate_recipe_commissions_on_updated_by_id
-- uniq_commission_per_order_and_snapshot
+- affiliate_recipe_commissions_pkey (id) [PK]
+- idx_commission_settlement (original_user_id, settled_flag)
+- index_affiliate_recipe_commissions_on_created_by_id (created_by_id)
+- index_affiliate_recipe_commissions_on_deleted_by_id (deleted_by_id)
+- index_affiliate_recipe_commissions_on_fork_user_id (fork_user_id)
+- index_affiliate_recipe_commissions_on_order_id (order_id)
+- index_affiliate_recipe_commissions_on_original_user_id (original_user_id)
+- index_affiliate_recipe_commissions_on_recipe_snapshot_id (recipe_snapshot_id)
+- index_affiliate_recipe_commissions_on_updated_by_id (updated_by_id)
+- uniq_commission_per_order_and_snapshot (order_id, recipe_snapshot_id) [UNIQUE]
 
 **外部キー**:
-- (fork_user_id) → users.id
-- (recipe_snapshot_id) → recipe_snapshots.id
-- (order_id) → orders.id
-- (original_user_id) → users.id
+- fk_rails_0fade2c78f (fork_user_id) → users.id
+- fk_rails_7280f3ef48 (recipe_snapshot_id) → recipe_snapshots.id
+- fk_rails_8ac7a4e723 (order_id) → orders.id
+- fk_rails_d31b25a08a (original_user_id) → users.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -3897,3 +3593,581 @@
 
 <!-- TABLE_END affiliate_recipe_commissions -->
 
+<!-- SECTION_BEGIN マスタ — 住所系 -->
+# マスタ — 住所系
+<!-- SECTION_END マスタ — 住所系 -->
+
+<!-- TABLE_BEGIN m_postal_codes -->
+## m_postal_codes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| postal_code | character varying(7) | × |  |  |
+| city_code | character varying(5) | × |  |  |
+| city_town_name_kanji | text | × |  |  |
+| town_area_name_kanji | text | ○ |  |  |
+| multi_town_flag | boolean | × | false |  |
+| koaza_banchi_flag | boolean | × | false |  |
+| chome_flag | boolean | × | false |  |
+| multi_aza_flag | boolean | × | false |  |
+| deleted_flag | boolean | × | false |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| deleted_at | timestamp with time zone | ○ |  |  |
+
+**インデックス**:
+- m_postal_codes_pkey (id) [PK]
+- idx_postal_code_area_unique (postal_code, town_area_name_kanji) [UNIQUE]
+- index_m_postal_codes_on_city_code (city_code)
+- index_m_postal_codes_on_created_by_id (created_by_id)
+- index_m_postal_codes_on_deleted_by_id (deleted_by_id)
+- index_m_postal_codes_on_postal_code (postal_code)
+- index_m_postal_codes_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_4a069ba98b (city_code) → m_cities.code
+- fk_rails_8cab43ec13 (deleted_by_id) → users.id
+- fk_rails_9584d0ef32 (updated_by_id) → users.id
+- fk_rails_d6f8c39731 (created_by_id) → users.id
+
+**チェック制約**:
+- postal_code_len_chk: char_length(postal_code::text) = 7
+- postal_city_len_chk: char_length(city_code::text) = 5
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_postal_codes -->
+
+<!-- TABLE_BEGIN m_prefectures -->
+## m_prefectures
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(2) | × |  |  |
+| name_ja | character varying(10) | × |  |  |
+| name_en | character varying(20) | × |  |  |
+| kana | character varying(20) | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- index_m_prefectures_on_code (code) [UNIQUE]
+- index_m_prefectures_on_created_by_id (created_by_id)
+- index_m_prefectures_on_deleted_by_id (deleted_by_id)
+- index_m_prefectures_on_name_ja (name_ja) [UNIQUE]
+- index_m_prefectures_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_4364687b87 (updated_by_id) → users.id
+- fk_rails_79951cc512 (created_by_id) → users.id
+- fk_rails_ce3acd64e5 (deleted_by_id) → users.id
+
+**チェック制約**:
+- m_prefectures_code_chk: code::text >= '01'::text AND code::text <= '47'::text
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_prefectures -->
+
+<!-- TABLE_BEGIN m_cities -->
+## m_cities
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(5) | × |  |  |
+| prefecture_code | character varying(2) | × |  |  |
+| name_ja | character varying(100) | × |  |  |
+| name_kana | character varying(100) | ○ |  |  |
+| name_en | character varying(100) | ○ |  |  |
+| sort_no | smallint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| latitude | numeric(9,6) | ○ |  |  |
+| longitude | numeric(9,6) | ○ |  |  |
+
+**インデックス**:
+- index_m_cities_on_code (code) [UNIQUE]
+- index_m_cities_on_created_by_id (created_by_id)
+- index_m_cities_on_deleted_by_id (deleted_by_id)
+- index_m_cities_on_prefecture_code (prefecture_code)
+- index_m_cities_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_42109644b2 (prefecture_code) → m_prefectures.code
+- fk_rails_9bbab727a4 (updated_by_id) → users.id
+- fk_rails_b2a090b409 (created_by_id) → users.id
+- fk_rails_c47d959888 (deleted_by_id) → users.id
+
+**チェック制約**:
+- m_cities_code_len_chk: char_length(code::text) = 5
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_cities -->
+
+<!-- SECTION_BEGIN マスタ — 部品系 -->
+# マスタ — 部品系
+<!-- SECTION_END マスタ — 部品系 -->
+
+<!-- TABLE_BEGIN m_categories -->
+## m_categories
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| name_ja | character varying(20) | × |  |  |
+| name_en | character varying(20) | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_categories_pkey (code) [PK]
+- index_m_categories_on_code (code) [UNIQUE]
+- index_m_categories_on_created_by_id (created_by_id)
+- index_m_categories_on_deleted_by_id (deleted_by_id)
+- index_m_categories_on_name_en (name_en) [UNIQUE]
+- index_m_categories_on_name_ja (name_ja) [UNIQUE]
+- index_m_categories_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_451e72c106 (created_by_id) → users.id
+- fk_rails_63fc147c9a (deleted_by_id) → users.id
+- fk_rails_f95fffab61 (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_categories -->
+
+<!-- TABLE_BEGIN m_materials -->
+## m_materials
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(16) | × |  |  |
+| category_code | character varying(10) | × |  |  |
+| name_ja | character varying(40) | × |  |  |
+| name_en | character varying(40) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| jis_iso | character varying(12) | ○ |  |  |
+| density_kg_per_m3 | numeric(8,2) | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_materials_pkey (code) [PK]
+- index_m_materials_on_category_code (category_code)
+- index_m_materials_on_created_by_id (created_by_id)
+- index_m_materials_on_deleted_by_id (deleted_by_id)
+- index_m_materials_on_name_en (name_en) [UNIQUE]
+- index_m_materials_on_name_ja (name_ja) [UNIQUE]
+- index_m_materials_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_2486576561 (deleted_by_id) → users.id
+- fk_rails_48223032c7 (created_by_id) → users.id
+- fk_rails_5e5fc68929 (category_code) → m_categories.code
+- fk_rails_9fd91eeecc (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_materials -->
+
+<!-- TABLE_BEGIN m_shapes -->
+## m_shapes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| allow_shape_json | text | × | {} |  |
+| allow_corner_json | text | × | {} |  |
+| allow_edge_json | text | × | {} |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_shapes_pkey (code) [PK]
+- index_m_shapes_on_created_by_id (created_by_id)
+- index_m_shapes_on_deleted_by_id (deleted_by_id)
+- index_m_shapes_on_name_en (name_en) [UNIQUE]
+- index_m_shapes_on_name_ja (name_ja) [UNIQUE]
+- index_m_shapes_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_37e866bfd4 (updated_by_id) → users.id
+- fk_rails_4b6bbd888d (deleted_by_id) → users.id
+- fk_rails_4cab80b183 (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_shapes -->
+
+<!-- TABLE_BEGIN m_paint_types -->
+## m_paint_types
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| allow_paint_json | text | × | {} |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_paint_types_pkey (code) [PK]
+- index_m_paint_types_on_created_by_id (created_by_id)
+- index_m_paint_types_on_deleted_by_id (deleted_by_id)
+- index_m_paint_types_on_name_en (name_en) [UNIQUE]
+- index_m_paint_types_on_name_ja (name_ja) [UNIQUE]
+- index_m_paint_types_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_12bace13d4 (deleted_by_id) → users.id
+- fk_rails_6d6d56ac9b (created_by_id) → users.id
+- fk_rails_e8d8c7b2a3 (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_paint_types -->
+
+<!-- SECTION_BEGIN マスタ — 部品集約JSON系 -->
+# マスタ — 部品集約JSON系
+<!-- SECTION_END マスタ — 部品集約JSON系 -->
+
+<!-- TABLE_BEGIN m_corner_processes -->
+## m_corner_processes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| allow_corner_proc_json | text | × | {} |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_corner_processes_pkey (code) [PK]
+- index_m_corner_processes_on_created_by_id (created_by_id)
+- index_m_corner_processes_on_deleted_by_id (deleted_by_id)
+- index_m_corner_processes_on_name_en (name_en) [UNIQUE]
+- index_m_corner_processes_on_name_ja (name_ja) [UNIQUE]
+- index_m_corner_processes_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_0c41746295 (updated_by_id) → users.id
+- fk_rails_cbf0dca52b (deleted_by_id) → users.id
+- fk_rails_f029d371ff (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_corner_processes -->
+
+<!-- TABLE_BEGIN m_hole_diameters -->
+## m_hole_diameters
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| hole_mm | numeric(8,2) | × |  |  |
+| name_ja | character varying(20) | × |  |  |
+| name_en | character varying(6) | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_hole_diameters_pkey (code) [PK]
+- index_m_hole_diameters_on_created_by_id (created_by_id)
+- index_m_hole_diameters_on_deleted_by_id (deleted_by_id)
+- index_m_hole_diameters_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_42c61c1cc6 (updated_by_id) → users.id
+- fk_rails_68c00434d4 (created_by_id) → users.id
+- fk_rails_98dcfdc04c (deleted_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_hole_diameters -->
+
+<!-- TABLE_BEGIN m_edge_processes -->
+## m_edge_processes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| name_ja | character varying(20) | × |  |  |
+| name_en | character varying(10) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_edge_processes_pkey (code) [PK]
+- index_m_edge_processes_on_created_by_id (created_by_id)
+- index_m_edge_processes_on_deleted_by_id (deleted_by_id)
+- index_m_edge_processes_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_0e64fecc00 (deleted_by_id) → users.id
+- fk_rails_608bdc2fe1 (created_by_id) → users.id
+- fk_rails_632e7fe66e (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_edge_processes -->
+
+<!-- TABLE_BEGIN m_paint_surfaces -->
+## m_paint_surfaces
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(6) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_paint_surfaces_pkey (code) [PK]
+- index_m_paint_surfaces_on_created_by_id (created_by_id)
+- index_m_paint_surfaces_on_deleted_by_id (deleted_by_id)
+- index_m_paint_surfaces_on_name_en (name_en) [UNIQUE]
+- index_m_paint_surfaces_on_name_ja (name_ja) [UNIQUE]
+- index_m_paint_surfaces_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_04940c0fa3 (deleted_by_id) → users.id
+- fk_rails_2c0d76fe0e (updated_by_id) → users.id
+- fk_rails_6273a3930b (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_paint_surfaces -->
+
+<!-- TABLE_BEGIN m_paint_colors -->
+## m_paint_colors
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(6) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_paint_colors_pkey (code) [PK]
+- index_m_paint_colors_on_created_by_id (created_by_id)
+- index_m_paint_colors_on_deleted_by_id (deleted_by_id)
+- index_m_paint_colors_on_name_en (name_en) [UNIQUE]
+- index_m_paint_colors_on_name_ja (name_ja) [UNIQUE]
+- index_m_paint_colors_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_0e6e729dcb (created_by_id) → users.id
+- fk_rails_98b42979dc (deleted_by_id) → users.id
+- fk_rails_9f7ace30eb (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_paint_colors -->
+
+<!-- TABLE_BEGIN m_grain_finishes -->
+## m_grain_finishes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(6) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_grain_finishes_pkey (code) [PK]
+- index_m_grain_finishes_on_created_by_id (created_by_id)
+- index_m_grain_finishes_on_deleted_by_id (deleted_by_id)
+- index_m_grain_finishes_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_70079f0d12 (updated_by_id) → users.id
+- fk_rails_8bfc7696b8 (created_by_id) → users.id
+- fk_rails_bf35672699 (deleted_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_grain_finishes -->
+
+<!-- TABLE_BEGIN m_glosses -->
+## m_glosses
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(6) | × |  |  |
+| name_ja | character varying(30) | × |  |  |
+| name_en | character varying(30) | × |  |  |
+| gloss_pct | smallint | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_glosses_pkey (code) [PK]
+- index_m_glosses_on_created_by_id (created_by_id)
+- index_m_glosses_on_deleted_by_id (deleted_by_id)
+- index_m_glosses_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_051c4b4700 (created_by_id) → users.id
+- fk_rails_3dcf832460 (updated_by_id) → users.id
+- fk_rails_b2e63cb87f (deleted_by_id) → users.id
+
+**チェック制約**:
+- chk_gloss_pct: gloss_pct >= 0 AND gloss_pct <= 100
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_glosses -->
