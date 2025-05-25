@@ -24,7 +24,10 @@ class Part < ApplicationRecord
              foreign_key: :paint_type_code,
              primary_key: :code,
              optional:    true                   # NULL 許容
-
+  belongs_to :origin_owner,
+             class_name:  "User",
+             foreign_key: :origin_owner_id,
+             optional:    true
   # ─────────────────────────────
   # JSONB アクセサ
   # ─────────────────────────────

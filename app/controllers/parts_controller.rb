@@ -2,6 +2,16 @@ class PartsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_member_or_affiliate
 
+  # ───────────────────────
+  # 一覧 (SID-PR-100)
+  # ───────────────────────
+  def index
+    # 今は全件。次フェーズで検索・並び替えを入れる
+    @parts = current_user.parts.alive.includes(:origin_owner).order(updated_at: :desc)
+    # affiliate の場合のみ “オリジナル作成者” を表示するため
+    @show_owner = current_user.affiliate?
+  end
+
   def new
     @part = Part.new
     load_masters
@@ -22,7 +32,7 @@ class PartsController < ApplicationController
 
   # ロールチェック（member or affiliate）
   def require_member_or_affiliate
-    return if user_signed_in? && (current_user.member? || current_user.affiliate?)
+    return if current_user.member? || current_user.affiliate?
 
     render file: Rails.root.join("public/403.html"),
            status: :forbidden, layout: false

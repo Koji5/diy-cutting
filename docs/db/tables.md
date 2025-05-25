@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-25 11:49 JST
+生成日: 2025-05-25 17:01 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -575,6 +575,7 @@
 - index_parts_on_user_id (user_id)
 
 **外部キー**:
+- fk_rails_001c6f3575 (origin_owner_id) → users.id
 - fk_rails_30be2232d9 (deleted_by_id) → users.id
 - fk_rails_9790700793 (material_category_code) → m_categories.code
 - fk_rails_a63b0793fa (material_code) → m_materials.code
@@ -3189,7 +3190,7 @@
 | id | bigint | × |  |  |
 | recipe_id | bigint | × |  | 親レシピ (recipes.id) |
 | part_id | bigint | × |  | 構成部品 (parts.id) |
-| quantity | integer | × | 1 | 	レシピ内で使用する数量 |
+| quantity | integer | × | 1 | レシピ内で使用する数量 |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
@@ -4171,3 +4172,4 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END m_glosses -->
+

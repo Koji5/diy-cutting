@@ -1,0 +1,56 @@
+<h1 class="mb-4">部品一覧 (SID-PR-100)</h1>
+
+<div class="d-flex justify-content-end mb-3">
+  <%= link_to new_part_path, class: "btn btn-primary" do %>
+    <i class="bi bi-plus-lg me-1"></i> 新規作成
+  <% end %>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+  <% @parts.each do |part| %>
+    <div class="col">
+      <div class="card h-100 p-3 d-flex">
+
+        <h5 class="mb-2"><%= part.name %></h5>
+
+        <%# ── メタ情報：作成・更新・オリジナル ─────────────────── %>
+        <dl class="row small mb-2">
+          <dt class="col-4 col-sm-3 fw-bold text-muted">作成</dt>
+          <dd class="col-8 col-sm-9 mb-1"><%= l part.created_at, format: :short %></dd>
+
+          <dt class="col-4 col-sm-3 fw-bold text-muted">更新</dt>
+          <dd class="col-8 col-sm-9 mb-1"><%= l part.updated_at, format: :short %></dd>
+
+          <% if @show_owner %>
+            <dt class="col-4 col-sm-3 fw-bold text-muted">オリジナル</dt>
+            <dd class="col-8 col-sm-9 mb-1"><%= part.origin_owner&.public_uid || "—" %></dd>
+          <% end %>
+        </dl>
+
+        <%# ── 操作ボタン群 ──────────────────────────────── %>
+        <div class="d-flex flex-row gap-2 mt-auto">
+          <%# 詳細ボタン %>
+          <%= link_to part_path(part),
+                      class: "btn btn-outline-secondary btn-icon" do %>
+            <i class="bi bi-eye"></i>
+          <% end %>
+
+          <%# 編集ボタン %>
+          <%= link_to edit_part_path(part),
+                      class: "btn btn-outline-primary btn-icon" do %>
+            <i class="bi bi-pencil"></i>
+          <% end %>
+
+          <%# 削除ボタン %>
+          <%= link_to part_path(part),
+                      method: :delete,
+                      data:  { turbo_confirm: "削除しますか?" },
+                      class: "btn btn-outline-danger btn-icon" do %>
+            <i class="bi bi-trash"></i>
+          <% end %>
+        </div>
+
+      </div>
+    </div>
+  <% end %>
+</div>

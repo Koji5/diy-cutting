@@ -43,5 +43,5 @@ Rails.application.routes.draw do
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
 
-  resources :parts, only: %i[new create]
+  resources :parts, only: %i[index new create show edit update destroy]
 end

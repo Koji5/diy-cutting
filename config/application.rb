@@ -47,5 +47,6 @@ module App
     config.javascript_build    = false
     config.time_zone                    = 'Tokyo'      # ← 画面・ロジックで JST を使う
     config.active_record.default_timezone = :local      # ← DB 保存時も JST を使う
+    config.i18n.default_locale = :ja
   end
 end

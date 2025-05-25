@@ -41,6 +41,7 @@ gem "thruster", require: false
 # gem "image_processing", "~> 1.2"
 
 gem "devise", "~> 4.9"
+gem 'rails-i18n', '~> 8.0'   # Rails 8 系なら 8.x
 gem "importmap-rails"
 gem "cssbundling-rails"
 # GeoJSON を扱うため追加

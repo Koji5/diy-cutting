@@ -7827,6 +7827,14 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: parts fk_rails_001c6f3575; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_001c6f3575 FOREIGN KEY (origin_owner_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_signups fk_rails_00b8de6797; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9489,6 +9497,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250525075952'),
 ('20250523023257'),
 ('20250523021809'),
 ('20250523021737'),
