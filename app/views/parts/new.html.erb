@@ -1,0 +1,61 @@
+<h1 class="mb-4">部品新規作成 (SID-PR-200)</h1>
+
+<%= form_with model: @part, data: { turbo: true }, class: "needs-validation", novalidate: true do |f| %>
+  <%# --- 基本情報 ----------------------------------------------------------- %>
+  <div class="mb-3">
+    <%= f.label :name, "部品名称", class: "form-label" %>
+    <%= f.text_field :name, class: "form-control", required: true %>
+  </div>
+
+  <%# --- マスタ選択 --------------------------------------------------------- %>
+  <div class="row gx-3">
+    <div class="col-md-3 mb-3">
+      <%= f.label :material_category_code, "材質カテゴリ", class: "form-label" %>
+      <%= f.collection_select :material_category_code, @material_categories, :code, :name_ja,
+                              { prompt: "選択…" }, class: "form-select", required: true %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :material_code, "具体材質", class: "form-label" %>
+      <%= f.collection_select :material_code, @materials, :code, :name_ja,
+                              { prompt: "選択…" }, class: "form-select", required: true %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :shape_code, "形状", class: "form-label" %>
+      <%= f.collection_select :shape_code, @shapes, :code, :name_ja,
+                              { prompt: "選択…" }, class: "form-select", required: true %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :paint_type_code, "塗装種別", class: "form-label" %>
+      <%= f.collection_select :paint_type_code, @paint_types, :code, :name_ja,
+                              { prompt: "— なし —" }, class: "form-select" %>
+    </div>
+  </div>
+
+  <%# --- 寸法 -------------------------------------------------------------- %>
+  <div class="row gx-3">
+    <div class="col-md-3 mb-3">
+      <%= f.label :thickness_mm, "厚み (mm)", class: "form-label" %>
+      <%= f.number_field :thickness_mm, step: 0.01, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :width1_mm, "幅1 (mm)", class: "form-label" %>
+      <%= f.number_field :width1_mm, step: 0.01, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :width2_mm, "幅2 (mm)", class: "form-label" %>
+      <%= f.number_field :width2_mm, step: 0.01, class: "form-control" %>
+    </div>
+    <div class="col-md-3 mb-3">
+      <%= f.label :length_mm, "長さ (mm)", class: "form-label" %>
+      <%= f.number_field :length_mm, step: 0.01, class: "form-control", required: true %>
+    </div>
+  </div>
+
+  <%# --- 備考 -------------------------------------------------------------- %>
+  <div class="mb-3">
+    <%= f.label :note, "備考", class: "form-label" %>
+    <%= f.text_area :note, rows: 3, class: "form-control" %>
+  </div>
+
+  <%= f.submit "登録する", class: "btn btn-primary" %>
+<% end %>

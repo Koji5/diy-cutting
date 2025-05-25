@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "parts/new"
+  get "parts/create"
   get "articles/index"
   get "up" => "rails/health#show", as: :rails_health_check
   get  "prefectures/:code/cities", to: "postals#cities"      # 都道府県→市区町村
@@ -40,4 +42,6 @@ Rails.application.routes.draw do
     post "coverage_settings/nationwide_bulk",  to: "coverage_settings#nationwide_bulk"
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
+
+  resources :parts, only: %i[new create]
 end

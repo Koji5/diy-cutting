@@ -1,0 +1,25 @@
+<!-- ▼ 設定（アコーディオン） -->
+<div class="accordion" id="vendorPartsAccordion">
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed py-2 px-3"
+              type="button" data-bs-toggle="collapse"
+              data-bs-target="#vendorPartsMenu" aria-expanded="false">
+        <i class="bi bi-gear me-2"></i> 設定
+      </button>
+    </h2>
+
+    <div id="vendorPartsMenu"
+         class="accordion-collapse collapse"
+         data-controller="accordion-state"
+         data-accordion-state-id-value="vendorPartsMenu"
+         data-bs-parent="#vendorPartsAccordion">
+      <div class="accordion-body py-1 px-0">
+        <%= link_to vendors_coverage_settings_path,
+                    class: "nav-link ps-5 py-1" do %>
+          <i class="bi bi-map me-1"></i> 対応可能地域設定
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

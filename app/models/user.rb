@@ -14,6 +14,9 @@ class User < ApplicationRecord
   accepts_nested_attributes_for :admin_detail
   accepts_nested_attributes_for :affiliate_detail
   has_secure_token :public_uid
+  has_many :parts,
+           dependent: :destroy,
+           inverse_of: :user
 
   # ロール毎に “詳細テーブル” と “候補カラム” をマッピング
   DISPLAY_NAME_MAP = {
