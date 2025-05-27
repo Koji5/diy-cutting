@@ -1597,14 +1597,14 @@ CREATE TABLE public.m_corner_processes (
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
     description_en character varying(80),
-    allow_corner_proc_json text[] DEFAULT '{}'::text[] NOT NULL,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_corner_proc_json jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -1870,16 +1870,16 @@ CREATE TABLE public.m_shapes (
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
     description_en character varying(80),
-    allow_shape_json text[] DEFAULT '{}'::text[] NOT NULL,
-    allow_corner_json text[] DEFAULT '{}'::text[] NOT NULL,
-    allow_edge_json text[] DEFAULT '{}'::text[] NOT NULL,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_shape_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    allow_corner_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    allow_edge_json jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -9497,6 +9497,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250527060745'),
+('20250527020548'),
 ('20250525075952'),
 ('20250523023257'),
 ('20250523021809'),

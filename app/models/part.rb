@@ -52,7 +52,17 @@ class Part < ApplicationRecord
 
   validates :material_category_code, :material_code,
             :shape_code, presence: true
-
+  validates :width2_mm, presence: true, if: -> { shape_code == "NICHE" }
+  validate :auto_length_locked
   # ソフトデリート用スコープ
   scope :alive, -> { where(deleted_flag: false) }
+
+  private
+
+  def auto_length_locked
+    auto_shapes = %w[TRI_EQ CIRC SEMI CORNER_TRI]
+    if auto_shapes.include?(shape_code) && length_mm != width1_mm
+      errors.add(:length_mm, "は自動入力されます")
+    end
+  end
 end

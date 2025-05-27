@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-25 17:01 JST
+生成日: 2025-05-27 15:28 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -3829,9 +3829,6 @@
 | name_en | character varying(30) | × |  |  |
 | description_ja | character varying(80) | ○ |  |  |
 | description_en | character varying(80) | ○ |  |  |
-| allow_shape_json | text | × | {} |  |
-| allow_corner_json | text | × | {} |  |
-| allow_edge_json | text | × | {} |  |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_flag | boolean | × | false |  |
@@ -3839,6 +3836,9 @@
 | deleted_by_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| allow_shape_json | jsonb | × | {} |  |
+| allow_corner_json | jsonb | × | {} |  |
+| allow_edge_json | jsonb | × | {} |  |
 
 **インデックス**:
 - m_shapes_pkey (code) [PK]
@@ -3915,7 +3915,6 @@
 | name_en | character varying(30) | × |  |  |
 | description_ja | character varying(80) | ○ |  |  |
 | description_en | character varying(80) | ○ |  |  |
-| allow_corner_proc_json | text | × | {} |  |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_flag | boolean | × | false |  |
@@ -3923,6 +3922,7 @@
 | deleted_by_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| allow_corner_proc_json | jsonb | × | {} |  |
 
 **インデックス**:
 - m_corner_processes_pkey (code) [PK]

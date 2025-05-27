@@ -1,61 +1,399 @@
+<!-- app/views/parts/new.html.erb -->
 <h1 class="mb-4">部品新規作成 (SID-PR-200)</h1>
 
-<%= form_with model: @part, data: { turbo: true }, class: "needs-validation", novalidate: true do |f| %>
-  <%# --- 基本情報 ----------------------------------------------------------- %>
-  <div class="mb-3">
-    <%= f.label :name, "部品名称", class: "form-label" %>
-    <%= f.text_field :name, class: "form-control", required: true %>
-  </div>
+<%= form_with model: @part do |f| %>
+  <!-- ▼ タブバー -->
+  <ul class="nav nav-pills mb-3 flex-column flex-sm-row" id="partTabs" role="tablist">
+    <li class="nav-item flex-sm-fill" role="presentation">
+      <button class="nav-link active w-100" id="input-tab"
+              data-bs-toggle="tab" data-bs-target="#input-pane"
+              type="button" role="tab">入力フォーム</button>
+    </li>
+    <li class="nav-item flex-sm-fill" role="presentation">
+      <button class="nav-link w-100" id="preview-tab"
+              data-bs-toggle="tab" data-bs-target="#preview-pane"
+              type="button" role="tab">3D プレビュー</button>
+    </li>
+  </ul>
 
-  <%# --- マスタ選択 --------------------------------------------------------- %>
-  <div class="row gx-3">
-    <div class="col-md-3 mb-3">
-      <%= f.label :material_category_code, "材質カテゴリ", class: "form-label" %>
-      <%= f.collection_select :material_category_code, @material_categories, :code, :name_ja,
-                              { prompt: "選択…" }, class: "form-select", required: true %>
+  <div class="tab-content">
+    <!-- ───────── 入力タブ ───────── -->
+    <div class="tab-pane fade show active" id="input-pane" role="tabpanel">
+
+      <!-- 部品名称 -->
+      <div class="mb-3">
+        <%= f.label :name, class: "form-label fw-bold" do %>
+          部品名称
+          <a href="#" data-bs-toggle="modal" data-bs-target="#help-name">
+            <i class="bi bi-question-circle text-secondary"></i>
+          </a>
+        <% end %>
+        <%= f.text_field :name, class: "form-control", required: true %>
+      </div>
+
+      <!-- 樹種（m_materials から） -->
+      <div class="mb-3">
+        <%= f.label :material_code, class: "form-label fw-bold" do %>
+          樹種
+          <a href="#" data-bs-toggle="modal" data-bs-target="#help-material">
+            <i class="bi bi-question-circle text-secondary"></i>
+          </a>
+        <% end %>
+        <%= f.collection_select :material_code, @materials, :code, :name_ja,
+                                { prompt: "選択…" },
+                                class: "form-select", required: true %>
+      </div>
+
+      <!-- ▼ ラッパー開始：3つのコントローラ名を並べる -->
+      <div
+        data-controller="dims shapeproc cornerproc"
+        data-shapeproc-shapes-value='<%= @shapes.index_by(&:code)
+                                        .transform_values(&:allow_shape_json)
+                                        .to_json %>'
+        data-cornerproc-shapes-value='<%= @shapes.index_by(&:code)
+                                        .transform_values(&:allow_corner_json)
+                                        .to_json %>'
+        data-cornerproc-proc-value='<%= MCornerProcess.all.index_by(&:code)
+                                        .transform_values(&:allow_corner_proc_json)
+                                        .to_json %>'>
+        <!-- 平面形状 -->
+        <div class="mb-3">
+          <%= f.label :shape_code, class: "form-label fw-bold" do %>
+            平面形状
+            <a href="#" data-bs-toggle="modal" data-bs-target="#help-shape">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          <% end %>
+          <%= f.collection_select :shape_code, @shapes, :code, :name_ja,
+                { prompt: "選択…" },
+                class: "form-select", required: true,
+                data: {
+                  dims_target:      "shape",
+                  shapeproc_target: "shape",
+                  cornerproc_target:"shape",
+                  action: "dims#shapeChanged shapeproc#shapeChanged cornerproc#shapeChanged"
+                } %>
+        </div>
+
+        <!-- ───────── 寸法グループ ───────── -->
+        <div class="mb-4">
+
+          <label class="form-label fw-bold d-flex align-items-center">
+            寸法
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-dims">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <!-- 厚み -->
+          <div class="mb-2">
+            <%= f.label :thickness_mm, "厚み [mm]", class: "form-label small" %>
+            <%= f.number_field :thickness_mm,
+                              class: "form-control",
+                              step: 0.1, min: 0, required: true %>
+          </div>
+
+          <!-- 巾1 -->
+          <div class="mb-2">
+            <%= f.label :width1_mm, "巾1 [mm]", class: "form-label small" %>
+            <%= f.number_field :width1_mm,
+                  class: "form-control",
+                  step: 0.1, min: 0, required: true,
+                  data: { dims_target: "width1",
+                          action: "input->dims#width1Changed" } %>
+          </div>
+
+          <!-- 巾2（ニッチ型のみ） -->
+          <div class="mb-2 d-none" data-dims-target="width2Wrap">
+            <%= f.label :width2_mm, "巾2 [mm] (ニッチ)", class: "form-label small" %>
+            <%= f.number_field :width2_mm,
+                              class: "form-control",
+                              step: 0.1, min: 0,
+                              data: { dims_target: "width2" } %>
+          </div>
+
+          <!-- 長さ -->
+          <div class="mb-2">
+            <%= f.label :length_mm,
+                        class: "form-label small d-flex align-items-center" do %>
+              長さ&nbsp;[mm]
+              <!-- ▼ 自動入力バッジ（初期は非表示） -->
+              <span class="badge bg-info text-dark ms-2 d-none"
+                    data-dims-target="autoLengthNote">
+                長さは自動入力
+              </span>
+            <% end %>
+
+            <%= f.number_field :length_mm,
+                  class: "form-control",
+                  step: 0.1, min: 0, required: true,
+                  data: { dims_target: "length" } %>
+          </div>
+        </div>
+
+        <%# ==== 加工設定グループ ========================================== %>
+        <div>
+
+          <label class="form-label fw-bold d-flex align-items-center">
+            加工設定
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-shapeproc">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <%# ============== 半径入力 2 × 2 グリッド ==================== %>
+          <div class="row g-2 mb-2">
+            <div class="col-6 d-none" data-shapeproc-target="tlWrap">
+              <%= f.label :shape_tl_r, "左上半径 [mm]", class: "form-label small" %>
+              <%= f.number_field :shape_tl_r,
+                    class: "form-control", step: 0.1, min: 0,
+                    data: { shapeproc_target: "tl" } %>
+            </div>
+
+            <div class="col-6 d-none" data-shapeproc-target="trWrap">
+              <%= f.label :shape_tr_r, "右上半径 [mm]", class: "form-label small" %>
+              <%= f.number_field :shape_tr_r,
+                    class: "form-control", step: 0.1, min: 0,
+                    data: { shapeproc_target: "tr" } %>
+            </div>
+
+            <div class="col-6 d-none" data-shapeproc-target="blWrap">
+              <%= f.label :shape_bl_r, "左下半径 [mm]", class: "form-label small" %>
+              <%= f.number_field :shape_bl_r,
+                    class: "form-control", step: 0.1, min: 0,
+                    data: { shapeproc_target: "bl" } %>
+            </div>
+
+            <div class="col-6 d-none" data-shapeproc-target="brWrap">
+              <%= f.label :shape_br_r, "右下半径 [mm]", class: "form-label small" %>
+              <%= f.number_field :shape_br_r,
+                    class: "form-control", step: 0.1, min: 0,
+                    data: { shapeproc_target: "br" } %>
+            </div>
+          </div>
+
+          <%# ― 入力不要メッセージ ― %>
+          <p class="text-muted small d-none" data-shapeproc-target="noneMsg">
+            選択した平面形状ではこの STEP の入力は不要です。
+          </p>
+
+        </div>
+
+        <%# ==== コーナー加工設定グループ ==================================== %>
+        <div
+          data-cornerproc-shapes-value='<%= @shapes.index_by(&:code)
+                                            .transform_values(&:allow_corner_json)
+                                            .to_json %>'
+          data-cornerproc-proc-value='<%= MCornerProcess.all.index_by(&:code)
+                                          .transform_values(&:allow_corner_proc_json)
+                                          .to_json %>'>
+
+          <label class="form-label fw-bold d-flex align-items-center">
+            コーナー加工設定 (オプション)
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-corners">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
+
+          <%# ─ 1段目：ドロップダウン (左上・右上) ─ %>
+          <div class="row g-2">
+            <% corners.slice(:tl, :tr).each do |key, label| %>
+              <div class="col-6 mt-2">
+                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label mb-0" %>
+                <%= f.collection_select "corner_#{key}_code", MCornerProcess.all,
+                                        :code, :name_ja, { include_blank: false },
+                                        class: "form-select",
+                                        data: { cornerproc_target: "#{key}Select",
+                                                action: "cornerproc#procChanged" } %>
+              </div>
+            <% end %>
+          </div>
+
+          <%# ─ 2段目：パラメータ入力 (左上・右上) ─ %>
+          <div class="row g-2 mb-2">
+            <% corners.slice(:tl, :tr).each do |key, label| %>
+              <div class="col-6">
+                <%# R 入力 %>
+                <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}RWrap" %>">
+                  <%= f.label "corner_#{key}_r", "#{label} 半径 [mm]", class: "form-label small text-muted mb-1" %>
+                  <%= f.number_field "corner_#{key}_r", step: 0.1, min: 0,
+                                    class: "form-control",
+                                    data: { cornerproc_target: "#{key}R" } %>
+                </div>
+                <%# dx/dy 入力 %>
+                <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}DxDyWrap" %>">
+                  <div class="row g-1">
+                    <div class="col">
+                      <%= f.label "corner_#{key}_dx", "縦 [mm]", class: "form-label small text-muted mb-1" %>
+                      <%= f.number_field "corner_#{key}_dx", step: 0.1, min: 0,
+                                        class: "form-control",
+                                        data: { cornerproc_target: "#{key}Dx" } %>
+                    </div>
+                    <div class="col">
+                      <%= f.label "corner_#{key}_dy", "横 [mm]", class: "form-label small text-muted mb-1" %>
+                      <%= f.number_field "corner_#{key}_dy", step: 0.1, min: 0,
+                                        class: "form-control",
+                                        data: { cornerproc_target: "#{key}Dy" } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <%# ─ 3段目：ドロップダウン (左下・右下) ─ %>
+          <div class="row g-2">
+            <% corners.slice(:bl, :br).each do |key, label| %>
+              <div class="col-6 mt-2">
+                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label fw-normal mb-0" %>
+                <%= f.collection_select "corner_#{key}_code", MCornerProcess.all,
+                                        :code, :name_ja, { include_blank: false },
+                                        class: "form-select",
+                                        data: { cornerproc_target: "#{key}Select",
+                                                action: "cornerproc#procChanged" } %>
+              </div>
+            <% end %>
+          </div>
+
+          <%# ─ 4段目：パラメータ入力 (左下・右下) ─ %>
+          <div class="row g-2">
+            <% corners.slice(:bl, :br).each do |key, label| %>
+              <div class="col-6">
+                <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}RWrap" %>">
+                  <%= f.label "corner_#{key}_r", "#{label} 半径 [mm]", class: "form-label small text-muted mb-1" %>
+                  <%= f.number_field "corner_#{key}_r", step: 0.1, min: 0,
+                                    class: "form-control",
+                                    data: { cornerproc_target: "#{key}R" } %>
+                </div>
+
+                <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}DxDyWrap" %>">
+                  <div class="row g-1">
+                    <div class="col">
+                      <%= f.label "corner_#{key}_dx", "縦 [mm]", class: "form-label small text-muted mb-1" %>
+                      <%= f.number_field "corner_#{key}_dx", step: 0.1, min: 0,
+                                        class: "form-control",
+                                        data: { cornerproc_target: "#{key}Dx" } %>
+                    </div>
+                    <div class="col">
+                      <%= f.label "corner_#{key}_dy", "横 [mm]", class: "form-label small text-muted mb-1" %>
+                      <%= f.number_field "corner_#{key}_dy", step: 0.1, min: 0,
+                                        class: "form-control",
+                                        data: { cornerproc_target: "#{key}Dy" } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <%# 全角とも未許可の場合のメッセージ %>
+          <p class="text-muted small d-none" data-cornerproc-target="noneMsg">
+            選択した平面形状ではこの STEP の入力は不要です。
+          </p>
+        </div>
+
+      <!-- ====== ③ ラッパー終了 ====== -->
+      </div>
+
+
+
+      <%= f.submit "登録する", class: "btn btn-primary" %>
     </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :material_code, "具体材質", class: "form-label" %>
-      <%= f.collection_select :material_code, @materials, :code, :name_ja,
-                              { prompt: "選択…" }, class: "form-select", required: true %>
-    </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :shape_code, "形状", class: "form-label" %>
-      <%= f.collection_select :shape_code, @shapes, :code, :name_ja,
-                              { prompt: "選択…" }, class: "form-select", required: true %>
-    </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :paint_type_code, "塗装種別", class: "form-label" %>
-      <%= f.collection_select :paint_type_code, @paint_types, :code, :name_ja,
-                              { prompt: "— なし —" }, class: "form-select" %>
+
+    <!-- ───────── 3D プレビュータブ（プレースホルダ） ───────── -->
+    <div class="tab-pane fade" id="preview-pane" role="tabpanel">
+      <div class="alert alert-info my-4">
+        3D プレビューは今後実装予定です。
+      </div>
     </div>
   </div>
-
-  <%# --- 寸法 -------------------------------------------------------------- %>
-  <div class="row gx-3">
-    <div class="col-md-3 mb-3">
-      <%= f.label :thickness_mm, "厚み (mm)", class: "form-label" %>
-      <%= f.number_field :thickness_mm, step: 0.01, class: "form-control", required: true %>
-    </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :width1_mm, "幅1 (mm)", class: "form-label" %>
-      <%= f.number_field :width1_mm, step: 0.01, class: "form-control", required: true %>
-    </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :width2_mm, "幅2 (mm)", class: "form-label" %>
-      <%= f.number_field :width2_mm, step: 0.01, class: "form-control" %>
-    </div>
-    <div class="col-md-3 mb-3">
-      <%= f.label :length_mm, "長さ (mm)", class: "form-label" %>
-      <%= f.number_field :length_mm, step: 0.01, class: "form-control", required: true %>
-    </div>
-  </div>
-
-  <%# --- 備考 -------------------------------------------------------------- %>
-  <div class="mb-3">
-    <%= f.label :note, "備考", class: "form-label" %>
-    <%= f.text_area :note, rows: 3, class: "form-control" %>
-  </div>
-
-  <%= f.submit "登録する", class: "btn btn-primary" %>
 <% end %>
+
+<!-- ───────── モーダル群（説明プレースホルダ）───────── -->
+<%# 部品名称説明 %>
+<div class="modal fade" id="help-name" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">部品名称とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        例）「棚板‐上段」など、一覧で識別しやすい名前を入力してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 樹種説明 %>
+<div class="modal fade" id="help-material" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">樹種とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        樹種（材質）を選択してください。例：シナ合板、ナラ無垢 など。
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 平面形状説明 %>
+<div class="modal fade" id="help-shape" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">平面形状とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        矩形や三角形など、部品の平面形状を選択してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 寸法ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-dims" tabindex="-1" aria-hidden="true"
+     data-controller="dimhelp" data-dimhelp-target="modal">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">寸法入力のヒント</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body dim-help-body">
+        <!-- Stimulus がここを書き換える -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 加工設定ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-shapeproc" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">加工設定のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body" id="shapeproc-help">
+      形状を選択すると、ここに説明が入ります。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── コーナー(角)加工設定ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-corners" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">コーナー加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角丸め (R) は半径を指定 / 角落とし・斜めカットは dx,dy を指定してください。<br>
+      形状によって指定できるコーナーが異なります。
+    </div>
+  </div></div>
+</div>

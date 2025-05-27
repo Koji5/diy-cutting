@@ -77,12 +77,128 @@ MMaterial.upsert_all([
   }
 ])
 
-# === 3) 形状 ============================
+# === 3) 形状マスタ（最新版） =========================
 MShape.upsert_all([
-  { code: "RECT",     name_ja: "矩形",   name_en: "Rectangle",
-    allow_shape_json:  "{}", allow_corner_json: "{}", allow_edge_json: "{}" },
-  { code: "TRIANGLE", name_ja: "三角形", name_en: "Triangle",
-    allow_shape_json:  "{}", allow_corner_json: "{}", allow_edge_json: "{}" }
+  {
+    code: "RECT",
+    name_ja: "四角形",
+    name_en: "Rectangle",
+    description_ja: "加工のない板の状態。平面加工と断面加工でお好みの形状にできます",
+    description_en: "Plain rectangular board. Combine with edge/shape processes as needed.",
+    allow_shape_json: [],
+    allow_corner_json: %w[tl tr bl br],
+    allow_edge_json:   %w[t l r b]
+  },
+  {
+    code: "CORNER_R1",
+    name_ja: "片角アール加工",
+    name_en: "Single-Corner Rounded",
+    description_ja: "1つの角にアール加工をつける形状",
+    description_en: "Rounded on one corner.",
+    allow_shape_json:  %w[bl],
+    allow_corner_json: %w[tl tr br],
+    allow_edge_json:   %w[t l r b bl]
+  },
+  {
+    code: "SIDE_ARC1",
+    name_ja: "片側アール加工",
+    name_en: "Single-Side Arc",
+    description_ja: "片側にアール加工をつける形状",
+    description_en: "Arc on one long side.",
+    allow_shape_json:  %w[tl bl],
+    allow_corner_json: %w[tr br],
+    allow_edge_json:   %w[t l r b bl]
+  },
+  {
+    code: "SIDE_UARC1",
+    name_ja: "片側U型アール加工",
+    name_en: "Single-Side U-Shaped Cut",
+    description_ja: "片側に半円のアール加工をつける形状",
+    description_en: "U-shaped cut on one side.",
+    allow_shape_json: [],
+    allow_corner_json: %w[tr br],
+    allow_edge_json:   %w[t l r b bl]
+  },
+  {
+    code: "TRI_EQ",
+    name_ja: "正三角形",
+    name_en: "Equilateral Triangle",
+    description_ja: "板からくり抜いた正三角形の形状",
+    description_en: "Equilateral triangular plate.",
+    allow_shape_json: [],
+    allow_corner_json: [],
+    allow_edge_json:   %w[tl tr b]
+  },
+  {
+    code: "CORNER_R2",
+    name_ja: "両角アール加工",
+    name_en: "Opposite-Corner Rounded",
+    description_ja: "両角にアール加工をつける形状",
+    description_en: "Rounded on two opposite corners.",
+    allow_shape_json:  %w[bl br],
+    allow_corner_json: %w[tl tr],
+    allow_edge_json:   %w[t l r bl b br]
+  },
+  {
+    code: "CORNER_R4",
+    name_ja: "全角アール加工",
+    name_en: "All-Corner Rounded",
+    description_ja: "全ての角にアール加工をつける形状",
+    description_en: "Rounded on all four corners.",
+    allow_shape_json:  %w[tl tr bl br],
+    allow_corner_json: [],
+    allow_edge_json:   %w[tl t tr l r bl b br]
+  },
+  {
+    code: "SIDE_UARC2",
+    name_ja: "両側U型アール加工",
+    name_en: "Both-Side U-Shaped Cut",
+    description_ja: "両側に半円のアール加工をつける形状",
+    description_en: "U-shaped cuts on both sides.",
+    allow_shape_json: [],
+    allow_corner_json: [],
+    allow_edge_json:   %w[tl t tr bl b br]
+  },
+  {
+    code: "CIRC",
+    name_ja: "円型",
+    name_en: "Circle",
+    description_ja: "板からくり抜いた円の形状",
+    description_en: "Circular plate.",
+    allow_shape_json: [],
+    allow_corner_json: [],
+    allow_edge_json:   %w[tl]
+  },
+  {
+    code: "SEMI",
+    name_ja: "半円型",
+    name_en: "Semicircle",
+    description_ja: "板からくり抜いた半円の形状",
+    description_en: "Semicircular plate.",
+    allow_shape_json: [],
+    allow_corner_json: [],
+    allow_edge_json:   %w[t b]
+  },
+  {
+    code: "NICHE",
+    name_ja: "ニッチ型加工",
+    name_en: "Niche",
+    description_ja: "飾り棚に最適です",
+    description_en: "Niche-shaped cut-out.",
+    allow_shape_json: [],
+    allow_corner_json: %w[bl br],
+    allow_edge_json:   %w[t l r b]
+  },
+  {
+    code: "CORNER_TRI",
+    name_ja: "コーナーA型",
+    name_en: "Corner Triangle",
+    description_ja: "扇型の形状 コーナーに最適です",
+    description_en: "Fan-shaped corner piece.",
+    allow_shape_json: [],
+    allow_corner_json: %w[tr],
+    allow_edge_json:   %w[t r bl]
+  }
 ])
 
 # === 4) 塗装種別 ========================
@@ -93,11 +209,48 @@ MPaintType.upsert_all([
     allow_paint_json: "{}" }
 ])
 
-# === 5) コーナー加工 ====================
+# === コーナー加工マスタ ============================
 MCornerProcess.upsert_all([
-  { code: "NONE",   name_ja: "なし",   name_en: "None" },
-  { code: "ROUND",  name_ja: "丸め",   name_en: "Round" },
-  { code: "CHAMFER",name_ja: "面取り", name_en: "Chamfer" }
+  {
+    code:  "NONE",
+    name_ja: "加工しない",
+    name_en: "None",
+    description_ja: nil,
+    description_en: nil,
+    allow_corner_proc_json: []
+  },
+  {
+    code:  "ROUND_R",
+    name_ja: "角丸め",
+    name_en: "Round (R)",
+    description_ja: nil,
+    description_en: nil,
+    allow_corner_proc_json: %w[r]          # r 指定
+  },
+  {
+    code:  "CHAMFER",
+    name_ja: "角落とし",
+    name_en: "Chamfer",
+    description_ja: nil,
+    description_en: nil,
+    allow_corner_proc_json: %w[dx dy]      # 面取り dx・dy
+  },
+  {
+    code:  "BEVEL",
+    name_ja: "斜めカット",
+    name_en: "Bevel Cut",
+    description_ja: nil,
+    description_en: nil,
+    allow_corner_proc_json: %w[dx dy]      # 斜めカット長
+  },
+  {
+    code:  "INROUND",
+    name_ja: "内丸め",
+    name_en: "Inner Round",
+    description_ja: nil,
+    description_en: nil,
+    allow_corner_proc_json: %w[r]          # 内側 R
+  }
 ])
 
 # === 6) 丸穴径 ==========================

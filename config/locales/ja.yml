@@ -3,3 +3,17 @@ ja:
     formats:
       short: "%Y年%m月%d日"  # 例: 2025年05月25日
       long:  "%Y年%m月%d日(%a) %H:%M"  # 例: 2025年05月25日(日) 14:08
+  devise:
+    sessions:
+      signed_in:  "ログインしました。"
+      signed_out: "ログアウトしました。"
+    passwords:
+      send_instructions: "パスワード再設定用のメールを送信しました。"
+    registrations:
+      signed_up: "アカウント登録が完了しました。"
+    failure:
+      invalid:        "メールアドレスまたはパスワードが正しくありません。"
+      user:
+        invalid:      "メールアドレスまたはパスワードが正しくありません。"
+      locked:         "アカウントがロックされています。"
+      timeout:        "一定時間操作がなかったため、再度ログインしてください。"
