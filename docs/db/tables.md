@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-27 15:28 JST
+生成日: 2025-05-28 14:43 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -3871,7 +3871,6 @@
 | name_en | character varying(30) | × |  |  |
 | description_ja | character varying(80) | ○ |  |  |
 | description_en | character varying(80) | ○ |  |  |
-| allow_paint_json | text | × | {} |  |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_flag | boolean | × | false |  |
@@ -3879,6 +3878,7 @@
 | deleted_by_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| allow_paint_json | jsonb | × | {} |  |
 
 **インデックス**:
 - m_paint_types_pkey (code) [PK]

@@ -201,13 +201,43 @@ MShape.upsert_all([
   }
 ])
 
-# === 4) 塗装種別 ========================
+# === 塗装種別マスタ ================================================
 MPaintType.upsert_all([
-  { code: "URTH", name_ja: "ウレタン塗装", name_en: "Polyurethane",
-    allow_paint_json: "{}" },
-  { code: "NTRL", name_ja: "自然塗装",   name_en: "Natural Oil",
-    allow_paint_json: "{}" }
+  {
+    code: "NONE",
+    name_ja: "選択なし",
+    name_en: "None",
+    allow_paint_json: {
+      surfaces: [],
+      colors:   [],
+      grains:   [],
+      glosses:  []
+    }
+  },
+  {
+    code: "URTH",
+    name_ja: "ウレタン塗装",
+    name_en: "Polyurethane",
+    allow_paint_json: {
+      surfaces: %w[STD ALL],
+      colors:   %w[CL LT MD DK WH MT],
+      grains:   %w[OP CL SOL],
+      glosses:  %w[G00 G30 G50 G100]
+    }
+  },
+  {
+    code: "NTRL",
+    name_ja: "自然塗装",
+    name_en: "Natural Oil",
+    allow_paint_json: {
+      surfaces: %w[STD ALL],
+      colors:   %w[CL],
+      grains:   [],
+      glosses:  []
+    }
+  }
 ])
+
 
 # === コーナー加工マスタ ============================
 MCornerProcess.upsert_all([
@@ -253,42 +283,111 @@ MCornerProcess.upsert_all([
   }
 ])
 
-# === 6) 丸穴径 ==========================
+# === 丸穴径マスタ ==============================================
 MHoleDiameter.upsert_all([
-  { code: "D06", hole_mm: 6.0, name_ja: "6mm", name_en: "Ø6" },
-  { code: "D08", hole_mm: 8.0, name_ja: "8mm", name_en: "Ø8" }
+  { code: "D03", hole_mm: 3.0,  name_ja: "3mm",  name_en: "Ø3"  },
+  { code: "D06", hole_mm: 6.0,  name_ja: "6mm",  name_en: "Ø6"  },
+  { code: "D09", hole_mm: 9.0,  name_ja: "9mm",  name_en: "Ø9"  },
+  { code: "D12", hole_mm: 12.0, name_ja: "12mm", name_en: "Ø12" },
+  { code: "D16P", hole_mm: 16.0, name_ja: "16mm以上", name_en: "Ø16+" }
 ])
 
-# === 7) 断面加工 ========================
+# === 断面加工マスタ ==================================================
 MEdgeProcess.upsert_all([
-  { code: "NONE",  name_ja: "なし",   name_en: "None" },
-  { code: "BEVEL", name_ja: "45°面", name_en: "Bevel" },
-  { code: "ROUND", name_ja: "R面",   name_en: "Round" }
+  {
+    code:  "NONE",
+    name_ja: "断面加工なし",
+    name_en: "None",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "CHAMF_BTH",
+    name_ja: "上下糸面",
+    name_en: "Chamfer",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "BULLNOSE",
+    name_ja: "ボーズ面",
+    name_en: "Bullnose",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "CHM5MM",
+    name_ja: "上下5mm面",
+    name_en: "Chamf 5mm",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "CHM10MM",
+    name_ja: "上下10mm面",
+    name_en: "Chamf10mm",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "R5ROUND",
+    name_ja: "上下5R面",
+    name_en: "R5Round",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "R10ROUND",
+    name_ja: "上下10R面",
+    name_en: "R10Round",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "COVE",
+    name_ja: "ギンナン面",
+    name_en: "Cove",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "OGEE",
+    name_ja: "船底面",
+    name_en: "Ogee",
+    description_ja: nil,
+    description_en: nil
+  }
 ])
 
 # === 8) 塗装面 ==========================
 MPaintSurface.upsert_all([
-  { code: "STD", name_ja: "標準面", name_en: "Standard" },
-  { code: "ALL", name_ja: "全面",   name_en: "All" }
+  { code: "STD", name_ja: "標準塗装", name_en: "Standard" },
+  { code: "ALL", name_ja: "全面塗装", name_en: "All-Over" }
 ])
 
 # === 9) 塗装色 ==========================
 MPaintColor.upsert_all([
-  { code: "CL", name_ja: "クリア",  name_en: "Clear" },
-  { code: "LT", name_ja: "ライト",  name_en: "Light" }
+  { code: "CL", name_ja: "クリアー（透明）", name_en: "Clear"  },
+  { code: "LT", name_ja: "ライト",           name_en: "Light"  },
+  { code: "MD", name_ja: "ミディアム",       name_en: "Medium" },
+  { code: "DK", name_ja: "ダーク",           name_en: "Dark"   },
+  { code: "WH", name_ja: "ホワイト",         name_en: "White"  },
+  { code: "MT", name_ja: "色合わせ",         name_en: "Match"  }
 ])
 
 # === 10) 導管・木目仕上げ ===============
 MGrainFinish.upsert_all([
-  { code: "OP", name_ja: "セミ OP", name_en: "Semi-Open" },
-  { code: "CL", name_ja: "全 CL",  name_en: "Closed" }
+  { code: "OP",  name_ja: "セミオープン塗装(標準)", name_en: "Semi-Open" },
+  { code: "CL",  name_ja: "クローズ塗装",           name_en: "Closed"    },
+  { code: "SOL", name_ja: "塗りつぶし",             name_en: "Solid"     }
 ])
 
 # === 11) ツヤ ===========================
 MGloss.upsert_all([
-  { code: "G03", gloss_pct: 30,  name_ja: "3分艶", name_en: "30% Gloss" },
-  { code: "G05", gloss_pct: 50,  name_ja: "5分艶", name_en: "50% Gloss" },
-  { code: "G100", gloss_pct: 100, name_ja: "全艶",  name_en: "Full Gloss" }
+  { code: "G00",  gloss_pct: 0,   name_ja: "全消し",          name_en: "Flat"       },
+  { code: "G30",  gloss_pct: 30,  name_ja: "3分ツヤ(標準)",    name_en: "30% Gloss" },
+  { code: "G50",  gloss_pct: 50,  name_ja: "5分ツヤ",         name_en: "50% Gloss" },
+  { code: "G100", gloss_pct: 100, name_ja: "全ツヤ",          name_en: "Full Gloss"}
 ])
 
 end

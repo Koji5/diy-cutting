@@ -46,7 +46,7 @@
 
       <!-- ▼ ラッパー開始：3つのコントローラ名を並べる -->
       <div
-        data-controller="dims shapeproc cornerproc"
+        data-controller="dims shapeproc cornerproc edgeproc"
         data-shapeproc-shapes-value='<%= @shapes.index_by(&:code)
                                         .transform_values(&:allow_shape_json)
                                         .to_json %>'
@@ -55,7 +55,10 @@
                                         .to_json %>'
         data-cornerproc-proc-value='<%= MCornerProcess.all.index_by(&:code)
                                         .transform_values(&:allow_corner_proc_json)
-                                        .to_json %>'>
+                                        .to_json %>'
+        data-edgeproc-shapes-value='<%= @shapes.index_by(&:code)
+                                   .transform_values(&:allow_edge_json)
+                                   .to_json %>'>
         <!-- 平面形状 -->
         <div class="mb-3">
           <%= f.label :shape_code, class: "form-label fw-bold" do %>
@@ -71,7 +74,8 @@
                   dims_target:      "shape",
                   shapeproc_target: "shape",
                   cornerproc_target:"shape",
-                  action: "dims#shapeChanged shapeproc#shapeChanged cornerproc#shapeChanged"
+                  edgeproc_target:  "shape",
+                  action: "dims#shapeChanged shapeproc#shapeChanged cornerproc#shapeChanged edgeproc#shapeChanged"
                 } %>
         </div>
 
@@ -201,7 +205,7 @@
           <div class="row g-2">
             <% corners.slice(:tl, :tr).each do |key, label| %>
               <div class="col-6 mt-2">
-                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label mb-0" %>
+                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label mb-2" %>
                 <%= f.collection_select "corner_#{key}_code", MCornerProcess.all,
                                         :code, :name_ja, { include_blank: false },
                                         class: "form-select",
@@ -247,7 +251,7 @@
           <div class="row g-2">
             <% corners.slice(:bl, :br).each do |key, label| %>
               <div class="col-6 mt-2">
-                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label fw-normal mb-0" %>
+                <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label fw-normal mb-2" %>
                 <%= f.collection_select "corner_#{key}_code", MCornerProcess.all,
                                         :code, :name_ja, { include_blank: false },
                                         class: "form-select",
@@ -294,10 +298,412 @@
           </p>
         </div>
 
+        <%# ==== 丸穴加工設定 (オプション) ================================= %>
+        <div
+          data-controller="holeproc"
+          data-holeproc-diameters-value='<%= MHoleDiameter.order(:hole_mm).map { |d|
+                                              [d.code, d.hole_mm] }.to_h.to_json %>'>
+
+          <label class="form-label fw-bold d-flex align-items-center my-3">
+            丸穴加工設定 (オプション)
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-holes">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <% corners = { tl:"左上", tr:"右上", bl:"左下", br:"右下" } %>
+
+          <%# ====== 上段 2 角 ================================================= %>
+          <div class="row g-3">
+            <% corners.slice(:tl, :tr).each do |key, label| %>
+              <div class="col-6">
+
+                <%# チェックボックス (1段目) ----------------------------------- %>
+                <div class="form-check mb-2">
+                  <%= f.check_box "hole_#{key}_flag",
+                                  class: "form-check-input",
+                                  data: { holeproc_target: "#{key}Flag",
+                                          action: "holeproc#flagChanged" } %>
+                  <%= f.label "hole_#{key}_flag", "#{label} に丸穴", class: "form-check-label fw-bold" %>
+                </div>
+
+                <%# 中心距離 (2段目) ------------------------------------------ %>
+                <div class="row g-1 d-none" data-holeproc-target="<%= "#{key}DyDxWrap" %>">
+                  <div class="col">
+                    <%= f.label "hole_#{key}_dy", "縦距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "hole_#{key}_dy", step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { holeproc_target: "#{key}Dy" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "hole_#{key}_dx", "横距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "hole_#{key}_dx", step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { holeproc_target: "#{key}Dx" } %>
+                  </div>
+                </div>
+
+                <%# 径セレクト (3段目) --------------------------------------- %>
+                <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaSelWrap" %>">
+                  <%= f.label "hole_#{key}_dia_code", "丸穴直径",
+                              class: "form-label small text-muted mb-1" %>
+                  <%= f.collection_select "hole_#{key}_dia_code", MHoleDiameter.all,
+                                          :code, :name_ja,
+                                          { include_blank: "選択…" },
+                                          class: "form-select",
+                                          data: { holeproc_target: "#{key}DiaSel",
+                                                  action: "holeproc#diaChanged" } %>
+                </div>
+
+                <%# 径直接入力 (D16P 時のみ／4段目) --------------------------- %>
+                <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaInputWrap" %>">
+                  <%= f.label "hole_#{key}_dia_mm", "丸穴直径[mm]",
+                              class: "form-label small text-muted mb-1" %>
+                  <%= f.number_field "hole_#{key}_dia_mm", step: 0.1, min: 0,
+                                    class: "form-control",
+                                    data: { holeproc_target: "#{key}DiaInput" } %>
+                </div>
+
+              </div>
+            <% end %>
+          </div>
+
+          <%# ====== 下段 2 角 (bl / br) も同じ構造で g-3 row をもう1つ ====== %>
+          <div class="row g-3 mt-3">
+            <% corners.slice(:bl, :br).each do |key, label| %>
+              <div class="col-6">
+
+                <%# チェックボックス (1段目) ----------------------------------- %>
+                <div class="form-check mb-2">
+                  <%= f.check_box "hole_#{key}_flag",
+                                  class: "form-check-input",
+                                  data: { holeproc_target: "#{key}Flag",
+                                          action: "holeproc#flagChanged" } %>
+                  <%= f.label "hole_#{key}_flag", "#{label} に丸穴", class: "form-check-label fw-bold" %>
+                </div>
+
+                <%# 中心距離 (2段目) ------------------------------------------ %>
+                <div class="row g-1 d-none" data-holeproc-target="<%= "#{key}DyDxWrap" %>">
+                  <div class="col">
+                    <%= f.label "hole_#{key}_dy", "縦距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "hole_#{key}_dy", step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { holeproc_target: "#{key}Dy" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "hole_#{key}_dx", "横距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "hole_#{key}_dx", step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { holeproc_target: "#{key}Dx" } %>
+                  </div>
+                </div>
+
+                <%# 径セレクト (3段目) --------------------------------------- %>
+                <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaSelWrap" %>">
+                  <%= f.label "hole_#{key}_dia_code", "丸穴直径",
+                              class: "form-label small text-muted mb-1" %>
+                  <%= f.collection_select "hole_#{key}_dia_code", MHoleDiameter.all,
+                                          :code, :name_ja,
+                                          { include_blank: "選択…" },
+                                          class: "form-select",
+                                          data: { holeproc_target: "#{key}DiaSel",
+                                                  action: "holeproc#diaChanged" } %>
+                </div>
+
+                <%# 径直接入力 (D16P 時のみ／4段目) --------------------------- %>
+                <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaInputWrap" %>">
+                  <%= f.label "hole_#{key}_dia_mm", "丸穴直径[mm]",
+                              class: "form-label small text-muted mb-1" %>
+                  <%= f.number_field "hole_#{key}_dia_mm", step: 0.1, min: 0,
+                                    class: "form-control",
+                                    data: { holeproc_target: "#{key}DiaInput" } %>
+                </div>
+
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%# ==== 四角穴加工設定 (オプション) ================================= %>
+        <div data-controller="sqholeproc">
+
+          <label class="form-label fw-bold d-flex align-items-center my-3">
+            四角穴加工設定 (オプション)
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-sqholes">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <% corners = { tl:"左上", tr:"右上", bl:"左下", br:"右下" } %>
+
+          <%# ── 上段 2 角 (tl / tr) ─────────────────────────────── %>
+          <div class="row g-3">
+            <% corners.slice(:tl, :tr).each do |key, label| %>
+              <div class="col-6">
+
+                <%# ① チェックボックス ─ 1段目 %>
+                <div class="form-check mb-2">
+                  <%= f.check_box "sqhole_#{key}_flag",
+                                  class: "form-check-input",
+                                  data: { sqholeproc_target: "#{key}Flag",
+                                          action: "sqholeproc#flagChanged" } %>
+                  <%= f.label "sqhole_#{key}_flag", "#{label} に四角穴",
+                              class: "form-check-label fw-bold" %>
+                </div>
+
+                <%# ② 中心距離 (dy/dx) ─ 2段目 %>
+                <div class="row g-1 d-none" data-sqholeproc-target="<%= "#{key}DyDxWrap" %>">
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_dy", "縦距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_dy",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}Dy" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_dx", "横距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_dx",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}Dx" } %>
+                  </div>
+                </div>
+
+                <%# ③ 穴サイズ (h/w) ─ 3段目 %>
+                <div class="row g-1 d-none mt-2" data-sqholeproc-target="<%= "#{key}HwWrap" %>">
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_h", "縦[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_h",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}H" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_w", "横[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_w",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}W" } %>
+                  </div>
+                </div>
+
+              </div>
+            <% end %>
+          </div>
+
+          <%# ── 下段 2 角 (bl / br) ─────────────────────────────── %>
+          <div class="row g-3 mt-3">
+            <% corners.slice(:bl, :br).each do |key, label| %>
+              <div class="col-6">
+                <!-- 同じ 3 ブロックをコピペ (key/label だけ変える) -->
+                <%# --- チェックボックス --- %>
+                <div class="form-check mb-2">
+                  <%= f.check_box "sqhole_#{key}_flag",
+                                  class: "form-check-input",
+                                  data: { sqholeproc_target: "#{key}Flag",
+                                          action: "sqholeproc#flagChanged" } %>
+                  <%= f.label "sqhole_#{key}_flag", "#{label} に四角穴",
+                              class: "form-check-label fw-bold" %>
+                </div>
+                <%# --- dy/dx --- %>
+                <div class="row g-1 d-none" data-sqholeproc-target="<%= "#{key}DyDxWrap" %>">
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_dy", "縦距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_dy",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}Dy" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_dx", "横距離[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_dx",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}Dx" } %>
+                  </div>
+                </div>
+                <%# --- h/w --- %>
+                <div class="row g-1 d-none mt-2" data-sqholeproc-target="<%= "#{key}HwWrap" %>">
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_h", "縦[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_h",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}H" } %>
+                  </div>
+                  <div class="col">
+                    <%= f.label "sqhole_#{key}_w", "横[mm]",
+                                class: "form-label small text-muted mb-1" %>
+                    <%= f.number_field "sqhole_#{key}_w",
+                                      step: 0.1, min: 0,
+                                      class: "form-control",
+                                      data: { sqholeproc_target: "#{key}W" } %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%# ==== 断面加工設定 (オプション) =================================== %>
+        <div class="my-3">
+
+          <label class="form-label fw-bold d-flex align-items-center my-3">
+            断面加工設定 (オプション)
+            <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-edges">
+              <i class="bi bi-question-circle text-secondary"></i>
+            </a>
+          </label>
+
+          <% dirs = {
+            tl:"左上",  t:"上面",  tr:"右上",
+            l:"左面",           r:"右面",
+            bl:"左下",  b:"下面", br:"右下"
+          } %>
+
+          <div class="row g-2">
+            <%# ─ 1段目 (tl t tr) ─ %>
+            <% [:tl,:t,:tr].each do |key| %>
+              <div class="col-4">
+                <% if key == :t %>
+                  <%= f.label "edge_#{key}_code", dirs[key], class: "form-label small fw-bold" %>
+                  <%= f.collection_select "edge_#{key}_code", MEdgeProcess.all,
+                                          :code, :name_ja, { include_blank: false },
+                                          class: "form-select",
+                                          data: { edgeproc_target: "#{key}Select" } %>
+                <% else %>
+                  <%= f.label "edge_#{key}_code", dirs[key], class: "form-label small fw-bold" %>
+                  <%= f.collection_select "edge_#{key}_code", MEdgeProcess.all,
+                                          :code, :name_ja, { include_blank: false },
+                                          class: "form-select",
+                                          data: { edgeproc_target: "#{key}Select" } %>
+                <% end %>
+              </div>
+            <% end %>
+
+            <%# ─ 2段目 (l  spacer  r) ─ %>
+            <% [:l, nil, :r].each do |key| %>   <!-- ← :nil → nil -->
+              <% if key.present? %>             <!-- present? で nil を除外 -->
+                <div class="col-4">
+                  <%= f.label "edge_#{key}_code", dirs[key], class: "form-label small fw-bold" %>
+                  <%= f.collection_select "edge_#{key}_code", MEdgeProcess.all,
+                                          :code, :name_ja, { include_blank: false },
+                                          class: "form-select",
+                                          data: { edgeproc_target: "#{key}Select" } %>
+                </div>
+              <% else %>
+                <div class="col-4"></div>       <!-- 中央の空白セル -->
+              <% end %>
+            <% end %>
+
+            <%# ─ 3段目 (bl b br) ─ %>
+            <% [:bl,:b,:br].each do |key| %>
+              <div class="col-4">
+                <%= f.label "edge_#{key}_code", dirs[key], class: "form-label small fw-bold" %>
+                <%= f.collection_select "edge_#{key}_code", MEdgeProcess.all,
+                                        :code, :name_ja, { include_blank: false },
+                                        class: "form-select",
+                                        data: { edgeproc_target: "#{key}Select" } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
       <!-- ====== ③ ラッパー終了 ====== -->
       </div>
 
+      <%# ==== 塗装設定 (オプション) ======================================= %>
+      <div
+        data-controller="paintproc"
+        data-paintproc-types-value='<%= MPaintType.all.index_by(&:code)
+                                        .transform_values(&:allow_paint_json)
+                                        .to_json %>'>
 
+        <label class="form-label fw-bold d-flex align-items-center my-3">
+          塗装設定 (オプション)
+          <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#help-paint">
+            <i class="bi bi-question-circle text-secondary"></i>
+          </a>
+        </label>
+
+        <!-- 塗装種類 -->
+        <div class="mb-2">
+          <%= f.label :paint_type_code, "塗装種類", class: "form-label small fw-bold" %>
+          <%= f.collection_select :paint_type_code,
+                MPaintType.order(:code),               # ← code 順で NONE が先頭
+                :code, :name_ja,
+                { include_blank: false },              # ← “選択 …” を廃止
+                class: "form-select",
+                data: { paintproc_target: "typeSelect",
+                        action: "paintproc#typeChanged" } %>
+        </div>
+
+        <!-- 塗装面 -->
+        <div class="mb-2">
+          <%= f.label :paint_surface_code, "塗装面", class: "form-label small fw-bold" %>
+          <%= f.collection_select :paint_surface_code, MPaintSurface.all,
+                                  :code, :name_ja, { include_blank: "選択…" },
+                                  class: "form-select",
+                                  data: { paintproc_target: "surfaceSelect" } %>
+        </div>
+
+        <!-- 塗装色 -->
+        <div class="mb-2">
+          <%= f.label :paint_color_code, "塗装色", class: "form-label small fw-bold" %>
+          <%= f.collection_select :paint_color_code, MPaintColor.all,
+                                  :code, :name_ja, { include_blank: "選択…" },
+                                  class: "form-select",
+                                  data: { paintproc_target: "colorSelect" } %>
+        </div>
+
+        <!-- 木目・導管仕上げ -->
+        <div class="mb-2">
+          <%= f.label :grain_finish_code, "木目・導管の見え方", class: "form-label small fw-bold" %>
+          <%= f.collection_select :grain_finish_code, MGrainFinish.all,
+                                  :code, :name_ja, { include_blank: "選択…" },
+                                  class: "form-select",
+                                  data: { paintproc_target: "grainSelect" } %>
+        </div>
+
+        <!-- ツヤ -->
+        <div class="mb-2">
+          <%= f.label :gloss_code, "ツヤ", class: "form-label small fw-bold" %>
+          <%= f.collection_select :gloss_code, MGloss.all,
+                                  :code, :name_ja, { include_blank: "選択…" },
+                                  class: "form-select",
+                                  data: { paintproc_target: "glossSelect" } %>
+        </div>
+      </div>
+
+      <%# ==== 備考・メモ ================================================ %>
+      <div class="mb-4">
+        <%= f.label :note, "備考・メモ", class: "form-label fw-bold" %>
+        <%= f.text_area :note,
+              rows: 4,
+              class: "form-control",
+              placeholder: "加工で伝えたいこと、図面番号、注意点などがあれば入力してください" %>
+      </div>
+
+      <% if @part.errors.any? %>
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            <% @part.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
 
       <%= f.submit "登録する", class: "btn btn-primary" %>
     </div>
@@ -385,7 +791,7 @@
   </div></div>
 </div>
 
-<!-- ───────── コーナー(角)加工設定ヘルプモーダル ───────── -->
+<!-- ───────── コーナー(角)加工設定 (オプション)ヘルプモーダル ───────── -->
 <div class="modal fade" id="help-corners" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">コーナー加工のヒント</h5>
@@ -394,6 +800,62 @@
     <div class="modal-body small">
       角丸め (R) は半径を指定 / 角落とし・斜めカットは dx,dy を指定してください。<br>
       形状によって指定できるコーナーが異なります。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 丸穴加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-holes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">丸穴加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角のチェックを入れると、中心位置 (縦・横) と丸穴径を設定できます。<br>
+      <code>16mm 以上</code> を選ぶと任意径を直接入力してください。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 四角穴加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-sqholes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">四角穴加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角のチェックを入れると、穴中心までの距離 (縦・横) と<br>
+      四角穴サイズ (縦・横) を設定できます。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 断面加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-edges" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">断面加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      方向ごとに糸面・R 面・ボーズ面などを選択できます。<br>
+      平面形状によって選択できない方向はグレーアウトされます。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 塗装ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-paint" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">塗装設定のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      <p>塗装種類を選択すると、選べる塗装面・色・導管仕上げ・ツヤが自動で切り替わります。</p>
+      <ul class="mb-0">
+        <li><strong>選択なし</strong>… 無塗装</li>
+        <li><strong>ウレタン塗装</strong>… すべての項目が選択可能</li>
+        <li><strong>自然塗装</strong>… 面と色のみ選択可能</li>
+      </ul>
     </div>
   </div></div>
 </div>

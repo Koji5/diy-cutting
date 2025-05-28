@@ -1762,14 +1762,14 @@ CREATE TABLE public.m_paint_types (
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
     description_en character varying(80),
-    allow_paint_json text[] DEFAULT '{}'::text[] NOT NULL,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_paint_json jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -2200,7 +2200,7 @@ CREATE TABLE public.parts (
     updated_at timestamp(6) without time zone NOT NULL,
     material_category_code character varying(10) NOT NULL,
     material_code character varying(16) NOT NULL,
-    shape_code character varying(8) NOT NULL,
+    shape_code character varying(10) NOT NULL,
     paint_type_code character varying(4),
     thickness_mm numeric(8,2) NOT NULL,
     width1_mm numeric(8,2) NOT NULL,
@@ -9497,6 +9497,10 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250528061247'),
+('20250528043534'),
+('20250528023210'),
+('20250528022432'),
 ('20250527060745'),
 ('20250527020548'),
 ('20250525075952'),
