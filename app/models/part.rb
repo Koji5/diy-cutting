@@ -12,7 +12,7 @@ class Part < ApplicationRecord
   belongs_to :material,
              class_name:  'MMaterial',
              foreign_key: :material_code,
-             primary_key: :code
+             primary_key: :code, optional: true
 
   belongs_to :shape,
              class_name:  'MShape',
@@ -38,22 +38,30 @@ class Part < ApplicationRecord
   store_accessor :edge_json,        :edge_t, :edge_b, :edge_l, :edge_r
   store_accessor :paint_json,       :surface, :color, :finish, :gloss
 
+  # 1) 平面形状の半径 4 点
+  store_accessor :shape_json,
+                :shape_tl_r, :shape_tr_r, :shape_bl_r, :shape_br_r
+
+  # 2) 丸穴（hole_json）―― 4 方向 × (flag / dia_code / dia_mm / dx / dy)
+  store_accessor :hole_json,
+                :hole_tl_flag, :hole_tr_flag, :hole_bl_flag, :hole_br_flag,
+                :hole_tl_dia_code, :hole_tr_dia_code, :hole_bl_dia_code, :hole_br_dia_code,
+                :hole_tl_dia_mm,   :hole_tr_dia_mm,   :hole_bl_dia_mm,   :hole_br_dia_mm,
+                :hole_tl_dx,       :hole_tr_dx,       :hole_bl_dx,       :hole_br_dx,
+                :hole_tl_dy,       :hole_tr_dy,       :hole_bl_dy,       :hole_br_dy
+
+  # 3) 四角穴（sqhole_json）―― 4 方向 × (flag / dx / dy / h / w)
+  store_accessor :sqhole_json,
+                :sqhole_tl_flag, :sqhole_tr_flag, :sqhole_bl_flag, :sqhole_br_flag,
+                :sqhole_tl_dx,   :sqhole_tr_dx,   :sqhole_bl_dx,   :sqhole_br_dx,
+                :sqhole_tl_dy,   :sqhole_tr_dy,   :sqhole_bl_dy,   :sqhole_br_dy,
+                :sqhole_tl_h,    :sqhole_tr_h,    :sqhole_bl_h,    :sqhole_br_h,
+                :sqhole_tl_w,    :sqhole_tr_w,    :sqhole_bl_w,    :sqhole_br_w
   # ─────────────────────────────
   # バリデーション
   # ─────────────────────────────
-  validates :name, presence: true, length: { maximum: 50 }
-
-  with_options numericality: { greater_than: 0 } do
-    validates :thickness_mm
-    validates :width1_mm
-    validates :length_mm
-    validates :width2_mm, allow_nil: true
-  end
-
-  validates :material_category_code, :material_code,
-            :shape_code, presence: true
-  validates :width2_mm, presence: true, if: -> { shape_code == "NICHE" }
-  validate :auto_length_locked
+  validates_with DimensionValidator
+ 
   # ソフトデリート用スコープ
   scope :alive, -> { where(deleted_flag: false) }
 

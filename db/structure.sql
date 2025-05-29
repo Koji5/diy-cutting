@@ -1879,7 +1879,8 @@ CREATE TABLE public.m_shapes (
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     allow_shape_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     allow_corner_json jsonb DEFAULT '{}'::jsonb NOT NULL,
-    allow_edge_json jsonb DEFAULT '{}'::jsonb NOT NULL
+    allow_edge_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    dims_rule_json jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -9497,6 +9498,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250529070510'),
 ('20250528061247'),
 ('20250528043534'),
 ('20250528023210'),

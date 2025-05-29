@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-28 14:43 JST
+生成日: 2025-05-29 19:22 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -542,7 +542,7 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 | material_category_code | character varying(10) | × |  | 材質カテゴリコード（WOOD / METAL など） |
 | material_code | character varying(16) | × |  | 具体的な材質コード（樹種・金属種） |
-| shape_code | character varying(8) | × |  | 平面形状コード（RECT、TRIANGLE など） |
+| shape_code | character varying(10) | × |  | 平面形状コード（RECT、TRIANGLE など） |
 | paint_type_code | character varying(4) | ○ |  | 塗装種別コード（ウレタン、自然塗装等） |
 | thickness_mm | numeric(8,2) | × |  | 厚み [mm] |
 | width1_mm | numeric(8,2) | × |  | 幅1 [mm]（矩形の場合は幅） |
@@ -3839,6 +3839,7 @@
 | allow_shape_json | jsonb | × | {} |  |
 | allow_corner_json | jsonb | × | {} |  |
 | allow_edge_json | jsonb | × | {} |  |
+| dims_rule_json | jsonb | × | {} |  |
 
 **インデックス**:
 - m_shapes_pkey (code) [PK]

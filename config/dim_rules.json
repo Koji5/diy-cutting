@@ -1,0 +1,451 @@
+{
+  "fields": {
+    "thickness_mm": {
+      "min": 20,
+      "max": 120,
+      "required": true
+    },
+    "width1_mm": {
+      "min": 30,
+      "max": 1000,
+      "required": true
+    },
+    "length_mm": {
+      "min": 100,
+      "max": 3000,
+      "required": true
+    },
+    "width2_mm": {
+      "required_if": "shape_code == 'NICHE'",
+      "min": 1
+    },
+    "shape_tl_r": {
+      "required_if": "shape_code == 'SIDE_ARC1' || shape_code == 'CORNER_R4'"
+    },
+    "shape_tr_r": {
+      "required_if": "shape_code == 'CORNER_R4'"
+    },
+    "shape_bl_r": {
+      "required_if": "shape_code == 'CORNER_R1' || shape_code == 'SIDE_ARC1' || shape_code == 'CORNER_R2' || shape_code == 'CORNER_R4'"
+    },
+    "shape_br_r": {
+      "required_if": "shape_code == 'CORNER_R2' || shape_code == 'CORNER_R4'"
+    },
+    "corner_tl_r": {
+      "required_if": "corner_tl_code == 'ROUND_R' || corner_tl_code == 'INROUND'"
+    },
+    "corner_tr_r": {
+      "required_if": "corner_tr_code == 'ROUND_R' || corner_tr_code == 'INROUND'"
+    },
+    "corner_bl_r": {
+      "required_if": "corner_bl_code == 'ROUND_R' || corner_bl_code == 'INROUND'"
+    },
+    "corner_br_r": {
+      "required_if": "corner_br_code == 'ROUND_R' || corner_br_code == 'INROUND'"
+    },
+    "corner_tl_dy": {
+      "required_if": "corner_tl_code == 'BEVEL' || corner_tl_code == 'CHAMFER'"
+    },
+    "corner_tr_dy": {
+      "required_if": "corner_tr_code == 'BEVEL' || corner_tr_code == 'CHAMFER'"
+    },
+    "corner_bl_dy": {
+      "required_if": "corner_bl_code == 'BEVEL' || corner_bl_code == 'CHAMFER'"
+    },
+    "corner_br_dy": {
+      "required_if": "corner_br_code == 'BEVEL' || corner_br_code == 'CHAMFER'"
+    },
+    "corner_tl_dx": {
+      "required_if": "corner_tl_code == 'BEVEL' || corner_tl_code == 'CHAMFER'"
+    },
+    "corner_tr_dx": {
+      "required_if": "corner_tr_code == 'BEVEL' || corner_tr_code == 'CHAMFER'"
+    },
+    "corner_bl_dx": {
+      "required_if": "corner_bl_code == 'BEVEL' || corner_bl_code == 'CHAMFER'"
+    },
+    "corner_br_dx": {
+      "required_if": "corner_br_code == 'BEVEL' || corner_br_code == 'CHAMFER'"
+    },
+    "hole_tl_dia_mm_or_code": {
+      "required_if": "hole_tl_flag == true"
+    },
+    "hole_tr_dia_mm_or_code": {
+      "required_if": "hole_tr_flag == true"
+    },
+    "hole_bl_dia_mm_or_code": {
+      "required_if": "hole_bl_flag == true"
+    },
+    "hole_br_dia_mm_or_code": {
+      "required_if": "hole_br_flag == true"
+    },
+    "hole_tl_dy": {
+      "required_if": "hole_tl_flag == true"
+    },
+    "hole_tr_dy": {
+      "required_if": "hole_tr_flag == true"
+    },
+    "hole_bl_dy": {
+      "required_if": "hole_bl_flag == true"
+    },
+    "hole_br_dy": {
+      "required_if": "hole_br_flag == true"
+    },
+    "hole_tl_dx": {
+      "required_if": "hole_tl_flag == true"
+    },
+    "hole_tr_dx": {
+      "required_if": "hole_tr_flag == true"
+    },
+    "hole_bl_dx": {
+      "required_if": "hole_bl_flag == true"
+    },
+    "hole_br_dx": {
+      "required_if": "hole_br_flag == true"
+    },
+    "sqhole_tl_dy": {
+      "required_if": "sqhole_tl_flag == true"
+    },
+    "sqhole_tr_dy": {
+      "required_if": "sqhole_tr_flag == true"
+    },
+    "sqhole_bl_dy": {
+      "required_if": "sqhole_bl_flag == true"
+    },
+    "sqhole_br_dy": {
+      "required_if": "sqhole_br_flag == true"
+    },
+    "sqhole_tl_dx": {
+      "required_if": "sqhole_tl_flag == true"
+    },
+    "sqhole_tr_dx": {
+      "required_if": "sqhole_tr_flag == true"
+    },
+    "sqhole_bl_dx": {
+      "required_if": "sqhole_bl_flag == true"
+    },
+    "sqhole_br_dx": {
+      "required_if": "sqhole_br_flag == true"
+    },
+    "sqhole_tl_h": {
+      "required_if": "sqhole_tl_flag == true"
+    },
+    "sqhole_tr_h": {
+      "required_if": "sqhole_tr_flag == true"
+    },
+    "sqhole_bl_h": {
+      "required_if": "sqhole_bl_flag == true"
+    },
+    "sqhole_br_h": {
+      "required_if": "sqhole_br_flag == true"
+    },
+    "sqhole_tl_w": {
+      "required_if": "sqhole_tl_flag == true"
+    },
+    "sqhole_tr_w": {
+      "required_if": "sqhole_tr_flag == true"
+    },
+    "sqhole_bl_w": {
+      "required_if": "sqhole_bl_flag == true"
+    },
+    "sqhole_br_w": {
+      "required_if": "sqhole_br_flag == true"
+    },
+    "name": {
+      "required": true,
+      "max": 50
+    }
+  },
+  "relations": [
+    {
+      "expr": "thickness_mm <= width1_mm"
+    },
+    {
+      "expr": "width1_mm <= length_mm"
+    },
+    {
+      "expr": "shape_code != 'TRI_EQ' || round(length_mm) == round(2 * width1_mm / sqrt(3))"
+    },
+    {
+      "expr": "shape_code != 'CIRC' || length_mm == width1_mm"
+    },
+    {
+      "expr": "shape_code != 'SEMI' || length_mm == 2 * width1_mm"
+    },
+    {
+      "expr": "shape_code != 'CORNER_TRI' || round(length_mm) == round(width1_mm * sqrt(2))"
+    }
+  ],
+  "dynamic": [
+    {
+      "target": "width2_mm",
+      "min_expr": "width1_mm + 1",
+      "max_expr": "length_mm / 2",
+      "if": "shape_code == 'NICHE'"
+    },
+    {
+      "target": "shape_tl_r",
+      "min_expr": "5",
+      "max_expr": "width1_mm - shape_bl_r",
+      "if": "shape_tl_r != null"
+    },
+    {
+      "target": "shape_tr_r",
+      "min_expr": "5",
+      "max_expr": "width1_mm - shape_br_r",
+      "if": "shape_tr_r != null"
+    },
+    {
+      "target": "shape_bl_r",
+      "min_expr": "5",
+      "max_expr": "width1_mm - (shape_tl_r || 0)",
+      "if": "shape_bl_r != null"
+    },
+    {
+      "target": "shape_tl_r",
+      "min_expr": "5",
+      "max_expr": "width1_mm - (shape_tr_r || 0)",
+      "if": "shape_tl_r != null"
+    },
+    {
+      "target": "corner_tl_r",
+      "min_expr": "(corner_tl_code == 'INROUND' ? 15 : 5)",
+      "max_expr": "(width1_mm - (shape_bl_r || 0) - (corner_bl_r || 0) - (corner_bl_dy || 0) - (corner_tl_code == 'INROUND' ? 30 : 0)) < (length_mm - (corner_tr_r || 0) - (corner_tr_dx || 0) - (corner_tl_code == 'INROUND' ? 30 : 0)) ? (width1_mm - (shape_bl_r || 0) - (corner_bl_r || 0) - (corner_bl_dy || 0) - (corner_tl_code == 'INROUND' ? 30 : 0)) : (length_mm - (corner_tr_r || 0) - (corner_tr_dx || 0) - (corner_tl_code == 'INROUND' ? 30 : 0))",
+      "if": "corner_tl_code == 'ROUND_R' || corner_tl_code == 'INROUND'"
+    },
+    {
+      "target": "corner_tr_r",
+      "min_expr": "(corner_tr_code == 'INROUND' ? 15 : 5)",
+      "max_expr": "(width1_mm - (shape_br_r || 0) - (corner_br_r || 0) - (corner_br_dy || 0) - (corner_tr_code == 'INROUND' ? 30 : 0)) < (length_mm - (shape_tl_r || 0) - (corner_tl_r || 0) - (corner_tl_dx || 0) - (corner_tr_code == 'INROUND' ? 30 : 0)) ? (width1_mm - (shape_br_r || 0) - (corner_br_r || 0) - (corner_br_dy || 0) - (corner_tr_code == 'INROUND' ? 30 : 0)) : (length_mm - (shape_tl_r || 0) - (corner_tl_r || 0) - (corner_tl_dx || 0) - (corner_tr_code == 'INROUND' ? 30 : 0))",
+      "if": "corner_tr_code == 'ROUND_R' || corner_tr_code == 'INROUND'"
+    },
+    {
+      "target": "corner_bl_r",
+      "min_expr": "(corner_bl_code == 'INROUND' ? 15 : 5)",
+      "max_expr": "(width1_mm - (corner_tl_r || 0) - (corner_tl_dy || 0) - (corner_bl_code == 'INROUND' ? 30 : 0)) < (length_mm - (corner_br_r || 0) - (corner_br_dx || 0) - (corner_bl_code == 'INROUND' ? 30 : 0)) ? (width1_mm - (corner_tl_r || 0) - (corner_tl_dy || 0) - (corner_bl_code == 'INROUND' ? 30 : 0)) : (length_mm - (corner_br_r || 0) - (corner_br_dx || 0) - (corner_bl_code == 'INROUND' ? 30 : 0))",
+      "if": "corner_bl_code == 'ROUND_R' || corner_bl_code == 'INROUND'"
+    },
+    {
+      "target": "corner_br_r",
+      "min_expr": "(corner_br_code == 'INROUND' ? 15 : 5)",
+      "max_expr": "(width1_mm - (corner_tr_r || 0) - (corner_tr_dy || 0) - (corner_br_code == 'INROUND' ? 30 : 0)) < (length_mm - (corner_bl_r || 0) - (corner_bl_dx || 0) - (shape_bl_r || 0) - (corner_br_code == 'INROUND' ? 30 : 0)) ? (width1_mm - (corner_tr_r || 0) - (corner_tr_dy || 0) - (corner_br_code == 'INROUND' ? 30 : 0)) : (length_mm - (corner_bl_r || 0) - (corner_bl_dx || 0) - (shape_bl_r || 0) - (corner_br_code == 'INROUND' ? 30 : 0))",
+      "if": "corner_br_code == 'ROUND_R' || corner_br_code == 'INROUND'"
+    },
+    {
+      "target": "corner_tl_dy",
+      "min_expr": "1",
+      "max_expr": "width1_mm - (shape_bl_r || 0) - (corner_bl_r || 0) - (corner_bl_dy || 0) - (corner_tl_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_tl_code == 'BEVEL' || corner_tl_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_tr_dy",
+      "min_expr": "1",
+      "max_expr": "width1_mm - (shape_br_r || 0) - (corner_br_r || 0) - (corner_br_dy || 0) - (corner_tr_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_tr_code == 'BEVEL' || corner_tr_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_bl_dy",
+      "min_expr": "1",
+      "max_expr": "width1_mm - (shape_tl_r || 0) - (corner_tl_r || 0) - (corner_tl_dy || 0) - (corner_bl_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_bl_code == 'BEVEL' || corner_bl_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_br_dy",
+      "min_expr": "1",
+      "max_expr": "width1_mm - (shape_tr_r || 0) - (corner_tr_r || 0) - (corner_tr_dy || 0) - (corner_br_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_br_code == 'BEVEL' || corner_br_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_tl_dx",
+      "min_expr": "1",
+      "max_expr": "length_mm - (shape_tr_r || 0) - (corner_tr_r || 0) - (corner_tr_dx || 0) - (corner_tl_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_tl_code == 'BEVEL' || corner_tl_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_tr_dx",
+      "min_expr": "1",
+      "max_expr": "length_mm - (shape_tl_r || 0) - (corner_tl_r || 0) - (corner_tl_dx || 0) - (corner_tr_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_tr_code == 'BEVEL' || corner_tr_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_bl_dx",
+      "min_expr": "1",
+      "max_expr": "length_mm - (shape_br_r || 0) - (corner_br_r || 0) - (corner_br_dx || 0) - (corner_bl_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_bl_code == 'BEVEL' || corner_bl_code == 'CHAMFER'"
+    },
+    {
+      "target": "corner_br_dx",
+      "min_expr": "1",
+      "max_expr": "length_mm - (shape_bl_r || 0) - (corner_bl_r || 0) - (corner_bl_dx || 0) - (corner_br_code == 'CHAMFER' ? 30 : 0)",
+      "if": "corner_br_code == 'BEVEL' || corner_br_code == 'CHAMFER'"
+    },
+    {
+      "target": "hole_tl_dia_mm_or_code",
+      "min_expr": "3",
+      "max_expr": "width1_mm - 60",
+      "if": "hole_tl_flag == true"
+    },
+    {
+      "target": "hole_tr_dia_mm_or_code",
+      "min_expr": "3",
+      "max_expr": "width1_mm - 60",
+      "if": "hole_tr_flag == true"
+    },
+    {
+      "target": "hole_bl_dia_mm_or_code",
+      "min_expr": "3",
+      "max_expr": "width1_mm - 60",
+      "if": "hole_bl_flag == true"
+    },
+    {
+      "target": "hole_br_dia_mm_or_code",
+      "min_expr": "3",
+      "max_expr": "width1_mm - 60",
+      "if": "hole_br_flag == true"
+    },
+    {
+      "target": "hole_tl_dy",
+      "min_expr": "hole_tl_dia_mm_or_code / 2 + 30",
+      "max_expr": "width1_mm - hole_tl_dia_mm_or_code / 2 - 30",
+      "if": "hole_tl_flag == true"
+    },
+    {
+      "target": "hole_tr_dy",
+      "min_expr": "hole_tr_dia_mm_or_code / 2 + 30",
+      "max_expr": "width1_mm - hole_tr_dia_mm_or_code / 2 - 30",
+      "if": "hole_tr_flag == true"
+    },
+    {
+      "target": "hole_bl_dy",
+      "min_expr": "hole_bl_dia_mm_or_code / 2 + 30",
+      "max_expr": "width1_mm - hole_bl_dia_mm_or_code / 2 - 30",
+      "if": "hole_bl_flag == true"
+    },
+    {
+      "target": "hole_br_dy",
+      "min_expr": "hole_br_dia_mm_or_code / 2 + 30",
+      "max_expr": "width1_mm - hole_br_dia_mm_or_code / 2 - 30",
+      "if": "hole_br_flag == true"
+    },
+    {
+      "target": "hole_tl_dx",
+      "min_expr": "hole_tl_dia_mm_or_code / 2 + 30",
+      "max_expr": "length_mm - hole_tl_dia_mm_or_code / 2 - 30",
+      "if": "hole_tl_flag == true"
+    },
+    {
+      "target": "hole_tr_dx",
+      "min_expr": "hole_tr_dia_mm_or_code / 2 + 30",
+      "max_expr": "length_mm - hole_tr_dia_mm_or_code / 2 - 30",
+      "if": "hole_tr_flag == true"
+    },
+    {
+      "target": "hole_bl_dx",
+      "min_expr": "hole_bl_dia_mm_or_code / 2 + 30",
+      "max_expr": "length_mm - hole_bl_dia_mm_or_code / 2 - 30",
+      "if": "hole_bl_flag == true"
+    },
+    {
+      "target": "hole_br_dx",
+      "min_expr": "hole_br_dia_mm_or_code / 2 + 30",
+      "max_expr": "length_mm - hole_br_dia_mm_or_code / 2 - 30",
+      "if": "hole_br_flag == true"
+    },
+    {
+      "target": "sqhole_tl_dy",
+      "min_expr": "30",
+      "max_expr": "width1_mm - sqhole_tl_h - 30",
+      "if": "sqhole_tl_flag == true"
+    },
+    {
+      "target": "sqhole_tr_dy",
+      "min_expr": "30",
+      "max_expr": "width1_mm - sqhole_tr_h - 30",
+      "if": "sqhole_tr_flag == true"
+    },
+    {
+      "target": "sqhole_bl_dy",
+      "min_expr": "30",
+      "max_expr": "width1_mm - sqhole_bl_h - 30",
+      "if": "sqhole_bl_flag == true"
+    },
+    {
+      "target": "sqhole_br_dy",
+      "min_expr": "30",
+      "max_expr": "width1_mm - sqhole_br_h - 30",
+      "if": "sqhole_br_flag == true"
+    },
+    {
+      "target": "sqhole_tl_dx",
+      "min_expr": "30",
+      "max_expr": "length_mm - sqhole_tl_w - 30",
+      "if": "sqhole_tl_flag == true"
+    },
+    {
+      "target": "sqhole_tr_dx",
+      "min_expr": "30",
+      "max_expr": "length_mm - sqhole_tr_w - 30",
+      "if": "sqhole_tr_flag == true"
+    },
+    {
+      "target": "sqhole_bl_dx",
+      "min_expr": "30",
+      "max_expr": "length_mm - sqhole_bl_w - 30",
+      "if": "sqhole_bl_flag == true"
+    },
+    {
+      "target": "sqhole_br_dx",
+      "min_expr": "30",
+      "max_expr": "length_mm - sqhole_br_w - 30",
+      "if": "sqhole_br_flag == true"
+    },
+    {
+      "target": "sqhole_tl_h",
+      "min_expr": "25",
+      "max_expr": "width1_mm - 60",
+      "if": "sqhole_tl_flag == true"
+    },
+    {
+      "target": "sqhole_tr_h",
+      "min_expr": "25",
+      "max_expr": "width1_mm - 60",
+      "if": "sqhole_tr_flag == true"
+    },
+    {
+      "target": "sqhole_bl_h",
+      "min_expr": "25",
+      "max_expr": "width1_mm - 60",
+      "if": "sqhole_bl_flag == true"
+    },
+    {
+      "target": "sqhole_br_h",
+      "min_expr": "25",
+      "max_expr": "width1_mm - 60",
+      "if": "sqhole_br_flag == true"
+    },
+    {
+      "target": "sqhole_tl_w",
+      "min_expr": "25",
+      "max_expr": "length_mm - 60",
+      "if": "sqhole_tl_flag == true"
+    },
+    {
+      "target": "sqhole_tr_w",
+      "min_expr": "25",
+      "max_expr": "length_mm - 60",
+      "if": "sqhole_tr_flag == true"
+    },
+    {
+      "target": "sqhole_bl_w",
+      "min_expr": "25",
+      "max_expr": "length_mm - 60",
+      "if": "sqhole_bl_flag == true"
+    },
+    {
+      "target": "sqhole_br_w",
+      "min_expr": "25",
+      "max_expr": "length_mm - 60",
+      "if": "sqhole_br_flag == true"
+    }
+  ]
+}
