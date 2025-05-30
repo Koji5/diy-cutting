@@ -4,7 +4,9 @@
 <%= form_with model: @part,
               data: {
                 controller: "dims",
-                dims_rules_value: GLOBAL_DIM_RULE.to_json
+                dims_rules_value:     GLOBAL_DIM_RULE.to_json,
+                dims_hole_diameters_value: MHoleDiameter.order(:hole_mm)
+                                            .map { |d| [d.code, d.hole_mm] }.to_h.to_json
               } do |f| %>
   <!-- ▼ タブバー -->
   <ul class="nav nav-pills mb-3 flex-column flex-sm-row" id="partTabs" role="tablist">
@@ -98,7 +100,7 @@
             <%= f.label :thickness_mm, "厚み [mm]", class: "form-label small" %>
             <%= f.number_field :thickness_mm,
                               class: "form-control",
-                              step: 0.1, min: 0, required: true %>
+                              step: 1, min: 0, required: true %>
           </div>
 
           <!-- 巾1 -->
@@ -106,7 +108,7 @@
             <%= f.label :width1_mm, "巾1 [mm]", class: "form-label small" %>
             <%= f.number_field :width1_mm,
                   class: "form-control",
-                  step: 0.1, min: 0, required: true,
+                  step: 1, min: 0, required: true,
                   data: { dims_target: "width1",
                           action: "input->dims#width1Changed" } %>
           </div>
@@ -116,7 +118,7 @@
             <%= f.label :width2_mm, "巾2 [mm] (ニッチ)", class: "form-label small" %>
             <%= f.number_field :width2_mm,
                               class: "form-control",
-                              step: 0.1, min: 0,
+                              step: 1, min: 0,
                               data: { dims_target: "width2" } %>
           </div>
 
@@ -134,7 +136,7 @@
 
             <%= f.number_field :length_mm,
                   class: "form-control",
-                  step: 0.1, min: 0, required: true,
+                  step: 1, min: 0, required: true,
                   data: { dims_target: "length" } %>
           </div>
         </div>
@@ -154,28 +156,28 @@
             <div class="col-6 d-none" data-shapeproc-target="tlWrap">
               <%= f.label :shape_tl_r, "左上半径 [mm]", class: "form-label small" %>
               <%= f.number_field :shape_tl_r,
-                    class: "form-control", step: 0.1, min: 0,
+                    class: "form-control", step: 1, min: 0,
                     data: { shapeproc_target: "tl" } %>
             </div>
 
             <div class="col-6 d-none" data-shapeproc-target="trWrap">
               <%= f.label :shape_tr_r, "右上半径 [mm]", class: "form-label small" %>
               <%= f.number_field :shape_tr_r,
-                    class: "form-control", step: 0.1, min: 0,
+                    class: "form-control", step: 1, min: 0,
                     data: { shapeproc_target: "tr" } %>
             </div>
 
             <div class="col-6 d-none" data-shapeproc-target="blWrap">
               <%= f.label :shape_bl_r, "左下半径 [mm]", class: "form-label small" %>
               <%= f.number_field :shape_bl_r,
-                    class: "form-control", step: 0.1, min: 0,
+                    class: "form-control", step: 1, min: 0,
                     data: { shapeproc_target: "bl" } %>
             </div>
 
             <div class="col-6 d-none" data-shapeproc-target="brWrap">
               <%= f.label :shape_br_r, "右下半径 [mm]", class: "form-label small" %>
               <%= f.number_field :shape_br_r,
-                    class: "form-control", step: 0.1, min: 0,
+                    class: "form-control", step: 1, min: 0,
                     data: { shapeproc_target: "br" } %>
             </div>
           </div>
@@ -226,7 +228,7 @@
                 <%# R 入力 %>
                 <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}RWrap" %>">
                   <%= f.label "corner_#{key}_r", "#{label} 半径 [mm]", class: "form-label small text-muted mb-1" %>
-                  <%= f.number_field "corner_#{key}_r", step: 0.1, min: 0,
+                  <%= f.number_field "corner_#{key}_r", step: 1, min: 0,
                                     class: "form-control",
                                     data: { cornerproc_target: "#{key}R" } %>
                 </div>
@@ -235,13 +237,13 @@
                   <div class="row g-1">
                     <div class="col">
                       <%= f.label "corner_#{key}_dx", "縦 [mm]", class: "form-label small text-muted mb-1" %>
-                      <%= f.number_field "corner_#{key}_dx", step: 0.1, min: 0,
+                      <%= f.number_field "corner_#{key}_dx", step: 1, min: 0,
                                         class: "form-control",
                                         data: { cornerproc_target: "#{key}Dx" } %>
                     </div>
                     <div class="col">
                       <%= f.label "corner_#{key}_dy", "横 [mm]", class: "form-label small text-muted mb-1" %>
-                      <%= f.number_field "corner_#{key}_dy", step: 0.1, min: 0,
+                      <%= f.number_field "corner_#{key}_dy", step: 1, min: 0,
                                         class: "form-control",
                                         data: { cornerproc_target: "#{key}Dy" } %>
                     </div>
@@ -271,7 +273,7 @@
               <div class="col-6">
                 <div class="d-none mt-2" data-cornerproc-target="<%= "#{key}RWrap" %>">
                   <%= f.label "corner_#{key}_r", "#{label} 半径 [mm]", class: "form-label small text-muted mb-1" %>
-                  <%= f.number_field "corner_#{key}_r", step: 0.1, min: 0,
+                  <%= f.number_field "corner_#{key}_r", step: 1, min: 0,
                                     class: "form-control",
                                     data: { cornerproc_target: "#{key}R" } %>
                 </div>
@@ -280,13 +282,13 @@
                   <div class="row g-1">
                     <div class="col">
                       <%= f.label "corner_#{key}_dx", "縦 [mm]", class: "form-label small text-muted mb-1" %>
-                      <%= f.number_field "corner_#{key}_dx", step: 0.1, min: 0,
+                      <%= f.number_field "corner_#{key}_dx", step: 1, min: 0,
                                         class: "form-control",
                                         data: { cornerproc_target: "#{key}Dx" } %>
                     </div>
                     <div class="col">
                       <%= f.label "corner_#{key}_dy", "横 [mm]", class: "form-label small text-muted mb-1" %>
-                      <%= f.number_field "corner_#{key}_dy", step: 0.1, min: 0,
+                      <%= f.number_field "corner_#{key}_dy", step: 1, min: 0,
                                         class: "form-control",
                                         data: { cornerproc_target: "#{key}Dy" } %>
                     </div>
@@ -336,14 +338,14 @@
                   <div class="col">
                     <%= f.label "hole_#{key}_dy", "縦距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
-                    <%= f.number_field "hole_#{key}_dy", step: 0.1, min: 0,
+                    <%= f.number_field "hole_#{key}_dy", step: 1, min: 0,
                                       class: "form-control",
                                       data: { holeproc_target: "#{key}Dy" } %>
                   </div>
                   <div class="col">
                     <%= f.label "hole_#{key}_dx", "横距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
-                    <%= f.number_field "hole_#{key}_dx", step: 0.1, min: 0,
+                    <%= f.number_field "hole_#{key}_dx", step: 1, min: 0,
                                       class: "form-control",
                                       data: { holeproc_target: "#{key}Dx" } %>
                   </div>
@@ -358,14 +360,14 @@
                                           { include_blank: "選択…" },
                                           class: "form-select",
                                           data: { holeproc_target: "#{key}DiaSel",
-                                                  action: "holeproc#diaChanged" } %>
+                                                  action: "holeproc#diaChanged dims#refresh" } %>
                 </div>
 
                 <%# 径直接入力 (D16P 時のみ／4段目) --------------------------- %>
                 <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaInputWrap" %>">
                   <%= f.label "hole_#{key}_dia_mm", "丸穴直径[mm]",
                               class: "form-label small text-muted mb-1" %>
-                  <%= f.number_field "hole_#{key}_dia_mm", step: 0.1, min: 0,
+                  <%= f.number_field "hole_#{key}_dia_mm", step: 1, min: 0,
                                     class: "form-control",
                                     data: { holeproc_target: "#{key}DiaInput" } %>
                 </div>
@@ -393,14 +395,14 @@
                   <div class="col">
                     <%= f.label "hole_#{key}_dy", "縦距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
-                    <%= f.number_field "hole_#{key}_dy", step: 0.1, min: 0,
+                    <%= f.number_field "hole_#{key}_dy", step: 1, min: 0,
                                       class: "form-control",
                                       data: { holeproc_target: "#{key}Dy" } %>
                   </div>
                   <div class="col">
                     <%= f.label "hole_#{key}_dx", "横距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
-                    <%= f.number_field "hole_#{key}_dx", step: 0.1, min: 0,
+                    <%= f.number_field "hole_#{key}_dx", step: 1, min: 0,
                                       class: "form-control",
                                       data: { holeproc_target: "#{key}Dx" } %>
                   </div>
@@ -415,14 +417,14 @@
                                           { include_blank: "選択…" },
                                           class: "form-select",
                                           data: { holeproc_target: "#{key}DiaSel",
-                                                  action: "holeproc#diaChanged" } %>
+                                                  action: "holeproc#diaChanged dims#refresh" } %>
                 </div>
 
                 <%# 径直接入力 (D16P 時のみ／4段目) --------------------------- %>
                 <div class="d-none mt-2" data-holeproc-target="<%= "#{key}DiaInputWrap" %>">
                   <%= f.label "hole_#{key}_dia_mm", "丸穴直径[mm]",
                               class: "form-label small text-muted mb-1" %>
-                  <%= f.number_field "hole_#{key}_dia_mm", step: 0.1, min: 0,
+                  <%= f.number_field "hole_#{key}_dia_mm", step: 1, min: 0,
                                     class: "form-control",
                                     data: { holeproc_target: "#{key}DiaInput" } %>
                 </div>
@@ -465,7 +467,7 @@
                     <%= f.label "sqhole_#{key}_dy", "縦距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_dy",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}Dy" } %>
                   </div>
@@ -473,7 +475,7 @@
                     <%= f.label "sqhole_#{key}_dx", "横距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_dx",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}Dx" } %>
                   </div>
@@ -485,7 +487,7 @@
                     <%= f.label "sqhole_#{key}_h", "縦[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_h",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}H" } %>
                   </div>
@@ -493,7 +495,7 @@
                     <%= f.label "sqhole_#{key}_w", "横[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_w",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}W" } %>
                   </div>
@@ -523,7 +525,7 @@
                     <%= f.label "sqhole_#{key}_dy", "縦距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_dy",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}Dy" } %>
                   </div>
@@ -531,7 +533,7 @@
                     <%= f.label "sqhole_#{key}_dx", "横距離[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_dx",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}Dx" } %>
                   </div>
@@ -542,7 +544,7 @@
                     <%= f.label "sqhole_#{key}_h", "縦[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_h",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}H" } %>
                   </div>
@@ -550,7 +552,7 @@
                     <%= f.label "sqhole_#{key}_w", "横[mm]",
                                 class: "form-label small text-muted mb-1" %>
                     <%= f.number_field "sqhole_#{key}_w",
-                                      step: 0.1, min: 0,
+                                      step: 1, min: 0,
                                       class: "form-control",
                                       data: { sqholeproc_target: "#{key}W" } %>
                   </div>
@@ -714,9 +716,7 @@
 
     <!-- ───────── 3D プレビュータブ（プレースホルダ） ───────── -->
     <div class="tab-pane fade" id="preview-pane" role="tabpanel">
-      <div class="alert alert-info my-4">
-        3D プレビューは今後実装予定です。
-      </div>
+      <div class="ratio ratio-16x9 bg-light" data-controller="part3d"></div>
     </div>
   </div>
 <% end %>

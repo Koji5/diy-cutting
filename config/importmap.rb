@@ -17,3 +17,7 @@ pin "controllers/hello_controller",             to: "controllers/hello_controlle
 pin "copy-address-controller", to: "controllers/copy_address_controller.js"
 
 pin "lib/eval_expr", to: "lib/eval_expr.js"
+
+pin "three", to: "https://unpkg.com/three@0.176.0/build/three.module.js"
+pin "three/examples/jsm/controls/OrbitControls.js",
+    to: "https://unpkg.com/three@0.176.0/examples/jsm/controls/OrbitControls.js"

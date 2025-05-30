@@ -7,15 +7,39 @@ export default class extends Controller {
   static targets = [
     "shape", "width2Wrap", "width1", "width2", "length", "autoLengthNote"
   ]
-  static values = { rules: Object }
+  static values = {
+    rules: Object,
+    holeDiameters: Object
+  }
 
   /* -------------------------------- lifecycle -------------------------------------- */
   connect () {
     this.refresh()
     this.addListeners()
     this.showAllHints()  // 初期表示時にヒント描画
+    // >>> ADD: 空の number フィールドにフォーカスしたら min を自動入力
+    this.element
+      .querySelectorAll('input[type="number"]')
+      .forEach(el => el.addEventListener("focus", this.fillMinIfBlank))
   }
+  // >>> ADD
+  fillMinIfBlank = (event) => {
+    const input = event.currentTarget
+    if (input.value !== "") return            // 既に値があれば何もしない
 
+    const minAttr = input.getAttribute("min")
+    if (minAttr == null) return              // min が無ければスキップ
+
+    input.value = minAttr                    // min をセット
+    // Vue / React と同等に Turbo へ変更通知
+    input.dispatchEvent(new Event("input", { bubbles: true }))
+  }
+  // disconnect で後片付けしたい場合（任意）
+  disconnect () {
+    this.element
+      .querySelectorAll('input[type="number"]')
+      .forEach(el => el.removeEventListener("focus", this.fillMinIfBlank))
+  }
   /* -------------------------------- UI handlers ------------------------------------ */
   shapeChanged () {
     this.refresh()
@@ -249,11 +273,64 @@ export default class extends Controller {
   /* -------------------------------- context builder -------------------------------- */
   buildContext () {
     const ctx = {}
-    new FormData(this.element).forEach((val, key) => {
-      const m = key.match(/^part\[(.+)\]$/); if (!m) return
-      const num = parseFloat(val); ctx[m[1]] = isNaN(num) ? val : num
-    })
-    ctx.round = Math.round; ctx.sqrt = Math.sqrt
-    return ctx
+
+    // ① フォーム値を ctx へ（数値を数値化）
+    for (const [key, val] of new FormData(this.element).entries()) {
+      const m = key.match(/^part\[(.+)\]$/);
+      if (!m) continue;
+      const num = parseFloat(val);
+      ctx[m[1]] = isNaN(num) ? val : num;
+    }
+
+    // ② 補助キーを補完
+    /** 配列は 1 度だけ定義し再利用 */
+    const pos = ["tl", "tr", "bl", "br"];
+
+    // --- 丸穴 (mm または code→mm 変換) ---
+    pos.forEach(p => {
+
+      /* ---------- ① まず code を ctx に保存 ---------- */
+      const codeInput = this.element.querySelector(
+        `[name="part[hole_${p}_dia_code]"]`
+      )
+      ctx[`hole_${p}_dia_code`] = codeInput ? codeInput.value : null
+
+      const diaKey = `hole_${p}_dia_mm_or_code`;
+
+      // ① 自由入力 mm を優先
+      const inputMm = parseFloat(ctx[`hole_${p}_dia_mm`] || "");
+      if (!isNaN(inputMm)) {
+        ctx[diaKey] = inputMm;
+      } else {
+        // ② プルダウン選択の code を mm に変換
+        const code = ctx[`hole_${p}_dia_code`];
+        ctx[diaKey] = this.holeDiametersValue[code] || 0;   // ← 事前に渡したマップを参照
+      }
+
+      // ③ フラグを true/false に正規化
+      ctx[`hole_${p}_flag`] = !!ctx[`hole_${p}_flag`];
+    });
+
+    // --- コーナー ---
+    pos.forEach(p => {
+      const codeKey = `corner_${p}_code`;
+      if (!(codeKey in ctx)) ctx[codeKey] = "";
+
+      (['r','dx','dy']).forEach(prop => {
+        const k = `corner_${p}_${prop}`;
+        if (!(k in ctx)) {
+          ctx[k] = 0;
+        } else {
+          const n = parseFloat(ctx[k]);
+          ctx[k] = isNaN(n) ? 0 : n;
+        }
+      });
+    });
+
+    // ③ Math ユーティリティ
+    ctx.round = Math.round;
+    ctx.sqrt  = Math.sqrt;
+
+    return ctx;
   }
 }

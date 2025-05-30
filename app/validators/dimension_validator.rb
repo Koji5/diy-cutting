@@ -78,6 +78,9 @@ class DimensionValidator < ActiveModel::Validator
       if cfg[:max] && val.to_f > cfg[:max].to_f
         record.errors.add(attr, "は #{cfg[:max]}mm 以下にしてください")
       end
+      if cfg[:integer_only] && val.present? && val.to_f % 1 != 0
+        record.errors.add(attr, "は整数で入力してください")
+      end
     end
   end
   private :check_fields
