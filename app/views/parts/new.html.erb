@@ -1,7 +1,11 @@
 <!-- app/views/parts/new.html.erb -->
 <h1 class="mb-4">部品新規作成 (SID-PR-200)</h1>
 
-<%= form_with model: @part do |f| %>
+<%= form_with model: @part,
+              data: {
+                controller: "dims",
+                dims_rules_value: GLOBAL_DIM_RULE.to_json
+              } do |f| %>
   <!-- ▼ タブバー -->
   <ul class="nav nav-pills mb-3 flex-column flex-sm-row" id="partTabs" role="tablist">
     <li class="nav-item flex-sm-fill" role="presentation">
@@ -46,7 +50,7 @@
 
       <!-- ▼ ラッパー開始：3つのコントローラ名を並べる -->
       <div
-        data-controller="dims shapeproc cornerproc edgeproc"
+        data-controller="shapeproc cornerproc edgeproc"
         data-shapeproc-shapes-value='<%= @shapes.index_by(&:code)
                                         .transform_values(&:allow_shape_json)
                                         .to_json %>'

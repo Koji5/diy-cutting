@@ -158,22 +158,34 @@
   },
   "relations": [
     {
-      "expr": "thickness_mm <= width1_mm"
+      "expr": "thickness_mm <= width1_mm",
+      "message": "厚み ≦ 巾1 にしてください"
     },
     {
-      "expr": "width1_mm <= length_mm"
+      "expr": "width1_mm <= length_mm",
+      "message": "巾1 ≦ 長さ にしてください",
+      "if": "shape_code != 'NICHE'"
     },
     {
-      "expr": "shape_code != 'TRI_EQ' || round(length_mm) == round(2 * width1_mm / sqrt(3))"
+      "expr": "width1_mm <= width2_mm && width2_mm <= length_mm",
+      "message": "巾1 ≦ 巾2 ≦ 長さ にしてください",
+      "if": "shape_code == 'NICHE'"
     },
     {
-      "expr": "shape_code != 'CIRC' || length_mm == width1_mm"
+      "expr": "shape_code != 'TRI_EQ' || round(length_mm) == round(2 * width1_mm / sqrt(3))",
+      "message": "長さ = 巾1 × 2/√3 にしてください"
     },
     {
-      "expr": "shape_code != 'SEMI' || length_mm == 2 * width1_mm"
+      "expr": "shape_code != 'CIRC' || length_mm == width1_mm",
+      "message": "長さ = 巾1 にしてください"
     },
     {
-      "expr": "shape_code != 'CORNER_TRI' || round(length_mm) == round(width1_mm * sqrt(2))"
+      "expr": "shape_code != 'SEMI' || length_mm == 2 * width1_mm",
+      "message": "長さ = 巾1 × 2 にしてください"
+    },
+    {
+      "expr": "shape_code != 'CORNER_TRI' || round(length_mm) == round(width1_mm * sqrt(2))",
+      "message": "長さ = 巾1 × √2 にしてください"
     }
   ],
   "dynamic": [

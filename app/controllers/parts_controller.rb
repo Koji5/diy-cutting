@@ -54,6 +54,7 @@ class PartsController < ApplicationController
     @materials           = MMaterial.order(:code)
     @shapes              = MShape.order(:code)
     @paint_types         = MPaintType.order(:code)
+    @global_dim_rule = GLOBAL_DIM_RULE
   end
 
     # ───────── 基本項目 (テーブルの直接カラム) ─────────
