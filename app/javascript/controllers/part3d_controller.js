@@ -1,15 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { buildRoundedRect, applyRoundHoles } from "helpers/modifiers" // ★ 追加
 
 /**
- * 部品 3D プレビュー Stimulus コントローラ（OrbitControls 復活・CDN 直 pin 版）
- *
- * 必須入力フィールド
- *   - part[shape_code]   : "RECT" など
- *   - part[thickness_mm] : 厚み (t)
- *   - part[width1_mm]    : 巾1  (w)
- *   - part[length_mm]    : 長さ (l)
+ * 部品 3D プレビュー Stimulus コントローラ
+ *   - RECT + 角R + 丸穴 対応
  */
 export default class extends Controller {
   connect () {
@@ -36,7 +32,7 @@ export default class extends Controller {
     this.renderer.dispose()
   }
 
-  /* ---------------- init helpers ---------------- */
+  /* ---------- init ---------- */
   #initScene () { this.scene = new THREE.Scene() }
 
   #initCamera () {
@@ -74,30 +70,26 @@ export default class extends Controller {
     this.renderer.setSize(w, h, false)
   }
 
-  /* ---------------- update loop ----------------- */
+  /* ---------- build ---------- */
   #updateModel () {
     const ctx = this.#buildCtx()
-    if (!ctx || !this.#supportedShapes().includes(ctx.shape)) {
-      this.#clearMesh()
-      this.renderer.render(this.scene, this.camera)
-      return
-    }
+    if (!ctx) { this.#clearMesh(); this.renderer.render(this.scene, this.camera); return }
 
     this.#clearMesh()
 
-    let geom
-    switch (ctx.shape) {
-      case "RECT":
-      default:
-        geom = new THREE.BoxGeometry(ctx.w, ctx.t, ctx.l)
-    }
+    /* --- ベース形状 --- */
+    let geom = ctx.r > 0 ? buildRoundedRect(ctx)
+                         : new THREE.BoxGeometry(ctx.w, ctx.t, ctx.l)
 
-    const mat  = new THREE.MeshPhongMaterial({ color:0x888888 })
-    this.mesh  = new THREE.Mesh(geom, mat)
-    this.scene.add(this.mesh)
+    /* --- 丸穴 --- */
+    let mesh = new THREE.Mesh(geom, new THREE.MeshPhongMaterial({ color:0x888888 }))
+    mesh = applyRoundHoles(mesh, ctx)
 
-    /* ---- camera fit ---- */
-    const s = new THREE.Box3().setFromObject(this.mesh).getBoundingSphere(new THREE.Sphere())
+    this.mesh = mesh
+    this.scene.add(mesh)
+
+    /* --- camera fit --- */
+    const s = new THREE.Box3().setFromObject(mesh).getBoundingSphere(new THREE.Sphere())
     const r = s.radius * 1.35
     this.camera.position.set(r, r * 0.7, r)
     this.camera.lookAt(s.center)
@@ -113,7 +105,7 @@ export default class extends Controller {
     this.renderer.render(this.scene, this.camera)
   }
 
-  /* ---------------- utils ----------------------- */
+  /* ---------- ctx ---------- */
   #buildCtx () {
     const num = name => parseFloat(this.form.querySelector(`[name='part[${name}]']`)?.value || "")
     const shape = this.form.querySelector(`[name='part[shape_code]']`)?.value
@@ -121,10 +113,18 @@ export default class extends Controller {
     const w = num("width1_mm")
     const l = num("length_mm")
     if (!shape || !t || !w || !l) return null
-    return { shape, t, w, l }
-  }
 
-  #supportedShapes () { return ["RECT"] }
+    // 角R (corner_radius_mm) と丸穴リスト (hole_x_mm, hole_z_mm, hole_dia_mm) を取得
+    const r = num("corner_radius_mm") || 0
+
+    const holes = []
+    this.form.querySelectorAll("[data-hole]").forEach(el => {
+      const x = parseFloat(el.dataset.x), z = parseFloat(el.dataset.z), dia = parseFloat(el.dataset.dia)
+      if (!isNaN(x) && !isNaN(z) && !isNaN(dia)) holes.push({ x, z, dia })
+    })
+
+    return { shape, t, w, l, r, holes }
+  }
 
   #clearMesh () {
     if (this.mesh) {

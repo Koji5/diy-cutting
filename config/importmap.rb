@@ -21,3 +21,8 @@ pin "lib/eval_expr", to: "lib/eval_expr.js"
 pin "three", to: "https://unpkg.com/three@0.176.0/build/three.module.js"
 pin "three/examples/jsm/controls/OrbitControls.js",
     to: "https://unpkg.com/three@0.176.0/examples/jsm/controls/OrbitControls.js"
+pin "three/examples/jsm/geometries/RoundedBoxGeometry.js",
+    to: "https://unpkg.com/three@0.176.0/examples/jsm/geometries/RoundedBoxGeometry.js"
+
+pin_all_from "app/javascript/helpers", under: "helpers"
+pin_all_from "vendor/javascript/three-csg-ts", under: "three-csg-ts"
