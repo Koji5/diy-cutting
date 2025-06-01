@@ -15,8 +15,16 @@ export function extrudePlate(shape, t) {
     depth: t,
     bevelEnabled: false        // 側面は直角
   });
+  // ───────── XY 中央合わせ ─────────
+  // ① まず 2D 形状（X,Y 平面）の中心を原点にそろえる
+  geo.computeBoundingBox();
+  const box = geo.boundingBox;           // THREE.Box3
+  const offsetX = (box.max.x + box.min.x) / 2;
+  const offsetY = (box.max.y + box.min.y) / 2;
+  geo.translate(-offsetX, -offsetY, 0);
+
   geo.rotateX(-Math.PI / 2);   // 押し出し方向を Y 軸に
-  geo.translate(0, t / 2, 0);  // 板中心を原点に
+  geo.translate(0, 0, 0);  // 板中心を原点に
   return geo;
 }
 
