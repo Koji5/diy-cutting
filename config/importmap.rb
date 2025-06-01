@@ -18,11 +18,15 @@ pin "copy-address-controller", to: "controllers/copy_address_controller.js"
 
 pin "lib/eval_expr", to: "lib/eval_expr.js"
 
+# --- Three.js 本体 -------------------------------------------------------
 pin "three", to: "https://unpkg.com/three@0.176.0/build/three.module.js"
+# --- BufferGeometryUtils ----------------------------------------
+pin "three/examples/jsm/utils/BufferGeometryUtils.js",
+    to: "https://unpkg.com/three@0.176.0/examples/jsm/utils/BufferGeometryUtils.js"
+# --- OrbitControls ---------------------------------------------
 pin "three/examples/jsm/controls/OrbitControls.js",
     to: "https://unpkg.com/three@0.176.0/examples/jsm/controls/OrbitControls.js"
-pin "three/examples/jsm/geometries/RoundedBoxGeometry.js",
-    to: "https://unpkg.com/three@0.176.0/examples/jsm/geometries/RoundedBoxGeometry.js"
-
-pin_all_from "app/javascript/helpers", under: "helpers"
+# --- CSG ---------------------------------------------------------------
 pin_all_from "vendor/javascript/three-csg-ts", under: "three-csg-ts"
+# --- アプリ側ヘルパ -----------------------------------------------------
+pin_all_from "app/javascript/helpers", under: "helpers"
