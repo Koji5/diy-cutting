@@ -1,246 +1,158 @@
-/********************************************************************
- *  Shape Builders – only the pieces we really need right now
- *    - buildRect({ w, l })
- *    - buildNicheSagitta({ w1, w2, l })
- *******************************************************************/
+// shape_builders.js — 3‑pattern version (geoCtx)
+// --------------------------------------------------------------
+// 依存: three.js を import map / Vite 等で pin 済み
 import * as THREE from "three";
 
-/* -------------------------------------------------------------- */
-/*  1) Simple Rectangle                                            */
-/* -------------------------------------------------------------- */
-export function buildRect({ w, l }) {
-  const s = new THREE.Shape();
-  s.moveTo(-l / 2, w / 2);
-  s.lineTo( l / 2, w / 2);
-  s.lineTo( l / 2, -w / 2);
-  s.lineTo(-l / 2, -w / 2);
-  s.closePath();
-  return s;
-}
-
-/*───────────────────────────────────────────────────────────────────
-  buildNicheSagitta({ w1, w2, l })
-    w1  背面の高さ (巾1)
-    w2  前面全高   (巾2)  ※ w2 > w1
-    l   長さ       (弦長) 例 1000
-───────────────────────────────────────────────────────────────────*/
-export function buildNicheSagitta({ w1: W1, w2: W2, l: L }) {
-  /* ---- 入力チェック ------------------------------------------------ */
-  if (!W1 || !L) return buildRect({ w: W1, l: L });      // 必須欠け
-  if (!Number.isFinite(W2)) W2 = W1;                     // ★巾2 未入力なら巾1で上書き
-  const sag = W2 - W1;                                   // 矢高
-  if (sag <= 0)  return buildRect({ w: W1, l: L });      // 張り出しゼロ
-  const halfChord = L / 2;
-
-  /* ---- 半径 R (弦長 c=L, 矢高 s=sag) ------------------------------ */
-  const R = (sag * sag + halfChord * halfChord) / (2 * sag);
-
-  /* ---- 円弧端角 φ₀ ------------------------------------------------ */
-  const phi0 = Math.acos(halfChord / R);                 // 0 < φ₀ < π/2
-
-  /* ---- Shape ----------------------------------------------------- */
-  const shape = new THREE.Shape();
-  const centerY = - (R - sag);                           // 円心 Y
-
-  /* ① 左背面下 → 左背面上 (長方形左側面) */
-  shape.moveTo(-halfChord, -W1);
-  shape.lineTo(-halfChord, 0);
-
-  /* ② 円弧 (左端→右端, 時計回り) */
-  const SEG = 64;
-  for (let i = 0; i <= SEG; i++) {
-    const θ = Math.PI - phi0 - i * (Math.PI - 2 * phi0) / SEG; // π−φ₀ → φ₀
-    const x =  R * Math.cos(θ);
-    const y =  centerY + R * Math.sin(θ);
-    shape.lineTo(x, y);
-  }
-
-  /* ③ 右背面上 → 右背面下 → 閉じる */
-  shape.lineTo( halfChord,  0);
-  shape.lineTo( halfChord, -W1);
-  shape.closePath();
-
-  return shape;
-}
-
-/**
- * 角フィレット付き矩形
- * w : 巾（Y：上0 → 下 -w）
- * l : 長さ（X：左 -l/2 → 右 +l/2）
- * rTL, rTR, rBL, rBR : 各コーナー半径
+/*
+ * geoCtx 必須フィールド
+ *   shapeCode : "TRI_EQ" | "NICHE" | その他
+ *   L, W1, (W2)  : mm  単位は左下原点・時計回り系
+ *   corners      : tl / tr / bl / br それぞれ { code, r, dx, dy }
+ *   holes_round  : [{ cx, cy, r,  … }]
+ *   holes_square : [{ cx, cy, w,h … }]
+ *   T            : 厚み (3D で使用)
  */
-export function buildCornerFillet({ w, l,
-  rTL = 0, rTR = 0, rBL = 0, rBR = 0 })
-{
+
+export function buildShape(ctx) {
+  switch (ctx.shapeCode) {
+    case "TRI_EQ":  return buildEquilateral(ctx);
+    case "NICHE":   return buildNiche(ctx);
+    default:         return buildRectCorners(ctx);   // "その他" は矩形 + 任意コーナー
+  }
+}
+
+/*======================================================================*
+ |  1. デフォルト: 基本矩形 + 任意コーナー加工                          |
+ *======================================================================*/
+function buildRectCorners(ctx) {
+  const L = ctx.L;
+  const W = ctx.W1;
   const s = new THREE.Shape();
 
-  /* ==== 1) TOP EDGE ==== */
-  s.moveTo(-l / 2 + rTL, 0);                  // 始点（左上から rTL 分だけ右へ）
-  s.lineTo(l / 2 - rTR, 0);                   // 右上手前まで直線
-
-  /* ==== 2) TOP-RIGHT ARC ==== */
-  if (rTR > 0) {
-    s.absarc(                                    // centerX, centerY
-      l / 2 - rTR, -rTR,                         // 右上隅から内側へ (rTR, rTR)
-      rTR,           // radius
-      Math.PI * 0.5, 0,                         // 90° → 0°（CW）
-      true                                       // clockwise
-    );
-  }
-
-  /* ==== 3) RIGHT EDGE ==== */
-  s.lineTo(l / 2, -w + rBR);
-
-  /* ==== 4) BOTTOM-RIGHT ARC ==== */
-  if (rBR > 0) {
-    s.absarc(
-      l / 2 - rBR, -w + rBR,
-      rBR,
-      0, -Math.PI * 0.5,                        // 0° → -90°（CW）
-      true
-    );
-  }
-
-  /* ==== 5) BOTTOM EDGE ==== */
-  s.lineTo(-l / 2 + rBL, -w);
-
-  /* ==== 6) BOTTOM-LEFT ARC ==== */
-  if (rBL > 0) {
-    s.absarc(
-      -l / 2 + rBL, -w + rBL,
-      rBL,
-      -Math.PI * 0.5, -Math.PI,                 // -90° → -180°（CW）
-      true
-    );
-  }
-
-  /* ==== 7) LEFT EDGE ==== */
-  s.lineTo(-l / 2, -rTL);
-
-  /* ==== 8) TOP-LEFT ARC ==== */
-  if (rTL > 0) {
-    s.absarc(
-      -l / 2 + rTL, -rTL,
-      rTL,
-      Math.PI, Math.PI * 0.5,                   // 180° → 90°（CW）
-      true
-    );
-  }
-
+  // 左下→左上→右上→右下→閉じる (CW)
+  s.moveTo(0, 0);
+  _corner(s, "bl", ctx.corners?.bl, L, W);
+  s.lineTo(0, W);
+  _corner(s, "tl", ctx.corners?.tl, L, W);
+  s.lineTo(L, W);
+  _corner(s, "tr", ctx.corners?.tr, L, W);
+  s.lineTo(L, 0);
+  _corner(s, "br", ctx.corners?.br, L, W);
   s.closePath();
+
+  _pushHoles(s, ctx);
   return s;
 }
 
-function _filletCorner(shape, cx,cy,R, θ0,θ1,seg){
-  if(R<=0){ shape.lineTo(cx,cy); return; }
-  for(let i=0;i<=seg;i++){
-    const θ = θ0 + (θ1-θ0)*i/seg;
-    shape.lineTo(cx+R*Math.cos(θ), cy+R*Math.sin(θ));
-  }
-}
-function _filletEdge(shape,x,y){ shape.lineTo(x,y); }
+/*======================================================================*
+ | 2. NICHE  (矩形 + 上部アーチ)                                        |
+ *======================================================================*/
+function buildNiche(ctx) {
+  const L = ctx.L;
+  const W1 = ctx.W1;     // 全高
+  const W2 = ctx.W2 ?? W1; // 下段高さ (省略時 = 全高 → 通常矩形と同じ)
 
-/* ─────────── 片側アール（左面）─────────── */
-export function buildSideArc1({ w,l, rTL=0, rBL=0 }){
-  return buildCornerFillet({ w,l, rTL,rBL });  // 左だけフィレット
-}
+  if (W2 >= W1) return buildRectCorners(ctx); // ニッチ無し
 
-/********************************************************************
- *   buildSideUArc({ w, l, both })                片側 / 両側 U 字アール
- *      w   : 巾1 [mm]  （半径 = w/2）
- *      l   : 長さ [mm] （全長に半円を含む）
- *      both: true  → SIDE_UARC2  （両側）
- *            false → SIDE_UARC1  （左側のみ）
- *******************************************************************/
-export function buildSideUArc({ w, l, both = false }) {
-  const r = w / 2;                      // 半径
-  const s = new THREE.Shape();
-
-  /* --- カプセル形（両側 U 字）-------------------------------- */
-  if (both) {
-    const rect = Math.max(l - w, 0);    // 半円を除いた直線部分の長さ
-    const hx   = rect / 2;              // 直線両端の ±X
-
-    // 上辺 → 左半円
-    s.moveTo( hx,   0);
-    s.lineTo(-hx,   0);
-    s.absarc(-hx, -r, r,  Math.PI / 2, -Math.PI / 2, false);
-
-    // 下辺 → 右半円
-    s.lineTo( hx,  -w);
-    s.absarc( hx, -r, r, -Math.PI / 2,  Math.PI / 2, false);
-  }
-
-  /* --- 片側 U 字（左側のみ半円）------------------------------ */
-  else {
-    // 上辺 → 左半円
-    s.moveTo( l/2,  0);
-    s.lineTo(-l/2 + r, 0);
-    s.absarc(-l/2, -r, r,  Math.PI / 2, -Math.PI / 2, false);
-
-    // 下辺 → 右辺
-    s.lineTo( l/2, -w);
-    s.lineTo( l/2,  0);     // 戻ってクローズ
-  }
-
-  s.closePath();
-  return s;
-}
-
-
-/* ─────────── 正三角形 ────────── */
-export function buildTriEq({ l }){
-  const h = l*Math.sin(Math.PI/3);         // 高さ
-  const s = new THREE.Shape();
-  s.moveTo(-l/2,0);
-  s.lineTo( l/2,0);
-  s.lineTo( 0,-h);
-  s.closePath();
-  return s;
-}
-
-/**
- * コーナーA型  (L字 + 90° 凸円弧)
- *   w : 巾1［mm］のみ使用。length_mm は無視
- *
- * 端点:
- *   A (-w/2,  +w/2)   ← 左上
- *   B ( +w/2, +w/2)   ← 右上
- *   C ( +w/2, -w/2)   ← 右下
- *   円弧: C → A, 中心 O = (-w/2, -w/2), 半径 w
- */
-export function buildCornerTri({ w }) {
-  if (!w || w <= 0) return buildRect({ w, l: w });
+  const sag  = W1 - W2;               // 矢高
+  const R    = (L ** 2 + 4 * sag ** 2) / (8 * sag); // 円弧半径
+  const cx   = L / 2;                 // 円心 X
+  const cy   = W2 - (R - sag);        // 円心 Y (左下原点)
+  const theta = Math.acos((cx - 0) / R); // 左端角度
 
   const s = new THREE.Shape();
-
-  /* 上辺 → 右辺 */
-  s.moveTo(-w / 2,  w / 2);   // A
-  s.lineTo( w / 2,  w / 2);   // B
-  s.lineTo( w / 2, -w / 2);   // C
-
-  /* C → A を 90°（CCW）で結ぶ凸円弧 */
-  s.absarc(
-    w / 2, w / 2,          // 中心 O
-    w,                        // 半径
-    -Math.PI / 2, -Math.PI,         // 0° → 90°
-    true                     // CCW なので clockwise=false
-  );
-
+  s.moveTo(0, 0);
+  s.lineTo(0, W2);
+  s.absarc(cx, cy, R, Math.PI - theta, theta, true); // CW
+  s.lineTo(L, 0);
   s.closePath();
+
+  _pushHoles(s, ctx);
   return s;
 }
 
-/* ─────────── 円／半円─────────── */
-export const buildCircle      = ({ d }) => {
-  return new THREE.Shape().absarc(0,0, d/2, 0,Math.PI*2,false);
-};
-export const buildSemiCircle  = ({ d }) => {
-  const s=new THREE.Shape();
-//  s.absarc(0,0,d/2,0,Math.PI,false);   // 上半分
-//  s.lineTo(-d/2,0);
-  s.absarc(0, -d/4, d/2, -Math.PI, 0, true);   // 上半分
-  s.lineTo(-d/4, -d/4);
+/*======================================================================*
+ | 3. 正三角形 (TRI_EQ)                                                 |
+ *======================================================================*/
+function buildEquilateral(ctx) {
+  const W = ctx.W1;   // 高さ
+  const L = ctx.L;    // 底辺
+  const s = new THREE.Shape();
+  s.moveTo(0, 0);
+  s.lineTo(0, W);
+  s.lineTo(L, 0);
   s.closePath();
+
+  _pushHoles(s, ctx);
   return s;
-};
+}
+
+/*======================================================================*
+ | 4. 共通ヘルパ                                                        |
+ *======================================================================*/
+function _pushHoles(shape, ctx) {
+  ctx.holes_round?.forEach(h => shape.holes.push(roundPath(h)));
+  ctx.holes_square?.forEach(h => shape.holes.push(rectPath(h)));
+}
+
+function _corner(shape, pos, cfg = {}, L, W) {
+  if (!cfg || cfg.code === "NONE") return;
+  const { code, r = 0, dx = 0, dy = 0 } = cfg;
+  if (!r && !dx && !dy) return;        // 全パラメータ 0 → 直角
+
+  const P = { tl: [0, W], tr: [L, W], br: [L, 0], bl: [0, 0] }[pos];
+
+  switch (code) {
+    case "ROUND_R": {                // 凸R
+      const R = r; if (!R) break;
+      const cx = P[0] + (pos.endsWith("r") ? -R : R);
+      const cy = P[1] + (pos.startsWith("t") ? -R : R);
+      const a0 = { tl: Math.PI/2, tr: 0, br: -Math.PI/2, bl: Math.PI }[pos];
+      shape.absarc(cx, cy, R, a0, a0 + Math.PI/2, true);
+      break;
+    }
+    case "INROUND": {               // 凹R
+      const R = r; if (!R) break;
+      const cx = P[0] + (pos.endsWith("r") ? R : -R);
+      const cy = P[1] + (pos.startsWith("t") ? R : -R);
+      const a0 = { tl: Math.PI, tr: Math.PI/2, br: 0, bl: -Math.PI/2 }[pos];
+      shape.absarc(cx, cy, R, a0, a0 - Math.PI/2, false);
+      break;
+    }
+    case "CHAMFER": {
+      if (!dx || !dy) break;
+      const vx = pos.endsWith("r") ? -dx : dx;
+      const vy = pos.startsWith("t") ? -dy : dy;
+      shape.lineTo(P[0] + vx, P[1]);
+      shape.lineTo(P[0] + vx, P[1] + vy);
+      shape.lineTo(P[0],      P[1] + vy);
+      break;
+    }
+    case "BEVEL": {
+      const off = r || Math.min(dx, dy); if (!off) break;
+      const vx = pos.endsWith("r") ? -off : off;
+      const vy = pos.startsWith("t") ? -off : off;
+      shape.lineTo(P[0] + vx, P[1] + vy);
+      break;
+    }
+  }
+}
+
+function roundPath({ cx, cy, r }) {
+  const p = new THREE.Path();
+  p.absarc(cx, cy, r, 0, Math.PI * 2, false); // CCW → 穴
+  return p;
+}
+
+function rectPath({ cx, cy, w, h }) {
+  const p = new THREE.Path();
+  p.moveTo(cx - w/2, cy - h/2);
+  p.lineTo(cx + w/2, cy - h/2);
+  p.lineTo(cx + w/2, cy + h/2);
+  p.lineTo(cx - w/2, cy + h/2);
+  p.closePath();
+  return p;
+}
+
+// デフォルトエクスポートはしない (tree‑shaking 用)
+export { buildRectCorners, buildNiche, buildEquilateral };

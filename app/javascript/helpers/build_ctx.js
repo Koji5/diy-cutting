@@ -1,0 +1,140 @@
+/*
+ * build_ctx.js — ctx 生成ユーティリティ (左下原点版)
+ * --------------------------------------------------
+ *  原点 : 左下 (0,0)
+ *  X軸 : 右(+) = 長さ方向  L (length_mm)
+ *  Y軸 : 上(+) = 巾方向    W (width1_mm)
+ *  外周 : 時計回り (CW)
+ *
+ *  フォーム name 一覧 (想定)
+ *  --------------------------------------------------
+ *  基本寸法    : length_mm, width1_mm, width2_mm, thickness_mm, shape_code
+ *  形状アール  : shape_tl_r, shape_tr_r, shape_bl_r, shape_br_r
+ *  コーナー加工: corner_{tl|tr|bl|br}_code  (NONE / ROUND_R / CHAMFER / BEVEL / INROUND)
+ *                 corner_{pos}_r, corner_{pos}_dx, corner_{pos}_dy
+ *  丸穴         : hole_{pos}_flag (checkbox) , hole_{pos}_dx, hole_{pos}_dy , hole_{pos}_dia_mm_or_code
+ *  四角穴       : sqhole_{pos}_flag (checkbox) , sqhole_{pos}_dx , sqhole_{pos}_dy , sqhole_{pos}_w , sqhole_{pos}_h
+ *  --------------------------------------------------
+ */
+
+const $ = (form, name) => form.elements[name] || form.elements[`part[${name}]`];
+
+/** 丸穴中心計算 (左上基準は W-dy) */
+function posRound (pos, dx, dy, L, W) {
+  switch (pos) {
+    case "tl": return { cx: dx,          cy: W - dy };
+    case "tr": return { cx: L - dx,     cy: W - dy };
+    case "bl": return { cx: dx,          cy: dy     };
+    case "br": return { cx: L - dx,     cy: dy     };
+  }
+}
+
+/** 四角穴中心計算 */
+function posRect (pos, dx, dy, w, h, L, W) {
+  switch (pos) {
+    case "tl": return { cx: dx + w/2,        cy: W - dy - h/2 };
+    case "tr": return { cx: L - dx - w/2,    cy: W - dy - h/2 };
+    case "bl": return { cx: dx + w/2,        cy: dy + h/2     };
+    case "br": return { cx: L - dx - w/2,    cy: dy + h/2     };
+  }
+}
+
+/**
+ * buildCtx(form): HTMLFormElement → ctx オブジェクト
+ */
+export function buildCtx (form) {
+  const v = (form, n) => {
+    const el = $(form, n);
+    return el ? parseFloat(el.value) || 0 : 0;
+  };
+  const flag = (form, n) => !!$(form, n)?.checked;
+  const shapeEl = $(form, "shape_code");            // ← $() で両対応
+  const shape   = shapeEl ? shapeEl.value : "RECT"; // Fallback はそのまま
+
+  // --- 共通フィールド -----------------------------------------------
+  const ctx   = { shapeCode: shape, T: v(form, "thickness_mm") };
+  ctx.W1      = v(form, "width1_mm");         // 巾1 は必ずフォームにある
+
+  // --- shapeCode 別の L / W2 / 角パラメータ ------------------------
+  switch (shape) {
+    case "RECT":
+    case "CORNER_R1":
+    case "CORNER_R2":
+    case "CORNER_R4":
+    case "SIDE_ARC1":
+    case "SIDE_UARC1":
+    case "SIDE_UARC2":
+      ctx.L  = v(form, "length_mm");
+      break;
+
+    case "CIRC":
+      ctx.L  = ctx.W1;                  // 正方形
+      break;
+
+    case "SEMI":
+      ctx.L  = ctx.W1 * 2;              // 直径
+      break;
+
+    case "TRI_EQ":
+      ctx.L  = ctx.W1 * 2 / Math.sqrt(3); // 底辺 (自動)
+      break;
+
+    case "NICHE":
+      ctx.L  = v(form, "length_mm");
+      ctx.W2 = v(form, "width2_mm");
+      break;
+
+    case "CORNER_TRI":
+      ctx.L  = ctx.W1;                  // 辺長 = 巾
+      break;
+  }
+
+  // --- 4 隅のコーナー加工 ------------------------------------------
+  const cornerCfg = pos => ({
+    code : $(form, `corner_${pos}_code`)?.value || "NONE",
+    r    : v(form, `corner_${pos}_r`),
+    dx   : v(form, `corner_${pos}_dx`),
+    dy   : v(form, `corner_${pos}_dy`)
+  });
+  ctx.corners = { tl: cornerCfg("tl"), tr: cornerCfg("tr"),
+                  bl: cornerCfg("bl"), br: cornerCfg("br") };
+
+  /* shapeCode 固有の上書き例 --------------------------------------- */
+  if (shape === "SIDE_UARC1") {
+    const R = ctx.W1 / 2;
+    ctx.corners.tl.r = ctx.corners.bl.r = R;      // 左側 U
+  }
+  if (shape === "CIRC") {
+    const R = ctx.W1 / 2;
+    ["tl","tr","bl","br"].forEach(p => ctx.corners[p].r = R);
+  }
+  if (shape === "SEMI") {
+    ctx.corners.bl.r = ctx.corners.br.r = ctx.W1; // 下に凹R=半径
+  }
+
+  // --- 丸穴 ----------------------------------------------------------
+  ctx.holes_round = [];
+  ["tl","tr","bl","br"].forEach(pos=>{
+    if (!flag(form, `hole_${pos}_flag`)) return;
+    const dx  = v(form, `hole_${pos}_dx`);
+    const dy  = v(form, `hole_${pos}_dy`);
+    const dia = v(form, `hole_${pos}_dia_mm_or_code`);
+    const {cx,cy} = posRound(pos, dx, dy, ctx.L, ctx.W1);
+    ctx.holes_round.push({ pos, cx, cy, r: dia/2 });
+  });
+
+  // --- 四角穴 --------------------------------------------------------
+  ctx.holes_square = [];
+  ["tl","tr","bl","br"].forEach(pos=>{
+    if (!flag(form, `sqhole_${pos}_flag`)) return;
+    const dx = v(form, `sqhole_${pos}_dx`);
+    const dy = v(form, `sqhole_${pos}_dy`);
+    const w  = v(form, `sqhole_${pos}_w`);
+    const h  = v(form, `sqhole_${pos}_h`);
+    const {cx,cy} = posRect(pos, dx, dy, w, h, ctx.L, ctx.W1);
+    ctx.holes_square.push({ pos, cx, cy, w, h });
+  });
+
+  // --- ctx 出力 ------------------------------------------------------
+  return ctx;
+}

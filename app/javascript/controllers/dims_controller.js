@@ -1,6 +1,7 @@
 // app/javascript/controllers/dims_controller.js
 import { Controller } from "@hotwired/stimulus"
 import { evalExpr } from "lib/eval_expr"
+import { buildCtx } from "helpers/build_ctx"
 
 export default class extends Controller {
   /* -------------------------------- targets & values ------------------------------- */
@@ -90,7 +91,7 @@ export default class extends Controller {
 
   /* -------------------------------- hint helpers ----------------------------------- */
   showAllHints () {
-    const ctx       = this.buildContext()
+    const ctx       = this._buildRuleCtx()
     const fields    = this.rulesValue.fields   || {}
     const dynamics  = this.rulesValue.dynamic || []
 
@@ -139,7 +140,7 @@ export default class extends Controller {
   }
 
   checkFields () {
-    const ctx    = this.buildContext()
+    const ctx    = this._buildRuleCtx()
     const fields = this.rulesValue.fields || {}
 
     Object.entries(fields).forEach(([attr, cfg]) => {
@@ -172,7 +173,7 @@ export default class extends Controller {
   }
 
   checkDynamic () {
-    const ctx  = this.buildContext()
+    const ctx  = this._buildRuleCtx()
     const list = this.rulesValue.dynamic || []
 
     list.forEach(r => {
@@ -210,12 +211,16 @@ export default class extends Controller {
   }
 
   checkRelations () {
-    const ctx  = this.buildContext()
+    const ruleCtx = this._buildRuleCtx();
+    this._runRuleChecks(ruleCtx);      // 旧ループを移す
+
+    const geoCtx  = buildCtx(this.element);
+    this._geometryChecks(geoCtx);      // 幾何チェック（後で実装）
     const list = this.rulesValue.relations || []
 
     list.forEach(rel => {
-      if (rel.if && !evalExpr(rel.if, ctx)) return
-      const ok = evalExpr(rel.expr, ctx)
+      if (rel.if && !evalExpr(rel.if, ruleCtx)) return
+      const ok = evalExpr(rel.expr, ruleCtx)
       if (ok) return
 
       const message = rel.message || "寸法の組み合わせが正しくありません"
@@ -271,7 +276,7 @@ export default class extends Controller {
   }
 
   /* -------------------------------- context builder -------------------------------- */
-  buildContext () {
+  _buildRuleCtx () {
     const ctx = {}
 
     // ① フォーム値を ctx へ（数値を数値化）
@@ -333,4 +338,21 @@ export default class extends Controller {
 
     return ctx;
   }
+
+  _runRuleChecks(ruleCtx) {
+    (this.rulesValue.relations || []).forEach(rel => {
+      if (rel.if  && !evalExpr(rel.if,  ruleCtx)) return;
+      if (evalExpr(rel.expr, ruleCtx))            return;   // ルール OK
+
+      const msg   = rel.message || "寸法の組み合わせが正しくありません";
+      const input = this.element.querySelector("[name='part[length_mm]']") ||
+                    this.width1Target;
+      if (input) this.showValidation(input, [msg]);
+    });
+  }
+
+  _geometryChecks(geoCtx){
+
+  }
+
 }

@@ -1,184 +1,152 @@
 /********************************************************************
- *  Stimulus controller – 3-D preview (Rectangle & Niche only)
+ * part3d_controller.js — geoCtx + buildShape + Three.js preview
+ * 完全クリーン版 2025‑06‑02
  *******************************************************************/
-import { Controller }      from "@hotwired/stimulus";
-import * as THREE          from "three";
-import { OrbitControls }   from "three/examples/jsm/controls/OrbitControls.js";
+import { Controller }    from "@hotwired/stimulus";
+import * as THREE        from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+import { buildCtx   }    from "helpers/build_ctx";
+import { buildShape }    from "helpers/shape_builders";
 import {
-  buildRect,
-  buildNicheSagitta,
-  buildCornerFillet,
-  buildSideArc1,
-  buildSideUArc,
-  buildTriEq,
-  buildCircle,
-  buildSemiCircle,
-  buildCornerTri
-} from "helpers/shape_builders";
-
-import { extrudePlate }    from "helpers/modifiers";  // 何も加工しない場合でも必須
+  extrudePlate,
+  applyRoundHoles,
+  applySquareHoles
+} from "helpers/modifiers";
 
 export default class extends Controller {
-  static targets = ["canvas"];
+  connect () {
+    /* フォーム --------------------------- */
+    this.form = this.element.closest("form") || document.forms[0];
 
-  connect() {
-    /* DOM */
-    this.form   = this.element.closest("form");
-    this.canvas = this.hasCanvasTarget ? this.canvasTarget : this._makeCanvas();
+    /* Three.js -------------------------- */
+    this._initThree();
 
-    /* THREE scene */
-    this.scene  = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 5000);
-    this.camera.position.set(800, 400, 800);
+    /* 初回描画 & 監視 ------------------- */
+    this._updateModel();
+    this.form.addEventListener("input", () => this._updateModel());
+    window.addEventListener("resize", () => this._handleResize());
 
-    this.renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, canvas:this.canvas });
-    this._resize();
+    /* Bootstrap タブが表示された瞬間にリサイズ+再描画 */
+    document.addEventListener("shown.bs.tab", e => {
+      const target = e.target.dataset.bsTarget || "";
+      if (target === "#preview-pane") {
+        // 少し遅らせて layout が確定してから実行
+        setTimeout(() => {
+          this._handleResize();
+          this._updateModel();
+        }, 10);
+      }
+    });
 
+    /* コンソールデバッグ ---------------- */
+    window.part3d   = this;
+    window.THREE    = THREE;
+    window.buildCtx = buildCtx;
+    window.renderer = this.renderer;
+  }
+
+  /*=====================  Three.js 初期化 =======================*/
+  _initThree () {
+    /* サイズ (高さ 0 → 16:9 仮決め) */
+    const rect = this.element.getBoundingClientRect();
+    this.w = rect.width;
+    this.h = rect.height || rect.width * 9/16;
+
+    /* シーン */
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x202020);
+    this.scene.add(new THREE.AxesHelper(100));
+
+    /* カメラ */
+    this.camera = new THREE.PerspectiveCamera(45, this.w/this.h, 1, 5000);
+    this.camera.position.set(300, 300, 300);
+
+    /* ライト */
+    this.dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.dirLight.position.set(1, 1, 1);
+    this.scene.add(this.dirLight);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+    /* レンダラー */
+    this.renderer = new THREE.WebGLRenderer({ antialias:true });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(this.w, this.h, false);
+    this.element.appendChild(this.renderer.domElement);
+
+    /* Controls */
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
 
-    /* events */
-    window.addEventListener("resize", () => this._resize());
-    this.form.addEventListener("input",  () => this._refresh());
-    this.form.addEventListener("change", () => this._refresh());
-
-    this._animate = this._animate.bind(this);
-    this._loopId  = requestAnimationFrame(this._animate);
-
-    this._refresh();
-  }
-
-  disconnect() {
-    cancelAnimationFrame(this._loopId);
-    this.renderer.dispose();
-  }
-
-  /* ------------------------------ build ctx --------------------- */
-  _ctx() {
-    const num = name => {
-      const v = parseFloat(
-        this.form.querySelector(`[name='part[${name}]']`)?.value ?? ""
-      );
-      return Number.isFinite(v) ? v : 0;        // ← NaN を 0 扱い
+    /* ループ */
+    const animate = () => {
+      requestAnimationFrame(animate);
+      this.controls.update();
+      this.renderer.render(this.scene, this.camera);
     };
-    const rad = name => num(name) || 0;
-
-    const radii = {
-      tl: rad("shape_tl_r"),
-      tr: rad("shape_tr_r"),
-      bl: rad("shape_bl_r"),
-      br: rad("shape_br_r")
-    };
-
-    const str = name => this.form.querySelector(`[name='part[${name}]']`)?.value || "";
-
-    const w1 = num("width1_mm");
-    const w2 = num("width2_mm");
-    const l  = num("length_mm");
-    const t  = num("thickness_mm");
-    const shape = str("shape_code") || "NICHE";
-    const r  = {
-      tl: num("shape_tl_r"),
-      tr: num("shape_tr_r"),
-      bl: num("shape_bl_r"),
-      br: num("shape_br_r")
-    };
-    if (!w1 || !l || !t) return null;
-    return { shape, w1, w2, l, t, ...r };
+    animate();
   }
 
-  /* ------------------------------ refresh model ----------------- */
-  _refresh() {
-    clearTimeout(this._deb);
-    this._deb = setTimeout(() => this._updateModel(), 150);
-  }
-
-  _updateModel() {
-    const ctx = this._ctx();
-    if (!ctx) return;
-
-    let shape;
-    switch (ctx.shape) {
-      case "RECT":
-        shape = buildRect({ w: ctx.w1, l: ctx.l });
-        break;
-      case "CORNER_R1":
-        shape = buildCornerFillet({ w:ctx.w1,l:ctx.l, rBL:ctx.bl });
-        break;
-      case "CORNER_R2":
-        shape = buildCornerFillet({ w:ctx.w1,l:ctx.l, rBL:ctx.bl, rBR:ctx.br });
-        break;
-      case "CORNER_R4":
-        shape = buildCornerFillet({
-          w:ctx.w1,l:ctx.l,
-          rTL:ctx.tl,rTR:ctx.tr,rBL:ctx.bl,rBR:ctx.br
-        });
-        break;
-      case "SIDE_ARC1":
-        shape = buildSideArc1({ w:ctx.w1,l:ctx.l, rTL:ctx.tl,rBL:ctx.bl });
-        break;
-      case "SIDE_UARC1":
-        shape = buildSideUArc({ w: ctx.w1, l: ctx.l, both: false });
-        break;
-      case "SIDE_UARC2":
-        shape = buildSideUArc({ w: ctx.w1, l: ctx.l, both: true });
-        break;
-      case "TRI_EQ":
-        shape = buildTriEq({ l:ctx.l });
-        break;
-      case "CIRC":
-        shape = buildCircle({ d:ctx.w1 });
-        break;
-      case "SEMI":
-        shape = buildSemiCircle({ d:ctx.w1 });
-        break;
-      case "CORNER_TRI":
-        shape = buildCornerTri({ w: ctx.w1 });
-        break;
-      case "NICHE":
-      default:
-        shape = buildNicheSagitta({ w1: ctx.w1, w2: ctx.w2, l: ctx.l });
-        break;
-    }
-
-    const geom = extrudePlate(shape, ctx.t);
-    const mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color:0x888888 }));
-
-    if (this._mesh) {
-      this.scene.remove(this._mesh);
-      this._dispose(this._mesh);
-    }
-    this._mesh = mesh;
-    this.scene.add(mesh);
-  }
-
-  /* ------------------------------ render loop ------------------- */
-  _animate() {
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
-    this._loopId = requestAnimationFrame(this._animate);
-  }
-
-  _resize() {
-    const w = this.canvas.clientWidth  || 600;
-    const h = this.canvas.clientHeight || 400;
-    this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / h;
+  /*========================= リサイズ ============================*/
+  _handleResize () {
+    const rect = this.element.getBoundingClientRect();
+    this.w = rect.width;
+    this.h = rect.height || rect.width * 9/16;
+    this.renderer.setSize(this.w, this.h, false);
+    this.camera.aspect = this.w / this.h;
     this.camera.updateProjectionMatrix();
   }
 
-  /* ------------------------------ helpers ----------------------- */
-  _makeCanvas() {
-    const c = document.createElement("canvas");
-    c.classList.add("w-100", "h-100");
-    this.element.appendChild(c);
-    return c;
+  /*====================== モデル更新 ============================*/
+  _updateModel () {
+    /* Three.js がまだ初期化前なら抜ける */
+    if (!this.camera) return;
+
+    const ctx = buildCtx(this.form);
+
+    /* 未入力 (L/W/T どれか 0) はメッシュを消して終了 */
+    if (!ctx.L || !ctx.W1 || !ctx.T) {
+      this._replaceMesh(null);
+      return;
+    }
+
+    /* Mesh 生成 */
+    const shape = buildShape(ctx);
+    let geom = extrudePlate(shape, ctx.T);
+    geom = applyRoundHoles(geom, ctx);
+    geom = applySquareHoles(geom, ctx);
+
+    const mesh = new THREE.Mesh(
+      geom,
+      new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness:0.2, roughness:0.7 })
+    );
+
+    this._replaceMesh(mesh);
+
+    /* --- カメラとライトをモデル中心へ ------------------------- */
+    const box = new THREE.Box3().setFromObject(mesh);
+    if (!isFinite(box.max.x)) return;            // 空ジオメトリガード
+
+    const center = box.getCenter(new THREE.Vector3());
+    const size   = box.getSize(new THREE.Vector3());
+    const diag   = Math.hypot(size.x, size.y) || 1;
+    const offZ   = size.z || ctx.T || 10;
+
+    this.controls.target.copy(center);
+    this.camera.position.set(center.x + diag, center.y + diag, center.z + offZ * 3);
+    this.camera.near = 1;
+    this.camera.far  = diag * 20;
+    this.camera.updateProjectionMatrix();
+    this.controls.update();
+
+    /* ライトをモデル方向へ再配置 */
+    this.dirLight.position.set(center.x, center.y + diag, center.z + offZ);
   }
 
-  _dispose(mesh) {
-    mesh.geometry.dispose();
-    (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).forEach(m => m.dispose());
+  /*====================== メッシュ差し替え ======================*/
+  _replaceMesh (mesh) {
+    if (this.mesh) this.scene.remove(this.mesh);
+    this.mesh = mesh;
+    if (mesh) this.scene.add(mesh);
   }
 }
