@@ -21,28 +21,109 @@ export function buildShape(ctx) {
   }
 }
 
-/*======================================================================*
- |  1. デフォルト: 基本矩形 + 任意コーナー加工                          |
- *======================================================================*/
-function buildRectCorners(ctx) {
-  const L = ctx.L;
-  const W = ctx.W1;
+/* =========================================================================
+ * buildRectCorners(ctx)
+ *  左下(0,0) → 時計回りで外周を作り、ctx.corners の
+ *  tl / tr / br / bl (code,r,dx,dy) に応じて 4 隅の加工を行う
+ * ========================================================================= */
+export function buildRectCorners(ctx) {
+  const { L, W1: W, corners: C } = ctx;
   const s = new THREE.Shape();
 
-  // 左下→左上→右上→右下→閉じる (CW)
-  s.moveTo(0, 0);
-  _corner(s, "bl", ctx.corners?.bl, L, W);
-  s.lineTo(0, W);
-  _corner(s, "tl", ctx.corners?.tl, L, W);
-  s.lineTo(L, W);
-  _corner(s, "tr", ctx.corners?.tr, L, W);
-  s.lineTo(L, 0);
-  _corner(s, "br", ctx.corners?.br, L, W);
-  s.closePath();
+  /* --- 1   スタート (bl) ---------------------------------------------- */
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  s.moveTo(blX, 0);
 
-  _pushHoles(s, ctx);
+  /* --- 2   左下角 (bl) ------------------------------------------------- */
+  switch (C.bl.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(C.bl.r, C.bl.r, C.bl.r, -Math.PI / 2, Math.PI, true);
+      break;
+    case "INROUND":
+      s.absarc(0, 0, C.bl.r, 0, Math.PI / 2, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(C.bl.dx, C.bl.dy);
+      s.lineTo(0, C.bl.dy);
+      break;
+    case "BEVEL":
+      s.lineTo(0, C.bl.dy);
+      break;
+  }
+
+  /* --- 3   左辺 → 左上加工開始位置 ------------------------------------ */
+  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dy : C.tl.r;
+  s.lineTo(0, W - tlY);
+
+  /* --- 4   左上角 (tl) ------------------------------------------------- */
+  switch (C.tl.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(C.tl.r, W - C.tl.r, C.tl.r, Math.PI, Math.PI / 2, true);
+      break;
+    case "INROUND":
+      s.absarc(0, W, C.tl.r, -Math.PI / 2, 0, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(C.tl.dx, W - C.tl.dy);
+      s.lineTo(C.tl.dx, W);
+      break;
+    case "BEVEL":
+      s.lineTo(C.tl.dx, W);
+      break;
+  }
+
+  /* --- 5   上辺 → 右上加工開始位置 ------------------------------------ */
+  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? C.tr.dx : C.tr.r;
+  s.lineTo(L - trX, W);
+
+  /* --- 6   右上角 (tr) ------------------------------------------------- */
+  switch (C.tr.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(L - C.tr.r, W - C.tr.r, C.tr.r, Math.PI / 2, 0, true);
+      break;
+    case "INROUND":
+      s.absarc(L, W, C.tr.r, Math.PI, -Math.PI / 2, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(L - C.tr.dx, W - C.tr.dy);
+      s.lineTo(L, W - C.tr.dy);
+      break;
+    case "BEVEL":
+      s.lineTo(L, W - C.tr.dy);
+      break;
+  }
+
+  /* --- 7   右辺 → 右下加工開始位置 ------------------------------------ */
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  s.lineTo(L, brY);
+
+  /* --- 8   右下角 (br) ------------------------------------------------- */
+  switch (C.br.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(L - C.br.r, C.br.r, C.br.r, 0, -Math.PI / 2, true);
+      break;
+    case "INROUND":
+      s.absarc(L, 0, C.br.r, Math.PI / 2, Math.PI, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(L - C.br.dx, C.br.dy);
+      s.lineTo(L - C.br.dx, 0);
+      break;
+    case "BEVEL":
+      s.lineTo(L - C.br.dx, 0);
+      break;
+  }
+
+  /* --- 9   下辺 (始点へ戻る) ------------------------------------------- */
+  s.lineTo(blX, 0);
+
   return s;
 }
+
 
 /*======================================================================*
  | 2. NICHE  (矩形 + 上部アーチ)                                        |
@@ -153,6 +234,3 @@ function rectPath({ cx, cy, w, h }) {
   p.closePath();
   return p;
 }
-
-// デフォルトエクスポートはしない (tree‑shaking 用)
-export { buildRectCorners, buildNiche, buildEquilateral };

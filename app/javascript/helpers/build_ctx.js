@@ -100,17 +100,57 @@ export function buildCtx (form) {
                   bl: cornerCfg("bl"), br: cornerCfg("br") };
 
   /* shapeCode 固有の上書き例 --------------------------------------- */
-  if (shape === "SIDE_UARC1") {
-    const R = ctx.W1 / 2;
-    ctx.corners.tl.r = ctx.corners.bl.r = R;      // 左側 U
-  }
-  if (shape === "CIRC") {
-    const R = ctx.W1 / 2;
-    ["tl","tr","bl","br"].forEach(p => ctx.corners[p].r = R);
-  }
-  if (shape === "SEMI") {
-    ctx.corners.bl.r = ctx.corners.br.r = ctx.W1; // 下に凹R=半径
-  }
+switch (shape) {
+
+  case "CORNER_R1":          // 左下だけ shape_bl_r を使う
+    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+    break;
+
+  case "SIDE_ARC1":          // 左上・左下を外周R
+    ctx.corners.tl.r = ctx.corners.tl.r || v(form,"shape_tl_r");
+    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+    break;
+
+  case "SIDE_UARC1":         // 左側U = W1/2
+    const Ru = ctx.W1 / 2;
+    ctx.corners.tl.r ||= Ru;
+    ctx.corners.bl.r ||= Ru;
+    break;
+
+  case "CORNER_R2":          // 左下・右下 = 外周R
+    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+    ctx.corners.br.r = ctx.corners.br.r || v(form,"shape_br_r");
+    break;
+
+  case "CORNER_R4":          // 四隅とも外周R
+    ["tl","tr","bl","br"].forEach(p=>{
+      ctx.corners[p].r ||= v(form,`shape_${p}_r`);
+    });
+    break;
+
+  case "SIDE_UARC2":         // 両側U = W1/2
+    const R2 = ctx.W1 / 2;
+    ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= R2);
+    break;
+
+  case "CIRC":               // 四隅とも直径/2
+    const Rc = ctx.W1 / 2;
+    ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= Rc);
+    break;
+
+  case "SEMI":               // 下辺 2 角 = 半径 (=W1)
+    ctx.corners.bl.r ||= ctx.W1;
+    ctx.corners.br.r ||= ctx.W1;
+    break;
+
+  case "NICHE":              // 下辺 2 角 = corner_bl_r / corner_br_r
+    // 既に v(form, corner_bl_r) で入っているはず
+    break;
+
+  case "CORNER_TRI":         // 左下 = W1 (半径) / 右上 = corner_tr_r
+    ctx.corners.bl.r ||= ctx.W1;
+    break;
+}
 
   // --- 丸穴 ----------------------------------------------------------
   ctx.holes_round = [];
