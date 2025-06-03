@@ -129,24 +129,70 @@ export function buildRectCorners(ctx) {
  | 2. NICHE  (矩形 + 上部アーチ)                                        |
  *======================================================================*/
 function buildNiche(ctx) {
-  const L = ctx.L;
-  const W1 = ctx.W1;     // 全高
-  const W2 = ctx.W2 ?? W1; // 下段高さ (省略時 = 全高 → 通常矩形と同じ)
-
-  if (W2 >= W1) return buildRectCorners(ctx); // ニッチ無し
-
-  const sag  = W1 - W2;               // 矢高
-  const R    = (L ** 2 + 4 * sag ** 2) / (8 * sag); // 円弧半径
+//  const L = ctx.L;
+//  const W1 = ctx.W1;     // 矩形部分の高さ
+//  const W2 = ctx.W2;     // 全高
+  const { L, W1, W2, corners: C } = ctx;
+  const sag  = W2 - W1;               // 矢高
+  const R    = (L ** 2) / (8 * sag) + (sag / 2); // 円弧半径
   const cx   = L / 2;                 // 円心 X
-  const cy   = W2 - (R - sag);        // 円心 Y (左下原点)
-  const theta = Math.acos((cx - 0) / R); // 左端角度
+  const cy   = W2 - R;                // 円心 Y
+  const theta = 2 * Math.asin(L / (2 * R)); // 弧の角度
 
   const s = new THREE.Shape();
-  s.moveTo(0, 0);
-  s.lineTo(0, W2);
-  s.absarc(cx, cy, R, Math.PI - theta, theta, true); // CW
-  s.lineTo(L, 0);
-  s.closePath();
+
+  /* --- 1   スタート (bl) ---------------------------------------------- */
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  s.moveTo(blX, 0);
+
+  /* --- 2   左下角 (bl) ------------------------------------------------- */
+  switch (C.bl.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(C.bl.r, C.bl.r, C.bl.r, -Math.PI / 2, Math.PI, true);
+      break;
+    case "INROUND":
+      s.absarc(0, 0, C.bl.r, 0, Math.PI / 2, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(C.bl.dx, C.bl.dy);
+      s.lineTo(0, C.bl.dy);
+      break;
+    case "BEVEL":
+      s.lineTo(0, C.bl.dy);
+      break;
+  }
+
+  /* --- 3   左辺 → 左上加工開始位置 ------------------------------------ */
+  s.lineTo(0, W1);
+
+  /* --- 4   左上 → 右上 ------------------------------------ */
+  s.absarc(cx, cy, R, Math.PI / 2 + (theta / 2), Math.PI / 2 - (theta / 2), true);
+
+  /* --- 5   右辺 → 右下加工開始位置 ------------------------------------ */
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  s.lineTo(L, brY);
+
+  /* --- 6   右下角 (br) ------------------------------------------------- */
+  switch (C.br.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(L - C.br.r, C.br.r, C.br.r, 0, -Math.PI / 2, true);
+      break;
+    case "INROUND":
+      s.absarc(L, 0, C.br.r, Math.PI / 2, Math.PI, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(L - C.br.dx, C.br.dy);
+      s.lineTo(L - C.br.dx, 0);
+      break;
+    case "BEVEL":
+      s.lineTo(L - C.br.dx, 0);
+      break;
+  }
+
+  /* --- 7   下辺 (始点へ戻る) ------------------------------------------- */
+  s.lineTo(blX, 0);
 
   _pushHoles(s, ctx);
   return s;
@@ -160,7 +206,7 @@ function buildEquilateral(ctx) {
   const L = ctx.L;    // 底辺
   const s = new THREE.Shape();
   s.moveTo(0, 0);
-  s.lineTo(0, W);
+  s.lineTo(L / 2, W);
   s.lineTo(L, 0);
   s.closePath();
 
