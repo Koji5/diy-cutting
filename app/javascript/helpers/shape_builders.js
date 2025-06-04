@@ -121,6 +121,7 @@ export function buildRectCorners(ctx) {
   /* --- 9   下辺 (始点へ戻る) ------------------------------------------- */
   s.lineTo(blX, 0);
 
+  _pushHoles(s, ctx);
   return s;
 }
 
@@ -220,49 +221,6 @@ function buildEquilateral(ctx) {
 function _pushHoles(shape, ctx) {
   ctx.holes_round?.forEach(h => shape.holes.push(roundPath(h)));
   ctx.holes_square?.forEach(h => shape.holes.push(rectPath(h)));
-}
-
-function _corner(shape, pos, cfg = {}, L, W) {
-  if (!cfg || cfg.code === "NONE") return;
-  const { code, r = 0, dx = 0, dy = 0 } = cfg;
-  if (!r && !dx && !dy) return;        // 全パラメータ 0 → 直角
-
-  const P = { tl: [0, W], tr: [L, W], br: [L, 0], bl: [0, 0] }[pos];
-
-  switch (code) {
-    case "ROUND_R": {                // 凸R
-      const R = r; if (!R) break;
-      const cx = P[0] + (pos.endsWith("r") ? -R : R);
-      const cy = P[1] + (pos.startsWith("t") ? -R : R);
-      const a0 = { tl: Math.PI/2, tr: 0, br: -Math.PI/2, bl: Math.PI }[pos];
-      shape.absarc(cx, cy, R, a0, a0 + Math.PI/2, true);
-      break;
-    }
-    case "INROUND": {               // 凹R
-      const R = r; if (!R) break;
-      const cx = P[0] + (pos.endsWith("r") ? R : -R);
-      const cy = P[1] + (pos.startsWith("t") ? R : -R);
-      const a0 = { tl: Math.PI, tr: Math.PI/2, br: 0, bl: -Math.PI/2 }[pos];
-      shape.absarc(cx, cy, R, a0, a0 - Math.PI/2, false);
-      break;
-    }
-    case "CHAMFER": {
-      if (!dx || !dy) break;
-      const vx = pos.endsWith("r") ? -dx : dx;
-      const vy = pos.startsWith("t") ? -dy : dy;
-      shape.lineTo(P[0] + vx, P[1]);
-      shape.lineTo(P[0] + vx, P[1] + vy);
-      shape.lineTo(P[0],      P[1] + vy);
-      break;
-    }
-    case "BEVEL": {
-      const off = r || Math.min(dx, dy); if (!off) break;
-      const vx = pos.endsWith("r") ? -off : off;
-      const vy = pos.startsWith("t") ? -off : off;
-      shape.lineTo(P[0] + vx, P[1] + vy);
-      break;
-    }
-  }
 }
 
 function roundPath({ cx, cy, r }) {

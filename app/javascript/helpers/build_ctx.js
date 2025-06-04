@@ -17,9 +17,12 @@
  *  --------------------------------------------------
  */
 
-const $ = (form, name) => form.elements[name] || form.elements[`part[${name}]`];
+const $ = (form, name) => 
+  form.elements[name] ||
+  form.elements[`part[${name}]`] ||
+  form.querySelector(`[name$="[${name}]"]`);
 
-/** 丸穴中心計算 (左上基準は W-dy) */
+  /** 丸穴中心計算 (左上基準は W-dy) */
 function posRound (pos, dx, dy, L, W) {
   switch (pos) {
     case "tl": return { cx: dx,          cy: W - dy };
@@ -47,7 +50,14 @@ export function buildCtx (form) {
     const el = $(form, n);
     return el ? parseFloat(el.value) || 0 : 0;
   };
-  const flag = (form, n) => !!$(form, n)?.checked;
+  const flag = (form, n) => {
+    // 末尾が [hole_tl_flag] などのチェックボックスを探す
+    const cb = form.querySelector(`input[type="checkbox"][name$="[${n}]"]`);
+    if (cb) return cb.checked;       // チェック済みなら true
+    // fallback: 最初に見つかった input (hidden など)
+    const el = form.elements[`part[${n}]`] || form.elements[n];
+    return !!el?.checked;             // hidden は undefined -> false
+  };
   const shapeEl = $(form, "shape_code");            // ← $() で両対応
   const shape   = shapeEl ? shapeEl.value : "RECT"; // Fallback はそのまま
 
@@ -90,75 +100,93 @@ export function buildCtx (form) {
   }
 
   // --- 4 隅のコーナー加工 ------------------------------------------
-  const cornerCfg = pos => ({
-    code : $(form, `corner_${pos}_code`)?.value || "NONE",
-    r    : v(form, `corner_${pos}_r`),
-    dx   : v(form, `corner_${pos}_dx`),
-    dy   : v(form, `corner_${pos}_dy`)
-  });
+  const cornerCfg = pos => {
+    const code = $(form, `corner_${pos}_code`)?.value || "NONE";
+    if (code === "NONE") {
+      return { code:"NONE", r:0, dx:0, dy:0 };      // ← 直角で固定
+    }
+    // code が ROUND_R / INROUND / CHAMFER / BEVEL のときだけ値を読む
+    return {
+      code,
+      r  : v(form, `corner_${pos}_r`),
+      dx : v(form, `corner_${pos}_dx`),
+      dy : v(form, `corner_${pos}_dy`)
+    };
+  };
   ctx.corners = { tl: cornerCfg("tl"), tr: cornerCfg("tr"),
                   bl: cornerCfg("bl"), br: cornerCfg("br") };
 
   /* shapeCode 固有の上書き例 --------------------------------------- */
-switch (shape) {
+  switch (shape) {
 
-  case "CORNER_R1":          // 左下だけ shape_bl_r を使う
-    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
-    break;
+    case "CORNER_R1":          // 左下だけ shape_bl_r を使う
+      ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+      break;
 
-  case "SIDE_ARC1":          // 左上・左下を外周R
-    ctx.corners.tl.r = ctx.corners.tl.r || v(form,"shape_tl_r");
-    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
-    break;
+    case "SIDE_ARC1":          // 左上・左下を外周R
+      ctx.corners.tl.r = ctx.corners.tl.r || v(form,"shape_tl_r");
+      ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+      break;
 
-  case "SIDE_UARC1":         // 左側U = W1/2
-    const Ru = ctx.W1 / 2;
-    ctx.corners.tl.r ||= Ru;
-    ctx.corners.bl.r ||= Ru;
-    break;
+    case "SIDE_UARC1":         // 左側U = W1/2
+      const Ru = ctx.W1 / 2;
+      ctx.corners.tl.r ||= Ru;
+      ctx.corners.bl.r ||= Ru;
+      break;
 
-  case "CORNER_R2":          // 左下・右下 = 外周R
-    ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
-    ctx.corners.br.r = ctx.corners.br.r || v(form,"shape_br_r");
-    break;
+    case "CORNER_R2":          // 左下・右下 = 外周R
+      ctx.corners.bl.r = ctx.corners.bl.r || v(form,"shape_bl_r");
+      ctx.corners.br.r = ctx.corners.br.r || v(form,"shape_br_r");
+      break;
 
-  case "CORNER_R4":          // 四隅とも外周R
-    ["tl","tr","bl","br"].forEach(p=>{
-      ctx.corners[p].r ||= v(form,`shape_${p}_r`);
-    });
-    break;
+    case "CORNER_R4":          // 四隅とも外周R
+      ["tl","tr","bl","br"].forEach(p=>{
+        ctx.corners[p].r ||= v(form,`shape_${p}_r`);
+      });
+      break;
 
-  case "SIDE_UARC2":         // 両側U = W1/2
-    const R2 = ctx.W1 / 2;
-    ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= R2);
-    break;
+    case "SIDE_UARC2":         // 両側U = W1/2
+      const R2 = ctx.W1 / 2;
+      ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= R2);
+      break;
 
-  case "CIRC":               // 四隅とも直径/2
-    const Rc = ctx.W1 / 2;
-    ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= Rc);
-    break;
+    case "CIRC":               // 四隅とも直径/2
+      const Rc = ctx.W1 / 2;
+      ["tl","tr","bl","br"].forEach(p=> ctx.corners[p].r ||= Rc);
+      break;
 
-  case "SEMI":               // 下辺 2 角 = 半径 (=W1)
-    ctx.corners.bl.r ||= ctx.W1;
-    ctx.corners.br.r ||= ctx.W1;
-    break;
+    case "SEMI":               // 下辺 2 角 = 半径 (=W1)
+      ctx.corners.bl.r ||= ctx.W1;
+      ctx.corners.br.r ||= ctx.W1;
+      break;
 
-  case "NICHE":              // 下辺 2 角 = corner_bl_r / corner_br_r
-    // 既に v(form, corner_bl_r) で入っているはず
-    break;
+    case "NICHE":              // 下辺 2 角 = corner_bl_r / corner_br_r
+      // 既に v(form, corner_bl_r) で入っているはず
+      break;
 
-  case "CORNER_TRI":         // 左下 = W1 (半径) / 右上 = corner_tr_r
-    ctx.corners.bl.r ||= ctx.W1;
-    break;
-}
+    case "CORNER_TRI":         // 左下 = W1 (半径) / 右上 = corner_tr_r
+      ctx.corners.bl.r ||= ctx.W1;
+      break;
+  }
 
   // --- 丸穴 ----------------------------------------------------------
+  // フォーム data-attribute から直径テーブルを取得
+  const DIA = (() => {
+    try { return JSON.parse(form.dataset.dimsHoleDiametersValue || "{}"); }
+    catch { return {}; }
+  })();
+  const diaOf = raw => (DIA[raw] ?? parseFloat(raw)) || 0;
   ctx.holes_round = [];
   ["tl","tr","bl","br"].forEach(pos=>{
     if (!flag(form, `hole_${pos}_flag`)) return;
     const dx  = v(form, `hole_${pos}_dx`);
     const dy  = v(form, `hole_${pos}_dy`);
-    const dia = v(form, `hole_${pos}_dia_mm_or_code`);
+    /* ---- 直径コード or mm を取得 -------------------------------- */
+    const rawCode = $(form, `hole_${pos}_dia_code`)?.value || "";
+    const rawMM   = $(form, `hole_${pos}_dia_mm`)?.value   || "";
+    const raw     = rawCode.toUpperCase() === "D16P" ? rawMM : rawCode;
+    const dia     = diaOf(raw);                      // "D08"→8.0, "12"→12.0
+    if (!dia) return;
     const {cx,cy} = posRound(pos, dx, dy, ctx.L, ctx.W1);
     ctx.holes_round.push({ pos, cx, cy, r: dia/2 });
   });
@@ -171,6 +199,7 @@ switch (shape) {
     const dy = v(form, `sqhole_${pos}_dy`);
     const w  = v(form, `sqhole_${pos}_w`);
     const h  = v(form, `sqhole_${pos}_h`);
+    if (!w || !h) return;
     const {cx,cy} = posRect(pos, dx, dy, w, h, ctx.L, ctx.W1);
     ctx.holes_square.push({ pos, cx, cy, w, h });
   });

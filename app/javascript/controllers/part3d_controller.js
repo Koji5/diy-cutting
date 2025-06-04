@@ -113,10 +113,9 @@ export default class extends Controller {
     /* Mesh 生成 */
     const shape = buildShape(ctx);
     let geom = extrudePlate(shape, ctx.T);
-    geom = applyRoundHoles(geom, ctx);
-    geom = applySquareHoles(geom, ctx);
+    // --- Extrude した時点で holes が反映されるため追加 CSG 不要
 
-    const mesh = new THREE.Mesh(
+const mesh = new THREE.Mesh(
       geom,
       new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness:0.2, roughness:0.7 })
     );
