@@ -3,7 +3,10 @@ import { Controller } from "@hotwired/stimulus"
 import { evalExpr } from "lib/eval_expr"
 import { buildCtx } from "helpers/build_ctx"
 import { buildShape }  from "helpers/shape_builders"        // ← 外周 Shape を得る
-import { insideRound, insideRect } from "helpers/inside_shape" // ← 30 mm マージン判定
+import {
+  insideRound, insideRect,
+  overlapRoundRound, overlapRectRect, overlapRoundRect
+} from "helpers/inside_shape";
 
 /** 丸穴が板内か判定 */
 function insideBoardRound ({ cx, cy, r }, L, W) {
@@ -18,7 +21,17 @@ function insideBoardRect  ({ cx, cy, w, h }, L, W) {
 /** バリデーション表示ヘルパ（赤枠＋メッセージ） */
 function markError (controller, input, msg) {
   if (!input) return;
-  controller.showValidation(input, [msg]);
+
+  // すでに invalid-feedback がある場合は追記
+  const prev = input.nextElementSibling;
+  const errs = [];
+
+  if (prev && prev.classList.contains("invalid-feedback")) {
+    errs.push(prev.textContent.trim());
+  }
+  errs.push(msg);                // 新しいメッセージを追加
+
+  controller.showValidation(input, errs);
 }
 
 export default class extends Controller {
@@ -257,7 +270,7 @@ export default class extends Controller {
       input.classList.add("is-invalid")
       const div = document.createElement("div")
       div.className = "invalid-feedback"
-      div.textContent = errors[0]
+      div.innerHTML = errors.map(e => `<div>${e}</div>`).join("")
       input.after(div)
     } else {
       input.classList.remove("is-invalid")
@@ -373,25 +386,64 @@ export default class extends Controller {
   _geometryChecks(geoCtx) {
     /* 外周 Shape を生成（2-D。holes は無視で OK） */
     const outerShape = buildShape(geoCtx);
-    const SAFE = 29;            // 30 mm 以上内側に入れる
+    const SAFE_EDGE = 29;            // 30 mm 以上内側に入れる
 
     /* ---------- 丸穴 ----------------------------------------- */
     geoCtx.holes_round.forEach(h => {
-      if (insideRound(outerShape, h, SAFE)) return;           // OK: 30 mm 以上内側
+      if (insideRound(outerShape, h, SAFE_EDGE)) return;           // OK: 30 mm 以上内側
       const input = this.element.querySelector(
         `[name=\"part[hole_${h.pos}_dx]\"]:not([type=hidden])`)
         || this.element;
-      markError(this, input, `丸穴は外周から 30mm 未満にしてください`);
+      markError(this, input, `丸穴は外周から 30mm 以上離してください`);
     });
 
     /* ---------- 四角穴 --------------------------------------- */
     geoCtx.holes_square.forEach(h => {
-      if (insideRect(outerShape, h, SAFE)) return;
+      if (insideRect(outerShape, h, SAFE_EDGE)) return;
       const input = this.element.querySelector(
         `[name=\"part[sqhole_${h.pos}_dx]\"]:not([type=hidden])`)
         || this.element;
-      markError(this, input, `四角穴は外周から 30mm 未満にしてください`);
+      markError(this, input, `四角穴は外周から 30mm 以上離してください`);
     });
+
+    const SAFE_OVERLAP = 15;                    // ← 15 mm×2 = 30 mm 離す
+
+    /* ====== 既存「外周はみ出し」チェックの後に追加 ====== */
+    const holes = [
+      ...geoCtx.holes_round.map(h => ({ ...h, type:"R" })),
+      ...geoCtx.holes_square.map(h => ({ ...h, type:"S" }))
+    ];
+
+    for (let i = 0; i < holes.length; i++) {
+      for (let j = i + 1; j < holes.length; j++) {
+        const a = holes[i], b = holes[j];
+        let overlapped = false;
+
+        if (a.type === "R" && b.type === "R")
+          overlapped = overlapRoundRound(a, b, SAFE_OVERLAP);
+
+        else if (a.type === "S" && b.type === "S")
+          overlapped = overlapRectRect(a, b, SAFE_OVERLAP);
+
+        else {              // 異種
+          const circ = a.type === "R" ? a : b;
+          const rect = a.type === "S" ? a : b;
+          overlapped = overlapRoundRect(circ, rect, SAFE_OVERLAP);
+        }
+
+        if (!overlapped) continue;
+
+        /* --------- エラー表示（dx 欄を赤枠） --------- */
+        ["a","b"].forEach(t => {
+          const h   = t==="a"?a:b;
+          const name = h.type==="R"
+            ? `hole_${h.pos}_dx` : `sqhole_${h.pos}_dx`;
+          const inp  = this.element
+            .querySelector(`[name="part[${name}]"]:not([type=hidden])`);
+          markError(this, inp, "他の穴と 30mm 以上離してください");
+        });
+      }
+    }
   }
 
 }
