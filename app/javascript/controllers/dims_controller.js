@@ -2,6 +2,24 @@
 import { Controller } from "@hotwired/stimulus"
 import { evalExpr } from "lib/eval_expr"
 import { buildCtx } from "helpers/build_ctx"
+import { buildShape }  from "helpers/shape_builders"        // ← 外周 Shape を得る
+import { insideRound, insideRect } from "helpers/inside_shape" // ← 30 mm マージン判定
+
+/** 丸穴が板内か判定 */
+function insideBoardRound ({ cx, cy, r }, L, W) {
+  return cx - r >= 0 && cx + r <= L && cy - r >= 0 && cy + r <= W;
+}
+
+/** 四角穴が板内か判定 */
+function insideBoardRect  ({ cx, cy, w, h }, L, W) {
+  return cx - w/2 >= 0 && cx + w/2 <= L && cy - h/2 >= 0 && cy + h/2 <= W;
+}
+
+/** バリデーション表示ヘルパ（赤枠＋メッセージ） */
+function markError (controller, input, msg) {
+  if (!input) return;
+  controller.showValidation(input, [msg]);
+}
 
 export default class extends Controller {
   /* -------------------------------- targets & values ------------------------------- */
@@ -18,6 +36,7 @@ export default class extends Controller {
     this.refresh()
     this.addListeners()
     this.showAllHints()  // 初期表示時にヒント描画
+    window.dims = this;          // ← デバッグ用 ★
     // >>> ADD: 空の number フィールドにフォーカスしたら min を自動入力
     this.element
       .querySelectorAll('input[type="number"]')
@@ -351,8 +370,28 @@ export default class extends Controller {
     });
   }
 
-  _geometryChecks(geoCtx){
+  _geometryChecks(geoCtx) {
+    /* 外周 Shape を生成（2-D。holes は無視で OK） */
+    const outerShape = buildShape(geoCtx);
+    const SAFE = 29;            // 30 mm 以上内側に入れる
 
+    /* ---------- 丸穴 ----------------------------------------- */
+    geoCtx.holes_round.forEach(h => {
+      if (insideRound(outerShape, h, SAFE)) return;           // OK: 30 mm 以上内側
+      const input = this.element.querySelector(
+        `[name=\"part[hole_${h.pos}_dx]\"]:not([type=hidden])`)
+        || this.element;
+      markError(this, input, `丸穴は外周から 30mm 未満にしてください`);
+    });
+
+    /* ---------- 四角穴 --------------------------------------- */
+    geoCtx.holes_square.forEach(h => {
+      if (insideRect(outerShape, h, SAFE)) return;
+      const input = this.element.querySelector(
+        `[name=\"part[sqhole_${h.pos}_dx]\"]:not([type=hidden])`)
+        || this.element;
+      markError(this, input, `四角穴は外周から 30mm 未満にしてください`);
+    });
   }
 
 }
