@@ -8,16 +8,6 @@ import {
   overlapRoundRound, overlapRectRect, overlapRoundRect
 } from "helpers/inside_shape";
 
-/** 丸穴が板内か判定 */
-function insideBoardRound ({ cx, cy, r }, L, W) {
-  return cx - r >= 0 && cx + r <= L && cy - r >= 0 && cy + r <= W;
-}
-
-/** 四角穴が板内か判定 */
-function insideBoardRect  ({ cx, cy, w, h }, L, W) {
-  return cx - w/2 >= 0 && cx + w/2 <= L && cy - h/2 >= 0 && cy + h/2 <= W;
-}
-
 /** バリデーション表示ヘルパ（赤枠＋メッセージ） */
 function markError (controller, input, msg) {
   if (!input) return;
