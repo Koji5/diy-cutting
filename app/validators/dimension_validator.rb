@@ -5,15 +5,17 @@
 #   Part に寸法エラーを付与する共通バリデータ
 # ------------------------------------------------------------
 class DimensionValidator < ActiveModel::Validator
+  include GeometryChecks
   # ======== 入口 ============================================
   def validate(record)
+    ctx   = build_context(record)          # ← 先に ctx を作る
+    Rails.logger.debug "[CTX] #{ctx.inspect}"
     rules = merged_rules(record)
-
-    ctx = build_context(record)
 
     check_fields(rules[:fields]     || {}, record, ctx)
     check_relations(rules[:relations] || [], record, ctx)
     check_dynamic(rules[:dynamic]     || [], record, ctx)
+    #check_geometry(record, ctx)
   end
 
   # ======== ルールマージ (共通 + 形状) =======================
@@ -33,27 +35,56 @@ class DimensionValidator < ActiveModel::Validator
       ctx[k.to_sym] = record.public_send(k)  # nil でもそのまま入れる
     end
 
-    %i[tl tr bl br].each do |pos|
-      # コーナー加工コード
-      proc = record.public_send("corner_#{pos}")
-      ctx["corner_#{pos}_code".to_sym] = proc&.dig("proc") || proc&.[]("code")
-
-      # 丸穴フラグ
-      hole = record.public_send("hole_#{pos}")
-      ctx["hole_#{pos}_flag".to_sym] = hole&.dig("flag") || false
-
-      # 四角穴フラグ
-      sqh = record.public_send("sqhole_#{pos}")
-      ctx["sqhole_#{pos}_flag".to_sym] = sqh&.dig("flag") || false
-    end
-
     # ③ 丸穴径（自由入力優先／コード→径変換）
     %i[tl tr bl br].each do |pos|
-      dia_mm = record.public_send("hole_#{pos}_dia_mm")
-      dia_cd = record.public_send("hole_#{pos}_dia_code")
+      mm = record.public_send("hole_#{pos}_dia_mm")
+      cd = record.public_send("hole_#{pos}_dia_code")
       ctx["hole_#{pos}_dia_mm_or_code".to_sym] =
-        dia_mm.presence || HOLE_DIAMETERS[dia_cd]
+        mm.presence || HOLE_DIAMETERS[cd]
     end
+
+    # =========================================================
+    # NEW ►  OuterShapeBuilder 用 :corners ハッシュを生成
+    # =========================================================
+    ctx[:corners] = {}.tap do |h|
+      %i[tl tr bl br].each do |pos|
+        h[pos] = {
+          code: ctx["corner_#{pos}_code".to_sym] || "NONE",
+          r:    ctx["corner_#{pos}_r".to_sym],
+          dx:   ctx["corner_#{pos}_dx".to_sym],
+          dy:   ctx["corner_#{pos}_dy".to_sym]
+        }
+      end
+    end
+
+    # ---- shapeCode 別の自動補完（JS buildCtx と同じロジック）----
+    shape = ctx[:shape_code] || ctx[:shapeCode]
+
+    case shape
+    when "CIRC"
+      ctx[:length_mm] = ctx[:width1_mm]                       # 直径＝巾1
+      rc = ctx[:width1_mm].to_f / 2
+      %i[tl tr bl br].each { |p| ctx["corner_#{p}_r".to_sym] ||= rc }
+
+    when "SEMI"
+      ctx[:length_mm] = ctx[:width1_mm] * 2                   # 直径
+      r = ctx[:width1_mm].to_f
+      %i[bl br].each { |p| ctx["corner_#{p}_r".to_sym] ||= r }
+
+    when "TRI_EQ"
+      ctx[:length_mm] = ctx[:width1_mm] * 2 / Math.sqrt(3)    # 正三角
+
+    when "CORNER_TRI"
+      ctx[:length_mm] = ctx[:width1_mm]
+      ctx[:corner_bl_r] ||= ctx[:width1_mm]                   # 左下角丸
+
+    when "NICHE"
+      ctx[:width2_mm] = record.width2_mm.to_f                 # 巾2 を補完
+      # 角加工の自動設定が必要な場合はここに追記
+    end
+
+    # JS 側キーも入れておくとゴールデンテストで比較しやすい
+    ctx[:shapeCode] = shape
 
     ctx
   end
@@ -62,10 +93,12 @@ class DimensionValidator < ActiveModel::Validator
   # ======== fields セクション ===============================
   def check_fields(defs, record, ctx)
     defs.each do |attr, cfg|
-      val       = record[attr]
+      val = record.respond_to?(attr) ? record.public_send(attr) : ctx[attr]
       required  = cfg[:required] ||
                   (cfg[:required_if] && SafeEval.evaluate(cfg[:required_if], ctx))
 
+      Rails.logger.debug("CHECK #{attr}: val=#{val.inspect} required=#{required}")  # ★追加
+      
       if required && blank?(val)
         record.errors.add(attr, "を入力してください")
         next

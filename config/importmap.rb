@@ -30,3 +30,5 @@ pin "three/examples/jsm/controls/OrbitControls.js",
 pin_all_from "vendor/javascript/three-csg-ts", under: "three-csg-ts"
 # --- アプリ側ヘルパ -----------------------------------------------------
 pin_all_from "app/javascript/helpers", under: "helpers"
+
+pin "config/geometry", to: "config/geometry.js", preload: true

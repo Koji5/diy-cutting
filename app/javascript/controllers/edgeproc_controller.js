@@ -9,8 +9,16 @@ export default class extends Controller {
     "blSelect","bSelect","brSelect"
   ]
 
-  connect() { this.refresh() }
-  shapeChanged() { this.refresh() }
+   connect() {
+    // 👇 追加：共通 JSON から edge 用ルールを取り出す
+    if (!this.hasShapesValue) {
+      const rules = JSON.parse(this.element.dataset.allshapesValue)
+      this.shapesValue = rules.edge
+    }
+    this.refresh()
+   }
+
+   shapeChanged() { this.refresh() }
 
   /** 形状ごとにセレクト活性/非活性 */
   refresh() {

@@ -7,6 +7,7 @@ import {
   insideRound, insideRect,
   overlapRoundRound, overlapRectRect, overlapRoundRect
 } from "helpers/inside_shape";
+import { GEOM_CFG } from "config/geometry";
 
 /** バリデーション表示ヘルパ（赤枠＋メッセージ） */
 function markError (controller, input, msg) {
@@ -376,7 +377,7 @@ export default class extends Controller {
   _geometryChecks(geoCtx) {
     /* 外周 Shape を生成（2-D。holes は無視で OK） */
     const outerShape = buildShape(geoCtx);
-    const SAFE_EDGE = 29;            // 30 mm 以上内側に入れる
+    const SAFE_EDGE = GEOM_CFG.safe_edge_mm;            // 30 mm 以上内側に入れる
 
     /* ---------- 丸穴 ----------------------------------------- */
     geoCtx.holes_round.forEach(h => {
@@ -396,7 +397,7 @@ export default class extends Controller {
       markError(this, input, `四角穴は外周から 30mm 以上離してください`);
     });
 
-    const SAFE_OVERLAP = 15;                    // ← 15 mm×2 = 30 mm 離す
+    const SAFE_OVERLAP = GEOM_CFG.safe_overlap_mm;                   // ← 15 mm×2 = 30 mm 離す
 
     /* ====== 既存「外周はみ出し」チェックの後に追加 ====== */
     const holes = [

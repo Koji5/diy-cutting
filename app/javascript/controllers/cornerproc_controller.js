@@ -10,7 +10,14 @@ export default class extends Controller {
     "tlDxDyWrap", "trDxDyWrap", "blDxDyWrap", "brDxDyWrap"
   ]
 
-  connect () { this.updateForShape() }
+  connect () {
+    // 👇 追加：共通 JSON から edge 用ルールを取り出す
+    if (!this.hasShapesValue) {
+      const rules = JSON.parse(this.element.dataset.allshapesValue)
+      this.shapesValue = rules.corner
+    }
+    this.updateForShape()
+  }
 
   shapeChanged () { this.updateForShape() }
   procChanged   (e) { this.updateParams(e.target) }

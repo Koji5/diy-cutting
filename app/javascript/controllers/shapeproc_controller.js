@@ -7,7 +7,14 @@ export default class extends Controller {
   ]
   static values = { shapes: Object }   // ← 追加
 
-  connect() { this.update() }
+  connect() {
+    // 👇 追加：共通 JSON から edge 用ルールを取り出す
+    if (!this.hasShapesValue) {
+      const rules = JSON.parse(this.element.dataset.allshapesValue)
+      this.shapesValue = rules.shape
+    }
+    this.update()
+  }
   shapeChanged() { this.update() }
 
   update() {

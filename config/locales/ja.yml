@@ -17,3 +17,11 @@ ja:
         invalid:      "メールアドレスまたはパスワードが正しくありません。"
       locked:         "アカウントがロックされています。"
       timeout:        "一定時間操作がなかったため、再度ログインしてください。"
+  activerecord:
+    attributes:
+      part:          # ← Part モデル専用
+        name: 部品名称
+  # ---- ② 長さエラーメッセージの誤訳を修正 ------------------------
+  errors:
+    messages:
+      too_long: "は%{count}文字以内で入力してください"

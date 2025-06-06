@@ -2,6 +2,7 @@
 // --------------------------------------------------------------
 // 依存: three.js (for THREE.Shape) は import-map / Vite 等で pin 済み
 import * as THREE from "three";
+import { GEOM_CFG } from "config/geometry";
 
 /*================================================================
  | 1. Point‑in‑Shape (even‑odd rule)                              |
@@ -51,14 +52,14 @@ export function insideRect (shape, { cx, cy, w, h }, margin = 0) {
  *================================================================*/
 const sq = x => x * x;
 
-export function overlapRoundRound (a, b, safe = 15) {
+export function overlapRoundRound (a, b, safe = GEOM_CFG.safe_overlap_mm) {
   const dx = a.cx - b.cx, dy = a.cy - b.cy;
   const dist2 = dx * dx + dy * dy;
   const R = a.r + b.r + safe * 2;
   return dist2 < sq(R);
 }
 
-export function overlapRectRect (a, b, safe = 15) {
+export function overlapRectRect (a, b, safe = GEOM_CFG.safe_overlap_mm) {
   const ax1 = a.cx - a.w / 2 - safe, ax2 = a.cx + a.w / 2 + safe;
   const ay1 = a.cy - a.h / 2 - safe, ay2 = a.cy + a.h / 2 + safe;
   const bx1 = b.cx - b.w / 2 - safe, bx2 = b.cx + b.w / 2 + safe;
@@ -66,7 +67,7 @@ export function overlapRectRect (a, b, safe = 15) {
   return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
 }
 
-export function overlapRoundRect (circ, rect, safe = 15) {
+export function overlapRoundRect (circ, rect, safe = GEOM_CFG.safe_overlap_mm) {
   const dx = Math.max(Math.abs(circ.cx - rect.cx) - rect.w / 2 - safe, 0);
   const dy = Math.max(Math.abs(circ.cy - rect.cy) - rect.h / 2 - safe, 0);
   return (dx * dx + dy * dy) < sq(circ.r + safe);

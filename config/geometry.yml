@@ -1,0 +1,17 @@
+# config/geometry.yml
+# SAFE_EDGE mm と SAFE_OVERLAP mm をここで一元管理する
+
+# デフォルト値（すべての環境で共通）
+default: &defaults
+  safe_edge_mm:    29   # 外周からの安全離隔 mm
+  safe_overlap_mm: 15   # 穴同士の安全離隔 mm
+
+# 各環境で共通の定数を継承
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

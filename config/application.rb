@@ -48,5 +48,8 @@ module App
     config.time_zone                    = 'Tokyo'      # ← 画面・ロジックで JST を使う
     config.active_record.default_timezone = :local      # ← DB 保存時も JST を使う
     config.i18n.default_locale = :ja
+
+    config.autoload_paths  << Rails.root.join("app/lib")
+    config.eager_load_paths << Rails.root.join("app/lib")
   end
 end

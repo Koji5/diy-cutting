@@ -23,6 +23,12 @@ module SafeEval
     on_comment                 # # コメント
   ].freeze
 
+  def self.round(x, n = 0) = x.to_f.round(n.to_i)
+  def self.sqrt(x)         = Math.sqrt(x.to_f)
+  def self.floor(x)        = x.to_f.floor
+  def self.ceil(x)         = x.to_f.ceil
+  def self.abs(x)          = x.to_f.abs
+
   # ===============================================================
   # Public: 安全に式を評価する
   #   expr : 文字列の Ruby 式
@@ -40,13 +46,6 @@ module SafeEval
     # 3) ctx をローカル変数としてバインド
     b = binding
     ctx.each { |k, v| b.local_variable_set(k, v) }
-
-    # --- 数学関数の明示的なローカル変数定義 ---
-    b.local_variable_set(:round, ->(x) { x.to_f.round })
-    b.local_variable_set(:sqrt, ->(x) { Math.sqrt(x.to_f) })
-    b.local_variable_set(:floor, ->(x) { x.to_f.floor })
-    b.local_variable_set(:ceil,  ->(x) { x.to_f.ceil })
-    b.local_variable_set(:abs,   ->(x) { x.to_f.abs })
 
     # 4) 評価して結果を返す
     b.eval("(#{ruby})")   # カッコで余計なコード注入を防止

@@ -198,10 +198,6 @@
     "sqhole_br_w": {
       "integer_only": true,
       "required_if": "sqhole_br_flag == true"
-    },
-    "name": {
-      "required": true,
-      "max": 50
     }
   },
   "relations": [
