@@ -58,6 +58,10 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  gem 'rspec-rails', '~> 8.0'
+  # 任意: テストデータ生成
+  gem 'factory_bot_rails', '~> 6.2'
 end
 
 group :development do

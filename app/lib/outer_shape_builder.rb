@@ -1,205 +1,274 @@
+# frozen_string_literal: true
+
 # app/lib/outer_shape_builder.rb
-# -----------------------------------------------------------------------------
-# フロント側 shape_builders.js に相当する “外周ポリライン” 生成ユーティリティ。
-#   - ctx は DimensionValidator#build_context で組み立てられたハッシュを渡す。
-#   - 戻り値は [[x1,y1], [x2,y2], ...] の CW 順ポリライン（左下原点）。
-#   - 曲線（円弧・円板）は等角分割でポリライン化する。
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------
+# 外形ポリラインを生成するユーティリティ。
+# Path.new(x0, y0).line_to(...).arc(...).close の命令型 DSL で
+# [[x,y], ...] 時計回り点列を返す。四隅の処理は corner_*_code
+# に応じて NONE / ROUND_R / INROUND / CHAMFER / BEVEL を実装。
+#
+# shape_code は 3 パターンのみ︰
+#   1. "TRI_EQ"   … 正三角形（頂点が上）
+#   2. "NICHE"    … 長方形 + 上側外向き円弧
+#   3. その他      … 矩形 (RECT 相当、角形状可変）
+#
+# ※ ctx は CtxNormalizer.call で正規化済みのハッシュを想定。
+# --------------------------------------------------------------
 module OuterShapeBuilder
-  extend self
+  SEG_DEG = 10.0                            # 円弧分割角度(度)
+  RAD     = Math::PI / 180.0
 
-  # ------------------------------------------
-  # 定数
-  # ------------------------------------------
-  SEG = 128        # 曲線を等角分割する最小セグメント数
+  #============================================================
+  # 内部 DSL ---------------------------------------------------
+  #============================================================
+  class Path
+    def initialize(x0, y0)
+      @pts = [[x0, y0]]
+      @cur = [x0, y0]
+    end
 
-  # =========================================================================
-  # Public: ctx → 外周ポリライン
-  # =========================================================================
+    # 直線セグメントを追加
+    def line_to(x, y)
+      @pts << [x, y]
+      @cur = [x, y]
+      self
+    end
+
+    # 円弧を分割して追加（a0→a1, 角度はラジアン）
+    def arc(cx, cy, r, a0, a1)
+      sweep = a1 - a0
+      segs  = [(sweep.abs / (SEG_DEG * RAD)).ceil, 1].max
+      1.upto(segs) do |i|
+        t = a0 + sweep * i / segs
+        @pts << [cx + r * Math.cos(t), cy + r * Math.sin(t)]
+      end
+      @cur = @pts.last
+      self
+    end
+
+    # 始点に戻り点列を返す
+    def close
+      @pts << @pts.first unless @pts.first == @pts.last
+      @pts
+    end
+  end
+
+  #============================================================
+  # エントリポイント ------------------------------------------
+  #============================================================
+  module_function
+
+  # @param ctx [Hash] outer_ctx (CtxNormalizer で正規化済み)
+  # @return [Array<Array<Float>>] 外周座標列 (時計回り)
   def build_outer_path(ctx)
-    case ctx[:shapeCode] || ctx[:shape_code]
-    when "NICHE"   then build_niche(ctx)
+    case ctx[:shape_code]
     when "TRI_EQ"  then build_equilateral(ctx)
-    when "CIRC"    then build_circle(ctx)
-    when "SEMI"    then build_semicircle(ctx)
-    else                  build_rect_corners(ctx)
+    when "NICHE"   then build_niche(ctx)
+    else                  build_rect(ctx)          # デフォルトは可変矩形
     end
   end
 
-  # -------------------------------------------------------------------------
-  # 1) 矩形 + 角加工 (ROUND_R / INROUND / CHAMFER / BEVEL)
-  # -------------------------------------------------------------------------
-  def build_rect_corners(ctx)
+  #============================================================
+  # 各 shape 実装 ---------------------------------------------
+  #============================================================
+  # 1. 可変矩形 (corner_*_code に応じて処理)
+  def build_rect(ctx)
     l = ctx[:length_mm].to_f
     w = ctx[:width1_mm].to_f
-    # ctx[:corners] は { proc: "...", r:, dx:, dy: } 形式なので
-    # :code が無ければ :proc をコピーして正規化する
-    c = (ctx[:corners] || {}).transform_values do |h|
-      h = h.symbolize_keys
-      h[:code] ||= h[:proc]
-      h
+
+    # 角パラメータをローカル変数へ
+    r_tl, r_tr = ctx.values_at(:corner_tl_r, :corner_tr_r)
+    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r)
+    dx_tl, dx_tr, dx_bl, dx_br = ctx.values_at(:corner_tl_dx, :corner_tr_dx, :corner_bl_dx, :corner_br_dx)
+    dy_tl, dy_tr, dy_bl, dy_br = ctx.values_at(:corner_tl_dy, :corner_tr_dy, :corner_bl_dy, :corner_br_dy)
+
+    code_tl, code_tr = ctx.values_at(:corner_tl_code, :corner_tr_code)
+    code_bl, code_br = ctx.values_at(:corner_bl_code, :corner_br_code)
+
+    #----------------------------------
+    # 1) スタート（左下始点）
+    #----------------------------------
+    path = case code_bl
+           when "NONE", "ROUND_R", "INROUND" then Path.new(r_bl, 0)
+           when "CHAMFER", "BEVEL" then Path.new(dx_bl, 0)
+           else Path.new(0, 0)
+           end
+
+    #----------------------------------
+    # 2) 左下角処理
+    #----------------------------------
+    case code_bl
+    when "NONE", "ROUND_R"
+      path.arc(r_bl, r_bl, r_bl, -Math::PI / 2, Math::PI) unless r_bl.zero?
+    when "INROUND"
+      path.arc(0, 0, r_bl, 0, Math::PI / 2) unless r_bl.zero?
+    when "CHAMFER"
+      path.line_to(dx_bl, dy_bl).line_to(0, dy_bl)
+    when "BEVEL"
+      path.line_to(0, dy_bl)
     end
 
-    # デフォルト値
-    %i[tl tr br bl].each { |k| c[k] ||= { code: "NONE", r: 0, dx: 0, dy: 0 } }
+    #----------------------------------
+    # 3) 左辺
+    #----------------------------------
+    y_left_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_tl)
+                      w - r_tl
+                    else
+                      w - dy_tl
+                    end
+    path.line_to(0, y_left_target)
 
-    poly = []
-
-    # 1) ── BL（左下）スタート ──────────────────────
-    poly << [offset_x(:bl, c[:bl]), 0]
-    poly.concat corner_path(:bl, 0, 0, c[:bl])
-
-    # 2) ── 左辺 → TL ─────────────────────────────
-    poly << [0, w - offset_y(:tl, c[:tl])]
-    poly.concat corner_path(:tl, 0, w, c[:tl])
-
-    # 3) ── 上辺 → TR ─────────────────────────────
-    poly << [l - offset_x(:tr, c[:tr]), w]
-    poly.concat corner_path(:tr, l, w, c[:tr])
-
-    # 4) ── 右辺 → BR ────────────────────────────
-    poly << [l, offset_y(:br, c[:br])]
-    poly.concat corner_path(:br, l, 0, c[:br])
-
-    # 5) ── 下辺（始点へ戻る）─────────────────────────
-    start_x = offset_x(:bl, c[:bl])
-    poly << [start_x, 0] unless poly.last == [start_x, 0]
-    poly
-  end
-
-  # ===== Helper: 各隅オフセット量 ===========================================
-  def offset_x(_pos, cfg)
-    case cfg[:code]
-    when "CHAMFER", "BEVEL"  then cfg[:dx].to_f
-    when "ROUND_R"           then cfg[:r].to_f   # ← 外側Ｒだけオフセット
-    else 0
-    end
-  end
-
-  def offset_y(_pos, cfg)
-    case cfg[:code]
-    when "CHAMFER", "BEVEL"  then cfg[:dy].to_f
-    when "ROUND_R"           then cfg[:r].to_f
-    else 0
-    end
-  end
-
-  # ===== Helper: 角のパス生成 (戻り値: [ [x,y], … ]) =======================
-  SEG_QUAD = 16   # 1/4 円分割数
-
-  def corner_path(pos, ox, oy, cfg)
-    case cfg[:code]
-    # ROUND_R : 外側フチ ⇒ 時計回り
-    # INROUND : くぼみ   ⇒ 反時計回り
-    when "ROUND_R"    then arc(pos, ox, oy, cfg[:r].to_f, cw: true)
-    when "INROUND"    then arc(pos, ox, oy, cfg[:r].to_f, cw: false)
-    when "CHAMFER"    then chamfer(pos, ox, oy, cfg[:dx].to_f, cfg[:dy].to_f)
-    when "BEVEL"      then bevel(pos, ox, oy, cfg[:dx].to_f, cfg[:dy].to_f)
-    else []
-    end
-  end
-
-  # ----- 外／内 丸 (1/4 円) -----------------------------------------------
-  def arc(pos, ox, oy, r, cw:)
-    return [] if r.zero?
-
-    # ── 1) 頂点から (±r, ±r) へ中心をオフセット ──
-    dir = {
-      tl: [ 1, -1],
-      tr: [-1, -1],
-      br: [-1,  1],
-      bl: [ 1,  1]
-    }[pos]
-    cx = ox + dir[0] * r
-    cy = oy + dir[1] * r
-
-    # ── 2) 角度範囲と向き ──
-    a0   = { tl: Math::PI, tr: Math::PI/2, br: 0, bl: -Math::PI/2 }[pos]
-    step = (Math::PI/2) / SEG_QUAD * (cw ? -1 : 1)
-
-    # ── 3) 分割点を生成 ──
-    (1..SEG_QUAD).map do |i|
-      a = a0 + step * i
-      [cx + r * Math.cos(a), cy + r * Math.sin(a)]
-    end
-  end
-
-  # ----- CHAMFER (dx,dy) ---------------------------------------------------
-  def chamfer(pos, ox, oy, dx, dy)
-    case pos
-    when :tl then [[dx, oy],           [ox, oy - dy]]
-    when :tr then [[ox - dx, oy],      [ox, oy - dy]]
-    when :br then [[ox - dx, oy],      [ox, dy]]
-    when :bl then [[dx, oy],           [ox, dy]]
-    end
-  end
-
-  # ----- BEVEL (dx or dy の片側) ------------------------------------------
-  def bevel(pos, ox, oy, dx, dy)
-    case pos
-    when :tl then [[dx, oy]]
-    when :tr then [[ox - dx, oy]]
-    when :br then [[ox - dx, dy]]
-    when :bl then [[dx, dy]]
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # 2) NICHE 形状（矩形 + 上部円弧）
-  # -------------------------------------------------------------------------
-  def build_niche(ctx)
-    l, w1, w2 = ctx.values_at(:length_mm, :width1_mm, :width2_mm).map(&:to_f)
-    sag  = w2 - w1
-    return build_rect_corners(ctx) if sag <= 0
-
-    r   = (l ** 2) / (8.0 * sag) + sag / 2.0
-    cx  = l / 2.0
-    cy  = w2 - r
-    th  = 2 * Math.asin(l / (2 * r))
-
-    seg = [(r * th / 4).ceil, SEG].max
-    arc = (0...seg).map do |i|
-      a = Math::PI / 2 + th / 2 - th * i / (seg - 1).to_f
-      [cx + r * Math.cos(a), cy + r * Math.sin(a)]
+    #----------------------------------
+    # 4) 左上角処理
+    #----------------------------------
+    case code_tl
+    when "NONE", "ROUND_R"
+      path.arc(r_tl, w - r_tl, r_tl, Math::PI, Math::PI / 2) unless r_tl.zero?
+    when "INROUND"
+      path.arc(0, w, r_tl, -Math::PI / 2, 0) unless r_tl.zero?
+    when "CHAMFER"
+      path.line_to(dx_tl, w - dy_tl).line_to(dx_tl, w)
+    when "BEVEL"
+      path.line_to(dx_tl, w)
     end
 
-    [[0, 0], [0, w1]] + arc + [[l, 0]]
+    #----------------------------------
+    # 5) 上辺
+    #----------------------------------
+    x_top_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_tr)
+                     l - r_tr
+                   else
+                     l - dx_tr
+                   end
+    path.line_to(x_top_target, w)
+
+    #----------------------------------
+    # 6) 右上角処理
+    #----------------------------------
+    case code_tr
+    when "NONE", "ROUND_R"
+      path.arc(l - r_tr, w - r_tr, r_tr, Math::PI / 2, 0) unless r_tr.zero?
+    when "INROUND"
+      path.arc(l, w, r_tr, Math::PI, -Math::PI / 2) unless r_tr.zero?
+    when "CHAMFER"
+      path.line_to(l - dx_tr, w - dy_tr).line_to(l, w - dy_tr)
+    when "BEVEL"
+      path.line_to(l, w - dy_tr)
+    end
+
+    #----------------------------------
+    # 7) 右辺
+    #----------------------------------
+    y_right_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_br)
+                       r_br
+                     else
+                       dy_br
+                     end
+    path.line_to(l, y_right_target)
+
+    #----------------------------------
+    # 8) 右下角処理
+    #----------------------------------
+    case code_br
+    when "NONE", "ROUND_R"
+      path.arc(l - r_br, r_br, r_br, 0, -Math::PI / 2) unless r_br.zero?
+    when "INROUND"
+      path.arc(l, 0, r_br, Math::PI / 2, Math::PI) unless r_br.zero?
+    when "CHAMFER"
+      path.line_to(l - dx_br, dy_br).line_to(l - dx_br, 0)
+    when "BEVEL"
+      path.line_to(l - dx_br, 0)
+    end
+
+    #----------------------------------
+    # 9) 下辺 & close
+    #----------------------------------
+    path.close
   end
 
-  # -------------------------------------------------------------------------
-  # 3) 正三角形 (TRI_EQ)
-  # -------------------------------------------------------------------------
+  # 2. 正三角形 (TRI_EQ)
   def build_equilateral(ctx)
-    w = ctx[:width1_mm].to_f
-    l = ctx[:length_mm].to_f
-    [[0, 0], [l / 2.0, w], [l, 0]]
+    side = ctx[:width1_mm].positive? ? ctx[:width1_mm] : ctx[:length_mm]
+    h    = side * Math.sqrt(3) / 2.0
+
+    Path.new(0, 0)            # 左下始点
+        .line_to(side / 2.0, h)     # 上頂点
+        .line_to(side, 0)      # 右下
+        .close
   end
 
-  # -------------------------------------------------------------------------
-  # 4) 円板 (CIRC)
-  # -------------------------------------------------------------------------
-  def build_circle(ctx)
-    r = ctx[:width1_mm].to_f / 2.0
-    (0...SEG).map do |i|
-      a = 2 * Math::PI * i / SEG
-      [r + r * Math.cos(a), r + r * Math.sin(a)]
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # 5) 半円 (SEMI) — 下辺が直線、上部が半円
-  # -------------------------------------------------------------------------
-  def build_semicircle(ctx)
-    r = ctx[:width1_mm].to_f
-    seg = SEG / 2
-    pts = [[0, 0]]
-    pts += (0...seg).map do |i|
-      a = Math::PI * i / (seg - 1).to_f
-      [r + r * Math.cos(a), r * Math.sin(a)]
-    end
-    pts << [2 * r, 0]
-    pts
-  end
-
+  # 3. NICHE  (矩形 + 上側外向き円弧)
+  #  ┌─ r_tl/r_tr は無視（矩形部上端は W1 まで）───────────────┐
+  #  ↓                                                   ↑
+  #  └───── r_bl / r_br / CHAMFER / BEVEL / INROUND … は build_rect と同じ処理
+  def build_niche(ctx)
+    l  = ctx[:length_mm].to_f      # L  : 全長
+    w1 = ctx[:width1_mm].to_f      # W1 : 矩形部高さ
+    w2 = ctx[:width2_mm].to_f      # W2 : 全高 (円弧頂点)
   
+    sag  = w2 - w1                 # 矢高 (張り出し)
+    return build_rect(ctx) if sag <= 0        # 張り出しゼロなら普通の矩形
+  
+    r     = (l**2) / (8.0 * sag) + sag / 2.0  # 円弧半径
+    cx    = l / 2.0                           # 円心 X
+    cy    = w2 - r                            # 円心 Y
+    theta = 2.0 * Math.asin(l / (2.0 * r))    # 円弧中心角
+  
+    # ---------- 角パラメータ ----------
+    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r)
+    dx_bl, dx_br = ctx.values_at(:corner_bl_dx, :corner_br_dx)
+    dy_bl, dy_br = ctx.values_at(:corner_bl_dy, :corner_br_dy)
+    code_bl, code_br = ctx.values_at(:corner_bl_code, :corner_br_code)
+  
+    # --- 1) スタート（左下） ----------------
+    path = case code_bl
+           when "NONE", "ROUND_R", "INROUND" then Path.new(r_bl, 0)
+           when "CHAMFER", "BEVEL"           then Path.new(dx_bl, 0)
+           else Path.new(0, 0)
+           end
+  
+    # --- 2) 左下角 --------------------------
+    case code_bl
+    when "NONE", "ROUND_R"
+      path.arc(r_bl, r_bl, r_bl, -Math::PI / 2, Math::PI) unless r_bl.zero?
+    when "INROUND"
+      path.arc(0, 0, r_bl, 0, Math::PI / 2) unless r_bl.zero?
+    when "CHAMFER"
+      path.line_to(dx_bl, dy_bl).line_to(0, dy_bl)
+    when "BEVEL"
+      path.line_to(0, dy_bl)
+    end
+  
+    # --- 3) 左辺 → 矩形部上端 ----------------
+    path.line_to(0, w1)
+  
+    # --- 4) 上側外向き円弧 --------------------
+    a0 =  Math::PI / 2 + theta / 2.0   # 左端側（時計回り開始）
+    a1 =  Math::PI / 2 - theta / 2.0   # 右端側
+    path.arc(cx, cy, r, a0, a1)        # 時計回りで描画
+  
+    # --- 5) 右辺 → 右下加工開始 --------------
+    y_right_target = if %w[NONE ROUND_R INROUND].include?(code_br)
+                       r_br
+                     else
+                       dy_br
+                     end
+    path.line_to(l, y_right_target)
+  
+    # --- 6) 右下角 ---------------------------
+    case code_br
+    when "NONE", "ROUND_R"
+      path.arc(l - r_br, r_br, r_br, 0, -Math::PI / 2) unless r_br.zero?
+    when "INROUND"
+      path.arc(l, 0, r_br, Math::PI / 2, Math::PI) unless r_br.zero?
+    when "CHAMFER"
+      path.line_to(l - dx_br, dy_br).line_to(l - dx_br, 0)
+    when "BEVEL"
+      path.line_to(l - dx_br, 0)
+    end
+  
+    # --- 7) 下辺 & close ---------------------
+    path.close
+  end
+
 end
