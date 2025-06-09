@@ -1,4 +1,5 @@
 class Part < ApplicationRecord
+  require "stringio"
   # ─────────────────────────────
   # 関連
   # ─────────────────────────────
@@ -253,9 +254,20 @@ class Part < ApplicationRecord
     holes = _holes || HoleParamExtractor.build_holes(attributes.symbolize_keys)
   
     svg_str = ::Parts::PreviewSvg.call(outer, holes)  # ← SVG 文字列
-    png = MiniMagick::Image.read(svg_str) { |i| i.format "png" }
-    puts "🔥MiniMagick bytes=#{png.to_blob.bytesize} format=#{png['format']}"
-    puts  "mime=#{png["format"]}"
+    # --- ▼▼ ここからデバッグ追記 ▼▼ -----------------------------
+    tmp_path = Rails.root.join("tmp", "thumb_dbg_#{id}.svg")
+    File.write(tmp_path, svg_str)
+    Rails.logger.debug "★SVG debug saved → #{tmp_path}"
+    # --- ▲▲ ここまで追記 ▲▲ -------------------------------
+    #png = MiniMagick::Image.read(svg_str) { |i| i.format "png" }
+    png_data = IO.popen(%w[rsvg-convert -d 96 -p 96], "r+") do |io|
+      io.write(svg_str)
+      io.close_write
+      io.read
+    end
+    raise "rsvg-convert failed" if png_data.empty?
+    #puts "🔥MiniMagick bytes=#{png.to_blob.bytesize} format=#{png['format']}"
+    #puts  "mime=#{png["format"]}"
     #png = MiniMagick::Image.read(svg_str) do |img|
     #  img.format "png"                     # ★ ここで必ず PNG に変換
     #end
@@ -266,7 +278,7 @@ class Part < ApplicationRecord
     # 3. filename も .png 拡張子にする
     # =========================================================
     thumbnail.attach(
-      io: StringIO.new(png.to_blob),
+      io: StringIO.new(png_data),
       filename: "thumb_#{id}.png",
       content_type: "image/png"
     )
