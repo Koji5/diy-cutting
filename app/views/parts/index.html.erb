@@ -10,7 +10,19 @@
   <% @parts.each do |part| %>
     <div class="col">
       <div class="card h-100 p-3 d-flex">
-
+        <% if part.thumbnail.attached? %>
+          <% if part.thumbnail.variable? %>
+            <%= image_tag part.thumbnail.variant(resize_to_limit: [160,160])
+                          .processed,
+                          class: "rounded border mb-2" %>
+          <% else %> <!-- SVG など -->
+            <%= image_tag part.thumbnail, class: "rounded border mb-2" %>
+          <% end %>
+        <% else %>
+          <%= tag.div "No image", class: "border rounded d-flex align-items-center
+                                        justify-content-center text-muted mb-2",
+                                style: "width:160px;height:160px;" %>
+        <% end %>
         <h5 class="mb-2"><%= part.name %></h5>
 
         <%# ── メタ情報：作成・更新・オリジナル ─────────────────── %>

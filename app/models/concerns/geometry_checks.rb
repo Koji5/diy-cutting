@@ -26,35 +26,35 @@ module GeometryChecks
   # ============================================================
   # Public: DimensionValidator から呼ばれるメイン関数
   # ------------------------------------------------------------
-  def check_geometry(record, ctx)
-    outer = OuterShapeBuilder.build_outer_path(ctx)   # [[x,y], ...]
-    holes = HoleParamExtractor.build_holes(ctx)       # [{ shape:, ... }, ...]
+  def check_geometry(record, outer, holes)
+    #outer = OuterShapeBuilder.build_outer_path(ctx)   # [[x,y], ...]
+    #holes = HoleParamExtractor.build_holes(ctx)       # [{ shape:, ... }, ...]
     # デバッグ-----------------------------------------------------------
-    File.open("tmp/debug.svg", "w") do |f|
+    #File.open("tmp/debug.svg", "w") do |f|
       # デバッグ用 SVG -------------------------------------
-      h = [ctx[:width1_mm].to_f, ctx[:width2_mm].to_f].max
-      f.puts "<svg viewBox='0 0 #{ctx[:length_mm]} #{h}' xmlns='http://www.w3.org/2000/svg'>"
-      f.puts "  <g transform='scale(1,-1) translate(0,-#{h})'>"
+      #h = [ctx[:width1_mm].to_f, ctx[:width2_mm].to_f].max
+      #f.puts "<svg viewBox='0 0 #{ctx[:length_mm]} #{h}' xmlns='http://www.w3.org/2000/svg'>"
+      #f.puts "  <g transform='scale(1,-1) translate(0,-#{h})'>"
 
       # ① 外周ポリライン（赤）
-      poly_points = outer.map { |x, y| "#{x},#{y}" }.join(" ")
-      f.puts "    <polygon points='#{poly_points}' fill='none' stroke='red'/>"
+      #poly_points = outer.map { |x, y| "#{x},#{y}" }.join(" ")
+      #f.puts "    <polygon points='#{poly_points}' fill='none' stroke='red'/>"
 
       # ② 穴（黄色）— 円と矩形
-      holes.each do |hsh|
-        case hsh[:shape]
-        when :circle
-          f.puts "    <circle cx='#{hsh[:cx]}' cy='#{hsh[:cy]}' r='#{hsh[:r]}' fill='none' stroke='yellow'/>"
-        when :rect
-          x = hsh[:cx] - hsh[:w] / 2.0
-          y = hsh[:cy] - hsh[:h] / 2.0
-          f.puts "    <rect x='#{x}' y='#{y}' width='#{hsh[:w]}' height='#{hsh[:h]}' fill='none' stroke='yellow'/>"
-        end
-      end
+      #holes.each do |hsh|
+      #  case hsh[:shape]
+      #  when :circle
+      #    f.puts "    <circle cx='#{hsh[:cx]}' cy='#{hsh[:cy]}' r='#{hsh[:r]}' fill='none' stroke='yellow'/>"
+      #  when :rect
+      #    x = hsh[:cx] - hsh[:w] / 2.0
+      #    y = hsh[:cy] - hsh[:h] / 2.0
+      #    f.puts "    <rect x='#{x}' y='#{y}' width='#{hsh[:w]}' height='#{hsh[:h]}' fill='none' stroke='yellow'/>"
+      #  end
+      #end
 
       # SVG 終端 -------------------------------------------
-      f.puts "  </g></svg>"
-    end
+      #f.puts "  </g></svg>"
+    #end
     Rails.logger.debug { "OUTER: #{outer.inspect}" }
     Rails.logger.debug { "HOLES: #{holes.inspect}" }
     # -----------------------------------------------------------

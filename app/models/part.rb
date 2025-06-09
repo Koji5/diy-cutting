@@ -61,6 +61,15 @@ class Part < ApplicationRecord
              optional:    true
 
   # ─────────────────────────────
+  # サムネイル画像
+  # ─────────────────────────────
+  has_one_attached :thumbnail
+  attr_accessor :_outer, :_holes
+  # 生成と更新を分ける
+  after_create_commit :generate_thumbnail
+  after_update_commit :regenerate_thumbnail
+
+  # ─────────────────────────────
   # JSONB アクセサ
   # ─────────────────────────────
   # 1) 平面形状（shape_json）
@@ -229,4 +238,37 @@ class Part < ApplicationRecord
   # スコープ
   # ─────────────────────────────
   scope :alive, -> { where(deleted_flag: false) }
+
+  private
+
+  def regenerate_thumbnail
+    # 添付 (thumbnail.attach) が触っただけなら何もしない
+    return if saved_changes.except(:updated_at, "updated_at").blank?
+    generate_thumbnail
+  end
+
+  def generate_thumbnail
+    puts "=== THUMB GEN START ==="
+    outer = _outer || OuterShapeBuilder.build_outer_path(attributes.symbolize_keys)
+    holes = _holes || HoleParamExtractor.build_holes(attributes.symbolize_keys)
+  
+    svg_str = ::Parts::PreviewSvg.call(outer, holes)  # ← SVG 文字列
+    png = MiniMagick::Image.read(svg_str) { |i| i.format "png" }
+    puts "🔥MiniMagick bytes=#{png.to_blob.bytesize} format=#{png['format']}"
+    puts  "mime=#{png["format"]}"
+    #png = MiniMagick::Image.read(svg_str) do |img|
+    #  img.format "png"                     # ★ ここで必ず PNG に変換
+    #end
+  
+    # === 重要ポイント ========================================
+    # 1. `png.to_blob` を attach する
+    # 2. content_type は image/png
+    # 3. filename も .png 拡張子にする
+    # =========================================================
+    thumbnail.attach(
+      io: StringIO.new(png.to_blob),
+      filename: "thumb_#{id}.png",
+      content_type: "image/png"
+    )
+  end
 end

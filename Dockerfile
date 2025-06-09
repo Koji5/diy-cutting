@@ -13,6 +13,14 @@ RUN apk add --no-cache \
       yarn \
       git \
       geos geos-dev
+# ImageMagick を追加（MiniMagick が呼び出す CLI）
+RUN apk add --no-cache \
+      imagemagick \
+      librsvg
+# Debian / Ubuntu 用（参考）
+# RUN apt-get update -qq && apt-get install -y --no-install-recommends imagemagick ghostscript
+# Amazon Linux 用（参考）
+# RUN yum -y update && yum -y install imagemagick
 
 # 作業ディレクトリを /app に設定
 WORKDIR /app

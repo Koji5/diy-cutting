@@ -76,4 +76,6 @@ Rails.application.configure do
   # メイラー URL（開発環境）
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
   # 本番用 (production.rb) は後で 実ドメイン or ENV 変数に差し替え。
+  config.log_level = :debug
+  config.logger = ActiveSupport::Logger.new(STDOUT)
 end

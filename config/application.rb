@@ -51,5 +51,6 @@ module App
 
     config.autoload_paths  << Rails.root.join("app/lib")
     config.eager_load_paths << Rails.root.join("app/lib")
+    config.active_storage.variant_processor = :mini_magick
   end
 end

@@ -9,13 +9,17 @@ class DimensionValidator < ActiveModel::Validator
   # ======== 入口 ============================================
   def validate(record)
     ctx   = build_context(record)          # ← 先に ctx を作る
+
+    record._outer = OuterShapeBuilder.build_outer_path(ctx)
+    record._holes = HoleParamExtractor.build_holes(ctx)
+
     Rails.logger.debug "[CTX] #{ctx.inspect}"
     rules = merged_rules(record)
 
     check_fields(rules[:fields]     || {}, record, ctx)
     check_relations(rules[:relations] || [], record, ctx)
     check_dynamic(rules[:dynamic]     || [], record, ctx)
-    check_geometry(record, ctx)
+    check_geometry(record, record._outer, record._holes)
   end
 
   # ======== ルールマージ (共通 + 形状) =======================
