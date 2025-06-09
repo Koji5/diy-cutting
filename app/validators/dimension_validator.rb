@@ -15,7 +15,7 @@ class DimensionValidator < ActiveModel::Validator
     check_fields(rules[:fields]     || {}, record, ctx)
     check_relations(rules[:relations] || [], record, ctx)
     check_dynamic(rules[:dynamic]     || [], record, ctx)
-    #check_geometry(record, ctx)
+    check_geometry(record, ctx)
   end
 
   # ======== ルールマージ (共通 + 形状) =======================

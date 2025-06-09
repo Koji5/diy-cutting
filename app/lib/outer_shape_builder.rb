@@ -15,7 +15,7 @@
 # ※ ctx は CtxNormalizer.call で正規化済みのハッシュを想定。
 # --------------------------------------------------------------
 module OuterShapeBuilder
-  SEG_DEG = 10.0                            # 円弧分割角度(度)
+  SEG_DEG = 5.0                            # 円弧分割角度(度)
   RAD     = Math::PI / 180.0
 
   #============================================================
@@ -77,19 +77,25 @@ module OuterShapeBuilder
     w = ctx[:width1_mm].to_f
 
     # 角パラメータをローカル変数へ
-    r_tl, r_tr = ctx.values_at(:corner_tl_r, :corner_tr_r)
-    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r)
-    dx_tl, dx_tr, dx_bl, dx_br = ctx.values_at(:corner_tl_dx, :corner_tr_dx, :corner_bl_dx, :corner_br_dx)
-    dy_tl, dy_tr, dy_bl, dy_br = ctx.values_at(:corner_tl_dy, :corner_tr_dy, :corner_bl_dy, :corner_br_dy)
+    r_tl, r_tr = ctx.values_at(:corner_tl_r, :corner_tr_r).map(&:to_f)
+    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r).map(&:to_f)
+    dx_tl, dx_tr, dx_bl, dx_br = ctx.values_at(:corner_tl_dx, :corner_tr_dx, :corner_bl_dx, :corner_br_dx).map(&:to_f)
+    dy_tl, dy_tr, dy_bl, dy_br = ctx.values_at(:corner_tl_dy, :corner_tr_dy, :corner_bl_dy, :corner_br_dy).map(&:to_f)
 
     code_tl, code_tr = ctx.values_at(:corner_tl_code, :corner_tr_code)
     code_bl, code_br = ctx.values_at(:corner_bl_code, :corner_br_code)
+
+    # "NONE" の場合は半径を強制ゼロにしておく
+    r_tl = 0.0 if code_tl == "NONE"
+    r_tr = 0.0 if code_tr == "NONE"
+    r_bl = 0.0 if code_bl == "NONE"
+    r_br = 0.0 if code_br == "NONE"
 
     #----------------------------------
     # 1) スタート（左下始点）
     #----------------------------------
     path = case code_bl
-           when "NONE", "ROUND_R", "INROUND" then Path.new(r_bl, 0)
+           when "ROUND_R", "INROUND", "NONE" then Path.new(r_bl, 0)
            when "CHAMFER", "BEVEL" then Path.new(dx_bl, 0)
            else Path.new(0, 0)
            end
@@ -188,7 +194,7 @@ module OuterShapeBuilder
 
   # 2. 正三角形 (TRI_EQ)
   def build_equilateral(ctx)
-    side = ctx[:width1_mm].positive? ? ctx[:width1_mm] : ctx[:length_mm]
+    side = ctx[:width1_mm].to_f
     h    = side * Math.sqrt(3) / 2.0
 
     Path.new(0, 0)            # 左下始点
@@ -215,11 +221,15 @@ module OuterShapeBuilder
     theta = 2.0 * Math.asin(l / (2.0 * r))    # 円弧中心角
   
     # ---------- 角パラメータ ----------
-    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r)
-    dx_bl, dx_br = ctx.values_at(:corner_bl_dx, :corner_br_dx)
-    dy_bl, dy_br = ctx.values_at(:corner_bl_dy, :corner_br_dy)
+    r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r).map(&:to_f)
+    dx_bl, dx_br = ctx.values_at(:corner_bl_dx, :corner_br_dx).map(&:to_f)
+    dy_bl, dy_br = ctx.values_at(:corner_bl_dy, :corner_br_dy).map(&:to_f)
     code_bl, code_br = ctx.values_at(:corner_bl_code, :corner_br_code)
-  
+
+    # "NONE" の場合は半径を強制ゼロにしておく 
+    r_bl = 0.0 if code_bl == "NONE"
+    r_br = 0.0 if code_br == "NONE"
+
     # --- 1) スタート（左下） ----------------
     path = case code_bl
            when "NONE", "ROUND_R", "INROUND" then Path.new(r_bl, 0)
