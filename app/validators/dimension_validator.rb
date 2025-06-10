@@ -9,14 +9,15 @@ class DimensionValidator < ActiveModel::Validator
   # ======== 入口 ============================================
   def validate(record)
     ctx   = build_context(record)          # ← 先に ctx を作る
-
-    record._outer = OuterShapeBuilder.build_outer_path(ctx)
+    normalizedCtx = CtxNormalizer.call(ctx)
+    record._outer = OuterShapeBuilder.build_outer_path(normalizedCtx)
     record._holes = HoleParamExtractor.build_holes(ctx)
 
     Rails.logger.debug "[CTX] #{ctx.inspect}"
+    Rails.logger.debug "[NormalizedCTX] #{normalizedCtx.inspect}"
     rules = merged_rules(record)
 
-    check_fields(rules[:fields]     || {}, record, ctx)
+    check_fields(rules[:fields]       || {}, record, ctx)
     check_relations(rules[:relations] || [], record, ctx)
     check_dynamic(rules[:dynamic]     || [], record, ctx)
     check_geometry(record, record._outer, record._holes)
@@ -79,7 +80,7 @@ class DimensionValidator < ActiveModel::Validator
       ctx[:length_mm] = ctx[:width1_mm] * 2 / Math.sqrt(3)    # 正三角
 
     when "CORNER_TRI"
-      ctx[:length_mm] = ctx[:width1_mm]
+      ctx[:length_mm] = ctx[:width1_mm] * Math.sqrt(2)
       ctx[:corner_bl_r] ||= ctx[:width1_mm]                   # 左下角丸
 
     when "NICHE"
@@ -128,7 +129,7 @@ class DimensionValidator < ActiveModel::Validator
       next if rel[:if] && !SafeEval.evaluate(rel[:if], ctx)
 
       ok = SafeEval.evaluate(rel[:expr], ctx)
-      record.errors.add(:base, "寸法関係エラー: #{rel[:expr]}") unless ok
+      record.errors.add(:base, "寸法関係エラー: #{rel[:message]}") unless ok
     end
   end
   private :check_relations

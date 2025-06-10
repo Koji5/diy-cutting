@@ -18,20 +18,20 @@ module Parts
 
         # ③ ポリライン（赤）
         pts = outer.map { |x, y| "#{x},#{y}" }.join(" ")
-        svg << "<polygon points='#{pts}' fill='none' stroke='red'/>"
+        svg << "<polygon points='#{pts}' fill='brown' stroke='black'/>"
 
         # ④ 穴（黄色）
         holes.each do |h|
           case h[:shape]
           when :circle
             svg << "<circle cx='#{h[:cx]}' cy='#{h[:cy]}' "\
-                   "r='#{h[:r]}' fill='none' stroke='black'/>"
+                   "r='#{h[:r]}' fill='white' stroke='black'/>"
           when :rect
             x = h[:cx] - h[:w] / 2.0
             y = h[:cy] - h[:h] / 2.0
             svg << "<rect x='#{x}' y='#{y}' "\
                    "width='#{h[:w]}' height='#{h[:h]}' "\
-                   "fill='none' stroke='black'/>"
+                   "fill='white' stroke='black'/>"
           end
         end
 

@@ -17,6 +17,7 @@
 module OuterShapeBuilder
   SEG_DEG = 5.0                            # 円弧分割角度(度)
   RAD     = Math::PI / 180.0
+  HALF_PI = Math::PI / 2.0
 
   #============================================================
   # 内部 DSL ---------------------------------------------------
@@ -36,7 +37,9 @@ module OuterShapeBuilder
 
     # 円弧を分割して追加（a0→a1, 角度はラジアン）
     def arc(cx, cy, r, a0, a1)
-      sweep = a1 - a0
+      return self if r.zero?
+
+      sweep = a1 - a0                       # 符号で方向決定
       segs  = [(sweep.abs / (SEG_DEG * RAD)).ceil, 1].max
       1.upto(segs) do |i|
         t = a0 + sweep * i / segs
@@ -54,12 +57,29 @@ module OuterShapeBuilder
   end
 
   #============================================================
-  # エントリポイント ------------------------------------------
+  # 汎用 90° アークヘルパ ------------------------------------
   #============================================================
   module_function
 
-  # @param ctx [Hash] outer_ctx (CtxNormalizer で正規化済み)
-  # @return [Array<Array<Float>>] 外周座標列 (時計回り)
+  # dir  : :tl / :tr / :bl / :br
+  # convex: true→外側 (ROUND_R) / false→内側 (INROUND)
+  def quad_arc(path, cx, cy, r, dir:, convex:)
+    base = case dir
+         when :bl then -HALF_PI     # 下方向
+         when :tl then  Math::PI    # 左方向
+         when :tr then  HALF_PI     # 上方向
+         when :br then  0.0         # 右方向
+         end
+
+    # 凹(INROUND) のときは開始角を +90° (＝+HALF_PI) ずらす
+    a0    = convex ? base : base + HALF_PI
+    sweep = (convex ? -1.0 : 1.0) * HALF_PI   # 時計回り or 反時計
+    path.arc(cx, cy, r, a0, a0 + sweep)
+  end
+
+  #============================================================
+  # エントリポイント ------------------------------------------
+  #============================================================
   def build_outer_path(ctx)
     case ctx[:shape_code]
     when "TRI_EQ"  then build_equilateral(ctx)
@@ -96,7 +116,7 @@ module OuterShapeBuilder
     #----------------------------------
     path = case code_bl
            when "ROUND_R", "INROUND", "NONE" then Path.new(r_bl, 0)
-           when "CHAMFER", "BEVEL" then Path.new(dx_bl, 0)
+           when "CHAMFER", "BEVEL"           then Path.new(dx_bl, 0)
            else Path.new(0, 0)
            end
 
@@ -104,20 +124,22 @@ module OuterShapeBuilder
     # 2) 左下角処理
     #----------------------------------
     case code_bl
-    when "NONE", "ROUND_R"
-      path.arc(r_bl, r_bl, r_bl, -Math::PI / 2, Math::PI) unless r_bl.zero?
+    when "ROUND_R"
+      quad_arc(path, r_bl, r_bl, r_bl, dir: :bl, convex: true)
     when "INROUND"
-      path.arc(0, 0, r_bl, 0, Math::PI / 2) unless r_bl.zero?
+      quad_arc(path, 0.0, 0.0, r_bl, dir: :bl, convex: false)
     when "CHAMFER"
       path.line_to(dx_bl, dy_bl).line_to(0, dy_bl)
     when "BEVEL"
       path.line_to(0, dy_bl)
+    when "NONE"
+      # 直角なので何もしない
     end
 
     #----------------------------------
     # 3) 左辺
     #----------------------------------
-    y_left_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_tl)
+    y_left_target = if %w[NONE ROUND_R INROUND].include?(code_tl)
                       w - r_tl
                     else
                       w - dy_tl
@@ -128,10 +150,10 @@ module OuterShapeBuilder
     # 4) 左上角処理
     #----------------------------------
     case code_tl
-    when "NONE", "ROUND_R"
-      path.arc(r_tl, w - r_tl, r_tl, Math::PI, Math::PI / 2) unless r_tl.zero?
+    when "ROUND_R"
+      quad_arc(path, r_tl, w - r_tl, r_tl, dir: :tl, convex: true)
     when "INROUND"
-      path.arc(0, w, r_tl, -Math::PI / 2, 0) unless r_tl.zero?
+      quad_arc(path, 0.0, w, r_tl, dir: :tl, convex: false)
     when "CHAMFER"
       path.line_to(dx_tl, w - dy_tl).line_to(dx_tl, w)
     when "BEVEL"
@@ -141,7 +163,7 @@ module OuterShapeBuilder
     #----------------------------------
     # 5) 上辺
     #----------------------------------
-    x_top_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_tr)
+    x_top_target = if %w[NONE ROUND_R INROUND].include?(code_tr)
                      l - r_tr
                    else
                      l - dx_tr
@@ -152,10 +174,10 @@ module OuterShapeBuilder
     # 6) 右上角処理
     #----------------------------------
     case code_tr
-    when "NONE", "ROUND_R"
-      path.arc(l - r_tr, w - r_tr, r_tr, Math::PI / 2, 0) unless r_tr.zero?
+    when "ROUND_R"
+      quad_arc(path, l - r_tr, w - r_tr, r_tr, dir: :tr, convex: true)
     when "INROUND"
-      path.arc(l, w, r_tr, Math::PI, -Math::PI / 2) unless r_tr.zero?
+      quad_arc(path, l, w, r_tr, dir: :tr, convex: false)
     when "CHAMFER"
       path.line_to(l - dx_tr, w - dy_tr).line_to(l, w - dy_tr)
     when "BEVEL"
@@ -165,7 +187,7 @@ module OuterShapeBuilder
     #----------------------------------
     # 7) 右辺
     #----------------------------------
-    y_right_target = if ["NONE", "ROUND_R", "INROUND"].include?(code_br)
+    y_right_target = if %w[NONE ROUND_R INROUND].include?(code_br)
                        r_br
                      else
                        dy_br
@@ -176,10 +198,10 @@ module OuterShapeBuilder
     # 8) 右下角処理
     #----------------------------------
     case code_br
-    when "NONE", "ROUND_R"
-      path.arc(l - r_br, r_br, r_br, 0, -Math::PI / 2) unless r_br.zero?
+    when "ROUND_R"
+      quad_arc(path, l - r_br, r_br, r_br, dir: :br, convex: true)
     when "INROUND"
-      path.arc(l, 0, r_br, Math::PI / 2, Math::PI) unless r_br.zero?
+      quad_arc(path, l, 0.0, r_br, dir: :br, convex: false)
     when "CHAMFER"
       path.line_to(l - dx_br, dy_br).line_to(l - dx_br, 0)
     when "BEVEL"
@@ -197,9 +219,9 @@ module OuterShapeBuilder
     side = ctx[:width1_mm].to_f
     h    = side * Math.sqrt(3) / 2.0
 
-    Path.new(0, 0)            # 左下始点
-        .line_to(side / 2.0, h)     # 上頂点
-        .line_to(side, 0)      # 右下
+    Path.new(0, 0)                # 左下始点
+        .line_to(side / 2.0, h)   # 上頂点
+        .line_to(side, 0)         # 右下
         .close
   end
 
@@ -211,74 +233,88 @@ module OuterShapeBuilder
     l  = ctx[:length_mm].to_f      # L  : 全長
     w1 = ctx[:width1_mm].to_f      # W1 : 矩形部高さ
     w2 = ctx[:width2_mm].to_f      # W2 : 全高 (円弧頂点)
-  
+
     sag  = w2 - w1                 # 矢高 (張り出し)
-    return build_rect(ctx) if sag <= 0        # 張り出しゼロなら普通の矩形
-  
+    return build_rect(ctx.merge(width1_mm: w2)) if sag <= 0  # 張り出しゼロなら普通の矩形
+
     r     = (l**2) / (8.0 * sag) + sag / 2.0  # 円弧半径
     cx    = l / 2.0                           # 円心 X
     cy    = w2 - r                            # 円心 Y
     theta = 2.0 * Math.asin(l / (2.0 * r))    # 円弧中心角
-  
+
     # ---------- 角パラメータ ----------
     r_bl, r_br = ctx.values_at(:corner_bl_r, :corner_br_r).map(&:to_f)
     dx_bl, dx_br = ctx.values_at(:corner_bl_dx, :corner_br_dx).map(&:to_f)
     dy_bl, dy_br = ctx.values_at(:corner_bl_dy, :corner_br_dy).map(&:to_f)
     code_bl, code_br = ctx.values_at(:corner_bl_code, :corner_br_code)
 
-    # "NONE" の場合は半径を強制ゼロにしておく 
+    # "NONE" の場合は半径をゼロに
     r_bl = 0.0 if code_bl == "NONE"
     r_br = 0.0 if code_br == "NONE"
 
-    # --- 1) スタート（左下） ----------------
+    # --------------------------------------------------
+    # 1) スタート（左下）
+    # --------------------------------------------------
     path = case code_bl
-           when "NONE", "ROUND_R", "INROUND" then Path.new(r_bl, 0)
+           when "ROUND_R", "INROUND", "NONE" then Path.new(r_bl, 0)
            when "CHAMFER", "BEVEL"           then Path.new(dx_bl, 0)
-           else Path.new(0, 0)
+           else                                   Path.new(0,  0)
            end
-  
-    # --- 2) 左下角 --------------------------
+
+    # --------------------------------------------------
+    # 2) 左下角
+    # --------------------------------------------------
     case code_bl
-    when "NONE", "ROUND_R"
-      path.arc(r_bl, r_bl, r_bl, -Math::PI / 2, Math::PI) unless r_bl.zero?
+    when "ROUND_R"
+      quad_arc(path, r_bl, r_bl, r_bl, dir: :bl, convex: true)
     when "INROUND"
-      path.arc(0, 0, r_bl, 0, Math::PI / 2) unless r_bl.zero?
+      quad_arc(path, 0.0, 0.0, r_bl, dir: :bl, convex: false)
     when "CHAMFER"
       path.line_to(dx_bl, dy_bl).line_to(0, dy_bl)
     when "BEVEL"
       path.line_to(0, dy_bl)
     end
-  
-    # --- 3) 左辺 → 矩形部上端 ----------------
+
+    # --------------------------------------------------
+    # 3) 左辺（矩形部）
+    # --------------------------------------------------
     path.line_to(0, w1)
-  
-    # --- 4) 上側外向き円弧 --------------------
-    a0 =  Math::PI / 2 + theta / 2.0   # 左端側（時計回り開始）
-    a1 =  Math::PI / 2 - theta / 2.0   # 右端側
-    path.arc(cx, cy, r, a0, a1)        # 時計回りで描画
-  
-    # --- 5) 右辺 → 右下加工開始 --------------
+
+    # --------------------------------------------------
+    # 4) 上側・外向き円弧
+    # --------------------------------------------------
+    phi     = Math.atan2(w1 - cy, l / 2.0)   # 0 < φ < π/2
+    a_start =  Math::PI - phi                # 左端
+    a_end   =  phi                           # 右端
+    path.arc(cx, cy, r, a_start, a_end)      # 時計回りで左→右
+
+    # --------------------------------------------------
+    # 5) 右辺（矩形部降下）
+    # --------------------------------------------------
     y_right_target = if %w[NONE ROUND_R INROUND].include?(code_br)
                        r_br
                      else
                        dy_br
                      end
     path.line_to(l, y_right_target)
-  
-    # --- 6) 右下角 ---------------------------
+
+    # --------------------------------------------------
+    # 6) 右下角
+    # --------------------------------------------------
     case code_br
-    when "NONE", "ROUND_R"
-      path.arc(l - r_br, r_br, r_br, 0, -Math::PI / 2) unless r_br.zero?
+    when "ROUND_R"
+      quad_arc(path, l - r_br, r_br, r_br, dir: :br, convex: true)
     when "INROUND"
-      path.arc(l, 0, r_br, Math::PI / 2, Math::PI) unless r_br.zero?
+      quad_arc(path, l, 0.0, r_br, dir: :br, convex: false)
     when "CHAMFER"
       path.line_to(l - dx_br, dy_br).line_to(l - dx_br, 0)
     when "BEVEL"
       path.line_to(l - dx_br, 0)
     end
-  
-    # --- 7) 下辺 & close ---------------------
+
+    # --------------------------------------------------
+    # 7) 下辺を経て閉じる
+    # --------------------------------------------------
     path.close
   end
-
 end

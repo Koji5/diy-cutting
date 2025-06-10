@@ -61,7 +61,7 @@ module HoleParamExtractor
   # 寸法取得 (mm) 返り値は [length, width]
   # ----------------------------------------------------------
   def part_dimensions(ctx)
-    l = ctx[:length_mm]
+    l = (ctx[:shape_code] == "CORNER_TRI" ? ctx[:width1_mm] : ctx[:length_mm])
     w = ctx[:width1_mm]
     raise ArgumentError, 'ctx に length_mm / width1_mm が不足しています' unless l && w
     [l.to_f, w.to_f]

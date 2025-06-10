@@ -100,7 +100,7 @@ export default class extends Controller {
       case "TRI_EQ":   this.lengthTarget.value = w ? Math.round(2 * w / Math.sqrt(3)) : ""; break
       case "CIRC":     this.lengthTarget.value = w || "";                                   break
       case "SEMI":     this.lengthTarget.value = w ? Math.round(2 * w) : "";                break
-      case "CORNER_TRI": this.lengthTarget.value = w ? Math.round(w * Math.SQRT2) : "";     break
+      case "CORNER_TRI": this.lengthTarget.value = w ? Math.round(w * Math.sqrt(2)) : "";     break
     }
   }
 
