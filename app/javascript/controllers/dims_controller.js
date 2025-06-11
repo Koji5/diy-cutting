@@ -23,6 +23,8 @@ function markError (controller, input, msg) {
   errs.push(msg);                // 新しいメッセージを追加
 
   controller.showValidation(input, errs);
+  input.setCustomValidity(msg);            // ← NG をセット
+  input.reportValidity?.();                // Safari 用フォロー
 }
 
 export default class extends Controller {
@@ -62,6 +64,7 @@ export default class extends Controller {
     this.element
       .querySelectorAll('input[type="number"]')
       .forEach(el => el.addEventListener("focus", this.fillMinIfBlank))
+    this.element.addEventListener("submit", this._onSubmit)
   }
 
   fillMinIfBlank = (event) => {
@@ -86,7 +89,15 @@ export default class extends Controller {
     this._dismissServerErrors()
     this.checkAll()
   }
-
+  _onSubmit = (e) => {
+    this.checkAll()
+    if (this.element.querySelector(".is-invalid")) {
+      e.preventDefault()         // ← 赤枠が残っていれば送信阻止
+      e.stopPropagation()
+      // 最初のエラー要素にフォーカス
+      this.element.querySelector(".is-invalid")?.focus()
+    }
+  }
   shapeChanged () {
     this.refresh()
     this.checkAll()
@@ -294,6 +305,7 @@ export default class extends Controller {
       input.after(div)
     } else {
       input.classList.remove("is-invalid")
+      input.setCustomValidity("");
     }
 
     // 末尾に再ヒント
@@ -405,25 +417,13 @@ export default class extends Controller {
 
   _geometryChecks(geoCtx) {
     /* 外周 Shape を生成（2-D。holes は無視で OK） */
-    console.debug("[dims] geoCtx", JSON.parse(JSON.stringify(geoCtx)))
     const outerShape = buildShape(geoCtx);
-    console.debug("[dims] outerShape", {
-      type: outerShape?.constructor?.name,        // THREE.Shape なら "Shape"
-      userData: outerShape?.userData || null,     // shapeCode / radius など
-      isNull: !outerShape
-    })
-    if (outerShape) {
-      const box3 = new THREE.Box3().setFromPoints(outerShape.getPoints())
-      console.debug("[dims] outer bbox", box3.min, box3.max)
-    }
     const SAFE_EDGE = GEOM_CFG.safe_edge_mm;            // 30 mm 以上内側に入れる
 
     /* ---------- 丸穴 ----------------------------------------- */
     geoCtx.holes_round.forEach(h => {
       const inside = insideRound(outerShape, h, SAFE_EDGE);
-      console.debug("[dims] round hole", h.pos, { inside, h });
       if (inside) return;
-//      if (insideRound(outerShape, h, SAFE_EDGE)) return;           // OK: 30 mm 以上内側
       const input = this.element.querySelector(
         `[name=\"part[hole_${h.pos}_dx]\"]:not([type=hidden])`)
         || this.element;
