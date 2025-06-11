@@ -25,7 +25,17 @@
   <div class="tab-content">
     <!-- ───────── 入力タブ ───────── -->
     <div class="tab-pane fade show active" id="input-pane" role="tabpanel">
-
+  
+      <% if @part.errors.any? %>
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            <% @part.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+  
       <!-- 部品名称 -->
       <div class="mb-3">
         <%= f.label :name, class: "form-label fw-bold" do %>
@@ -197,7 +207,9 @@
                 <div class="col-6 mt-2">
                   <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label mb-2" %>
                   <%= f.collection_select "corner_#{key}_code", @corner_processes,
-                                          :code, :name_ja, { include_blank: false },
+                                          :code, :name_ja,
+                                          { include_blank: false,
+                                            selected:  (f.object.public_send("corner_#{key}_code") || "NONE") },
                                           class: "form-select",
                                           data: { cornerproc_target: "#{key}Select",
                                                   action: "cornerproc#procChanged" } %>
@@ -243,7 +255,9 @@
                 <div class="col-6 mt-2">
                   <%= f.label "corner_#{key}_code", "【#{label} 加工】", class: "form-label fw-normal mb-2" %>
                   <%= f.collection_select "corner_#{key}_code", @corner_processes,
-                                          :code, :name_ja, { include_blank: false },
+                                          :code, :name_ja,
+                                          { include_blank: false,
+                                            selected:  (f.object.public_send("corner_#{key}_code") || "NONE") },
                                           class: "form-select",
                                           data: { cornerproc_target: "#{key}Select",
                                                   action: "cornerproc#procChanged" } %>
@@ -681,17 +695,7 @@
                 class: "form-control",
                 placeholder: "加工で伝えたいこと、図面番号、注意点などがあれば入力してください" %>
         </div>
-  
-        <% if @part.errors.any? %>
-          <div class="alert alert-danger">
-            <ul class="mb-0">
-              <% @part.errors.full_messages.each do |msg| %>
-                <li><%= msg %></li>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
-  
+
         <%= f.submit "登録する", class: "btn btn-primary" %>
       </div>
   

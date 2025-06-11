@@ -35,18 +35,35 @@ export default class extends Controller {
     holeDiameters: Object
   }
 
+  /* ---------------------------------------------------------------------
+   * internal flags
+   * -------------------------------------------------------------------*/
+  _serverAlertEl        = null      // .alert-danger ノードを保持
+  _serverAlertDismissed = false     // 一度隠したら true
+
   /* -------------------------------- lifecycle -------------------------------------- */
   connect () {
+
+    // サーバー側バリデーション alert の存在確認（フォーム直近を優先）
+    this._serverAlertEl = this.element.parentElement?.querySelector(".alert.alert-danger")
+                        || document.querySelector(".alert.alert-danger");
+
     this.refresh()
     this.addListeners()
     this.showAllHints()  // 初期表示時にヒント描画
+
+    // サーバーエラーがある場合はクライアントバリデーションも即実行
+    if (this._serverAlertEl) {
+      this.checkAll()
+    }
+
     window.dims = this;          // ← デバッグ用 ★
-    // >>> ADD: 空の number フィールドにフォーカスしたら min を自動入力
+    // 空の number フィールドにフォーカスしたら min を自動入力
     this.element
       .querySelectorAll('input[type="number"]')
       .forEach(el => el.addEventListener("focus", this.fillMinIfBlank))
   }
-  // >>> ADD
+
   fillMinIfBlank = (event) => {
     const input = event.currentTarget
     if (input.value !== "") return            // 既に値があれば何もしない
@@ -65,6 +82,11 @@ export default class extends Controller {
       .forEach(el => el.removeEventListener("focus", this.fillMinIfBlank))
   }
   /* -------------------------------- UI handlers ------------------------------------ */
+  _onAnyInput = () => {
+    this._dismissServerErrors()
+    this.checkAll()
+  }
+
   shapeChanged () {
     this.refresh()
     this.checkAll()
@@ -108,8 +130,15 @@ export default class extends Controller {
   addListeners () {
     const inputs = this.element.querySelectorAll("input, select")
     inputs.forEach(el => {
-      el.addEventListener("input", () => this.checkAll())
+      el.addEventListener("input", this._onAnyInput)
     })
+  }
+  // サーバーエラーを非表示にする
+  _dismissServerErrors() {
+    if (this._serverAlertEl && !this._serverAlertDismissed) {
+      this._serverAlertEl.classList.add("d-none")
+      this._serverAlertDismissed = true
+    }
   }
 
   /* -------------------------------- hint helpers ----------------------------------- */
@@ -376,12 +405,25 @@ export default class extends Controller {
 
   _geometryChecks(geoCtx) {
     /* 外周 Shape を生成（2-D。holes は無視で OK） */
+    console.debug("[dims] geoCtx", JSON.parse(JSON.stringify(geoCtx)))
     const outerShape = buildShape(geoCtx);
+    console.debug("[dims] outerShape", {
+      type: outerShape?.constructor?.name,        // THREE.Shape なら "Shape"
+      userData: outerShape?.userData || null,     // shapeCode / radius など
+      isNull: !outerShape
+    })
+    if (outerShape) {
+      const box3 = new THREE.Box3().setFromPoints(outerShape.getPoints())
+      console.debug("[dims] outer bbox", box3.min, box3.max)
+    }
     const SAFE_EDGE = GEOM_CFG.safe_edge_mm;            // 30 mm 以上内側に入れる
 
     /* ---------- 丸穴 ----------------------------------------- */
     geoCtx.holes_round.forEach(h => {
-      if (insideRound(outerShape, h, SAFE_EDGE)) return;           // OK: 30 mm 以上内側
+      const inside = insideRound(outerShape, h, SAFE_EDGE);
+      console.debug("[dims] round hole", h.pos, { inside, h });
+      if (inside) return;
+//      if (insideRound(outerShape, h, SAFE_EDGE)) return;           // OK: 30 mm 以上内側
       const input = this.element.querySelector(
         `[name=\"part[hole_${h.pos}_dx]\"]:not([type=hidden])`)
         || this.element;
