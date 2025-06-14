@@ -1,200 +1,124 @@
-// shape_builders.js — 3‑pattern version (geoCtx)
-// --------------------------------------------------------------
-// 依存: three.js を import map / Vite 等で pin 済み
 import * as THREE from "three";
-
-/*
- * geoCtx 必須フィールド
- *   shapeCode : "TRI_EQ" | "NICHE" | その他
- *   L, W1, (W2)  : mm  単位は左下原点・時計回り系
- *   corners      : tl / tr / bl / br それぞれ { code, r, dx, dy }
- *   holes_round  : [{ cx, cy, r,  … }]
- *   holes_square : [{ cx, cy, w,h … }]
- *   T            : 厚み (3D で使用)
- */
 
 export function buildShape(ctx) {
   switch (ctx.shapeCode) {
     case "TRI_EQ":  return buildEquilateral(ctx);
     case "NICHE":   return buildNiche(ctx);
-    default:         return buildRectCorners(ctx);   // "その他" は矩形 + 任意コーナー
+    default:         return buildRect(ctx);   // "その他" は矩形 + 任意コーナー
   }
 }
 
+export function buildEgePath(ctx, key) {
+  switch (ctx.shapeCode) {
+    case "TRI_EQ":  return buildEquilateralEgePath(ctx, key);
+    case "NICHE":   return buildNicheEgePath(ctx, key);
+    default:         return buildRectEgePath(ctx, key);
+  }
+}
+
+function buildRectEgePath(ctx, key){
+  const path = new THREE.CurvePath();
+  switch(key){
+    case "tl":
+      build3DRectTl(path, ctx);
+      break;
+    case "t":
+      build3DRectT(path, ctx);
+      break;
+    case "tr":
+      build3DRectTr(path, ctx);
+      break;
+    case "l":
+      build3DRectL(path, ctx);
+      break;
+    case "r":
+      build3DRectR(path, ctx);
+      break;
+    case "bl":
+      build3DRectBl(path, ctx);
+      break;
+    case "b":
+      build3DRectB(path, ctx);
+      break;
+    case "br":
+      build3DRectBr(path, ctx);
+      break;
+  }
+  return path;
+}
+function buildNicheEgePath(ctx, key){
+  const path = new THREE.CurvePath();
+  switch(key){
+    case "t":
+      build3DNicheT(path, ctx);
+      break;
+    case "l":
+      build3DRectL(path, ctx);
+      break;
+    case "r":
+      build3DRectR(path, ctx);
+      break;
+    case "bl":
+      build3DRectBl(path, ctx);
+      break;
+    case "b":
+      build3DRectB(path, ctx);
+      break;
+    case "br":
+      build3DRectBr(path, ctx);
+      break;
+  }
+  return path;
+}
+function buildEquilateralEgePath(ctx, key){
+  const path = new THREE.CurvePath();
+  switch(key){
+    case "tl":
+      build3DEquilateralTl(path, ctx);
+      break;
+    case "tr":
+      build3DEquilateralTr(path, ctx);
+      break;
+    case "b":
+      build3DRectB(path, ctx);
+      break;
+  }
+  return path;
+}
 /* =========================================================================
- * buildRectCorners(ctx)
+ * buildRect(ctx)
  *  左下(0,0) → 時計回りで外周を作り、ctx.corners の
  *  tl / tr / br / bl (code,r,dx,dy) に応じて 4 隅の加工を行う
  * ========================================================================= */
-export function buildRectCorners(ctx) {
-  const { L, W1: W, corners: C } = ctx;
+function buildRect(ctx) {
   const s = new THREE.Shape();
-
-  /* --- 1   スタート (bl) ---------------------------------------------- */
-  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
-  s.moveTo(blX, 0);
-
-  /* --- 2   左下角 (bl) ------------------------------------------------- */
-  switch (C.bl.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(C.bl.r, C.bl.r, C.bl.r, -Math.PI / 2, Math.PI, true);
-      break;
-    case "INROUND":
-      s.absarc(0, 0, C.bl.r, 0, Math.PI / 2, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(C.bl.dx, C.bl.dy);
-      s.lineTo(0, C.bl.dy);
-      break;
-    case "BEVEL":
-      s.lineTo(0, C.bl.dy);
-      break;
-  }
-
-  /* --- 3   左辺 → 左上加工開始位置 ------------------------------------ */
-  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dy : C.tl.r;
-  s.lineTo(0, W - tlY);
-
-  /* --- 4   左上角 (tl) ------------------------------------------------- */
-  switch (C.tl.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(C.tl.r, W - C.tl.r, C.tl.r, Math.PI, Math.PI / 2, true);
-      break;
-    case "INROUND":
-      s.absarc(0, W, C.tl.r, -Math.PI / 2, 0, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(C.tl.dx, W - C.tl.dy);
-      s.lineTo(C.tl.dx, W);
-      break;
-    case "BEVEL":
-      s.lineTo(C.tl.dx, W);
-      break;
-  }
-
-  /* --- 5   上辺 → 右上加工開始位置 ------------------------------------ */
-  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? C.tr.dx : C.tr.r;
-  s.lineTo(L - trX, W);
-
-  /* --- 6   右上角 (tr) ------------------------------------------------- */
-  switch (C.tr.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(L - C.tr.r, W - C.tr.r, C.tr.r, Math.PI / 2, 0, true);
-      break;
-    case "INROUND":
-      s.absarc(L, W, C.tr.r, Math.PI, -Math.PI / 2, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(L - C.tr.dx, W - C.tr.dy);
-      s.lineTo(L, W - C.tr.dy);
-      break;
-    case "BEVEL":
-      s.lineTo(L, W - C.tr.dy);
-      break;
-  }
-
-  /* --- 7   右辺 → 右下加工開始位置 ------------------------------------ */
-  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
-  s.lineTo(L, brY);
-
-  /* --- 8   右下角 (br) ------------------------------------------------- */
-  switch (C.br.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(L - C.br.r, C.br.r, C.br.r, 0, -Math.PI / 2, true);
-      break;
-    case "INROUND":
-      s.absarc(L, 0, C.br.r, Math.PI / 2, Math.PI, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(L - C.br.dx, C.br.dy);
-      s.lineTo(L - C.br.dx, 0);
-      break;
-    case "BEVEL":
-      s.lineTo(L - C.br.dx, 0);
-      break;
-  }
-
-  /* --- 9   下辺 (始点へ戻る) ------------------------------------------- */
-  s.lineTo(blX, 0);
-
+  const startBl = startRectBl(ctx);
+  s.moveTo(startBl.x, startBl.y);
+  buildRectBl(s, ctx);
+  buildRectL(s, ctx);
+  buildRectTl(s, ctx);
+  buildRectT(s, ctx);
+  buildRectTr(s, ctx);
+  buildRectR(s, ctx);
+  buildRectBr(s, ctx);
+  buildRectB(s, ctx);
   _pushHoles(s, ctx);
   return s;
 }
-
 
 /*======================================================================*
  | 2. NICHE  (矩形 + 上部アーチ)                                        |
  *======================================================================*/
 function buildNiche(ctx) {
-//  const L = ctx.L;
-//  const W1 = ctx.W1;     // 矩形部分の高さ
-//  const W2 = ctx.W2;     // 全高
-  const { L, W1, W2, corners: C } = ctx;
-  const sag  = W2 - W1;               // 矢高
-  const R    = (L ** 2) / (8 * sag) + (sag / 2); // 円弧半径
-  const cx   = L / 2;                 // 円心 X
-  const cy   = W2 - R;                // 円心 Y
-  const theta = 2 * Math.asin(L / (2 * R)); // 弧の角度
-
   const s = new THREE.Shape();
-
-  /* --- 1   スタート (bl) ---------------------------------------------- */
-  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
-  s.moveTo(blX, 0);
-
-  /* --- 2   左下角 (bl) ------------------------------------------------- */
-  switch (C.bl.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(C.bl.r, C.bl.r, C.bl.r, -Math.PI / 2, Math.PI, true);
-      break;
-    case "INROUND":
-      s.absarc(0, 0, C.bl.r, 0, Math.PI / 2, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(C.bl.dx, C.bl.dy);
-      s.lineTo(0, C.bl.dy);
-      break;
-    case "BEVEL":
-      s.lineTo(0, C.bl.dy);
-      break;
-  }
-
-  /* --- 3   左辺 → 左上加工開始位置 ------------------------------------ */
-  s.lineTo(0, W1);
-
-  /* --- 4   左上 → 右上 ------------------------------------ */
-  s.absarc(cx, cy, R, Math.PI / 2 + (theta / 2), Math.PI / 2 - (theta / 2), true);
-
-  /* --- 5   右辺 → 右下加工開始位置 ------------------------------------ */
-  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
-  s.lineTo(L, brY);
-
-  /* --- 6   右下角 (br) ------------------------------------------------- */
-  switch (C.br.code) {
-    case "ROUND_R":
-    case "NONE":
-      s.absarc(L - C.br.r, C.br.r, C.br.r, 0, -Math.PI / 2, true);
-      break;
-    case "INROUND":
-      s.absarc(L, 0, C.br.r, Math.PI / 2, Math.PI, false);
-      break;
-    case "CHAMFER":
-      s.lineTo(L - C.br.dx, C.br.dy);
-      s.lineTo(L - C.br.dx, 0);
-      break;
-    case "BEVEL":
-      s.lineTo(L - C.br.dx, 0);
-      break;
-  }
-
-  /* --- 7   下辺 (始点へ戻る) ------------------------------------------- */
-  s.lineTo(blX, 0);
-
+  const startBl = startRectBl(ctx);
+  s.moveTo(startBl.x, startBl.y);
+  buildRectBl(s, ctx);
+  buildRectL(s, ctx);
+  buildNicheT(s, ctx);
+  buildRectR(s, ctx);
+  buildRectBr(s, ctx);
+  buildRectB(s, ctx);
   _pushHoles(s, ctx);
   return s;
 }
@@ -206,11 +130,11 @@ function buildEquilateral(ctx) {
   const W = ctx.W1;   // 高さ
   const L = ctx.L;    // 底辺
   const s = new THREE.Shape();
-  s.moveTo(0, 0);
-  s.lineTo(L / 2, W);
-  s.lineTo(L, 0);
-  s.closePath();
-
+  const startBl = startRectBl(ctx);
+  s.moveTo(startBl.x, startBl.y);
+  buildEquilateralTl(s, ctx);
+  buildEquilateralTr(s, ctx);
+  buildRectB(s, ctx);
   _pushHoles(s, ctx);
   return s;
 }
@@ -237,4 +161,397 @@ function rectPath({ cx, cy, w, h }) {
   p.lineTo(cx - w/2, cy + h/2);
   p.closePath();
   return p;
+}
+
+function startRectBl(ctx) {
+  const { corners: C } = ctx;
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  return new THREE.Vector2(blX, 0);
+}
+function buildRectBl(s, ctx) {
+  const { corners: C } = ctx;
+  switch (C.bl.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(C.bl.r, C.bl.r, C.bl.r, -Math.PI / 2, Math.PI, true);
+      break;
+    case "INROUND":
+      s.absarc(0, 0, C.bl.r, 0, Math.PI / 2, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(C.bl.dx, C.bl.dy);
+      s.lineTo(0, C.bl.dy);
+      break;
+    case "BEVEL":
+      s.lineTo(0, C.bl.dy);
+      break;
+  }
+}
+function build3DRectBl(path, ctx) {
+  const { corners: C } = ctx;
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  const startBl = new THREE.Vector3(blX, 0, 0);
+  switch (C.bl.code) {
+    case "ROUND_R": {
+      const center = new THREE.Vector3(C.bl.r, C.bl.r, 0);
+      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, true));
+      break;
+    }
+    case "INROUND": {
+      const center = new THREE.Vector3(0, 0, 0);
+      path.add(arc90Bezier(center, C.bl.r, 0, false));
+      break;
+    }
+    case "CHAMFER": {
+      const p1 = new THREE.Vector3(C.bl.dx, C.bl.dy, 0);
+      const p2 = new THREE.Vector3(0, C.bl.dy, 0);
+      path.add( new THREE.LineCurve3( startBl, p1 ));
+      path.add( new THREE.LineCurve3( p1, p2 ));
+      break;
+    }
+    case "BEVEL": {
+      const p1 = new THREE.Vector3(0, C.bl.dy, 0);
+      path.add( new THREE.LineCurve3( startBl, p1 ));
+      break;
+    }
+  }
+}
+function startRectL(ctx) {
+  const { corners: C } = ctx;
+  const lY = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dy : C.bl.r;
+  return new THREE.Vector2(0, lY);
+}
+function buildRectL(s, ctx) {
+  const { W1: W, corners: C } = ctx;
+  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dy : C.tl.r;
+  s.lineTo(0, W - tlY);
+}
+function build3DRectL(path, ctx) {
+  const { W1: W, corners: C } = ctx;
+  const lY = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dy : C.bl.r;
+  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dy : C.tl.r;
+  const startL = new THREE.Vector3(0, lY, 0);
+  const endL = new THREE.Vector3(0, W - tlY, 0);
+  path.add( new THREE.LineCurve3( startL, endL ));
+}
+function startRectTl(ctx) {
+  const { W1: W, corners: C } = ctx;
+  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? W - C.tl.dy : W - C.tl.r;
+  return new THREE.Vector2(0, tlY);
+}
+function buildRectTl(s, ctx) {
+  const { W1: W, corners: C } = ctx;
+  switch (C.tl.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(C.tl.r, W - C.tl.r, C.tl.r, Math.PI, Math.PI / 2, true);
+      break;
+    case "INROUND":
+      s.absarc(0, W, C.tl.r, -Math.PI / 2, 0, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(C.tl.dx, W - C.tl.dy);
+      s.lineTo(C.tl.dx, W);
+      break;
+    case "BEVEL":
+      s.lineTo(C.tl.dx, W);
+      break;
+  }
+}
+function build3DRectTl(path, ctx) {
+  const { W1: W, corners: C } = ctx;
+  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? W - C.tl.dy : W - C.tl.r;
+  const startTl = new THREE.Vector3(0, tlY, 0);
+  switch (C.tl.code) {
+    case "ROUND_R": {
+      const center = new THREE.Vector3(C.tl.r, W - C.tl.r, 0);
+      path.add(arc90Bezier(center, C.tl.r, Math.PI, true));
+      break;
+    }
+    case "INROUND": {
+      const center = new THREE.Vector3(0, W, 0);
+      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, false));
+      break;
+    }
+    case "CHAMFER": {
+      const p1 = new THREE.Vector3(C.tl.dx, W - C.tl.dy, 0);
+      const p2 = new THREE.Vector3(C.tl.dx, W, 0);
+      path.add( new THREE.LineCurve3( startTl, p1 ));
+      path.add( new THREE.LineCurve3( p1, p2 ));
+      break;
+    }
+    case "BEVEL": {
+      const p1 = new THREE.Vector3(C.tl.dx, W, 0);
+      path.add( new THREE.LineCurve3( startTl, p1 ));
+      break;
+    }
+  }
+}
+function startRectT(ctx) {
+  const { W1: W, corners: C } = ctx;
+  const tX = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dx : C.tl.r;
+  return new THREE.Vector2(tX, W);
+}
+function buildRectT(s, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? C.tr.dx : C.tr.r;
+  s.lineTo(L - trX, W);
+}
+function build3DRectT(path, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const tX = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dx : C.tl.r;
+  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? C.tr.dx : C.tr.r;
+  const startT = new THREE.Vector3(tX, W, 0);
+  const endT = new THREE.Vector3(L - trX, W, 0);
+  path.add( new THREE.LineCurve3( startT, endT ));
+}
+function startRectTr(ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? L - C.tr.dx : L - C.tr.r;
+  return new THREE.Vector2(trX, W);
+}
+function buildRectTr(s, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  switch (C.tr.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(L - C.tr.r, W - C.tr.r, C.tr.r, Math.PI / 2, 0, true);
+      break;
+    case "INROUND":
+      s.absarc(L, W, C.tr.r, Math.PI, -Math.PI / 2, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(L - C.tr.dx, W - C.tr.dy);
+      s.lineTo(L, W - C.tr.dy);
+      break;
+    case "BEVEL":
+      s.lineTo(L, W - C.tr.dy);
+      break;
+  }
+}
+function build3DRectTr(path, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? L - C.tr.dx : L - C.tr.r;
+  const startTr = new THREE.Vector3(trX, W, 0);
+  switch (C.tr.code) {
+    case "ROUND_R": {
+      const center = new THREE.Vector3(L - C.tr.r, W - C.tr.r, 0);
+      path.add(arc90Bezier(center, C.tr.r, Math.PI / 2, true));
+      break;
+    }
+    case "INROUND": {
+      const center = new THREE.Vector3(L, W, 0);
+      path.add(arc90Bezier(center, C.tr.r, Math.PI, false));
+      break;
+    }
+    case "CHAMFER": {
+      const p1 = new THREE.Vector3(L - C.tr.dx, W - C.tr.dy, 0);
+      const p2 = new THREE.Vector3(L, W - C.tr.dy, 0);
+      path.add( new THREE.LineCurve3( startTr, p1 ));
+      path.add( new THREE.LineCurve3( p1, p2 ));
+      break;
+    }
+    case "BEVEL": {
+      const p1 = new THREE.Vector3(L, W - C.tr.dy, 0);
+      path.add( new THREE.LineCurve3( startTr, p1 ));
+      break;
+    }
+  }
+}
+function startRectR(ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const rY = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? W - C.tr.dy : W - C.tr.r;
+  return new THREE.Vector2(L, rY);
+}
+function buildRectR(s, ctx) {
+  const { L, corners: C } = ctx;
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  s.lineTo(L, brY);
+}
+function build3DRectR(path, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const rY = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? W - C.tr.dy : W - C.tr.r;
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  const startR = new THREE.Vector3(L, rY, 0);
+  const endR = new THREE.Vector3(L, brY, 0);
+  path.add( new THREE.LineCurve3( startR, endR ));
+}
+function startRectBr(ctx) {
+  const { L, corners: C } = ctx;
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  return new THREE.Vector2(L, brY);
+}
+function buildRectBr(s, ctx) {
+  const { L, corners: C } = ctx;
+  switch (C.br.code) {
+    case "ROUND_R":
+    case "NONE":
+      s.absarc(L - C.br.r, C.br.r, C.br.r, 0, -Math.PI / 2, true);
+      break;
+    case "INROUND":
+      s.absarc(L, 0, C.br.r, Math.PI / 2, Math.PI, false);
+      break;
+    case "CHAMFER":
+      s.lineTo(L - C.br.dx, C.br.dy);
+      s.lineTo(L - C.br.dx, 0);
+      break;
+    case "BEVEL":
+      s.lineTo(L - C.br.dx, 0);
+      break;
+  }
+}
+function build3DRectBr(path, ctx) {
+  const { L, corners: C } = ctx;
+  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
+  const startBr = new THREE.Vector3(L, brY, 0);
+  switch (C.br.code) {
+    case "ROUND_R": {
+      const center = new THREE.Vector3(L - C.br.r, C.br.r, 0);
+      path.add(arc90Bezier(center, C.br.r, 0, true));
+      break;
+    }
+    case "INROUND": {
+      const center = new THREE.Vector3(L, 0, 0);
+      path.add(arc90Bezier(center, C.br.r, Math.PI / 2, false));
+      break;
+    }
+    case "CHAMFER": {
+      const p1 = new THREE.Vector3(L - C.br.dx, C.br.dy, 0);
+      const p2 = new THREE.Vector3(L - C.br.dx, 0, 0);
+      path.add( new THREE.LineCurve3( startBr, p1 ));
+      path.add( new THREE.LineCurve3( p1, p2 ));
+      break;
+    }
+    case "BEVEL": {
+      const p1 = new THREE.Vector3(L - C.br.dx, 0, 0);
+      path.add( new THREE.LineCurve3( startBr, p1 ));
+      break;
+    }
+  }
+}
+function startRectB(ctx) {
+  const { L, corners: C } = ctx;
+  const bX = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? L - C.br.dx : L - C.br.r;
+  return new THREE.Vector2(bX, 0);
+}
+function buildRectB(s, ctx) {
+  const { corners: C } = ctx;
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  s.lineTo(blX, 0);
+}
+function build3DRectB(path, ctx) {
+  const { L, corners: C } = ctx;
+  const bX = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? L - C.br.dx : L - C.br.r;
+  const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
+  const startB = new THREE.Vector3(bX, 0, 0);
+  const endB = new THREE.Vector3(blX, 0, 0);
+  path.add( new THREE.LineCurve3( startB, endB ));
+}
+function buildNicheT(s, ctx) {
+  const { L, W1, W2 } = ctx;
+  const sag  = W2 - W1;               // 矢高
+  const R    = (L ** 2) / (8 * sag) + (sag / 2); // 円弧半径
+  const cx   = L / 2;                 // 円心 X
+  const cy   = W2 - R;                // 円心 Y
+  const theta = 2 * Math.asin(L / (2 * R)); // 弧の角度
+  s.absarc(cx, cy, R, Math.PI / 2 + (theta / 2), Math.PI / 2 - (theta / 2), true);
+}
+function build3DNicheT(path, ctx) {
+  const { L, W1, W2 } = ctx;
+  const sag   = W2 - W1;                      // 矢高
+  const R     = (L ** 2) / (8 * sag) + sag / 2;
+  const cx    =  L / 2;
+  const cy    =  W2 - R;
+  const theta = 2 * Math.asin(L / (2 * R));   // 弧の中心角
+
+  // 2) 始角 a0, 終角 a1  （XY で上向き 0°=+X 軸想定）
+  const a0 = Math.PI / 2 + theta / 2;   // 左端
+  const a1 = Math.PI / 2 - theta / 2;   // 右端
+  const center = new THREE.Vector3(cx, cy, 0);
+
+  // 3) CubicBezierCurve3 配列を取得（1 本または 2 本）
+  const arcCurves = arcToBezier(center, R, a0, a1, /*ccw=*/true);
+  path.add( new THREE.LineCurve3( new THREE.Vector3(0, W1, 0), arcCurves[0].v0 ) );
+  arcCurves.forEach(c => edgePath.add(c));
+  path.add( new THREE.LineCurve3( arcCurves.at(-1).v3, new THREE.Vector3(L, W1, 0) ));
+}
+function buildEquilateralTl(s, ctx) {
+  const { L, W1: W } = ctx;
+  s.lineTo(L / 2, W);
+}
+function build3DEquilateralTl(path, ctx) {
+  const { W1: W } = ctx;
+  const startTl = new THREE.Vector3(0, 0, 0);
+  const endTl = new THREE.Vector3(L / 2, W, 0);
+  path.add( new THREE.LineCurve3( startTl, endTl ));
+}
+function startEquilateralTr(ctx) {
+  const { L, W1: W } = ctx;
+  return new THREE.Vector2(L / 2, W);
+}
+function buildEquilateralTr(s, ctx) {
+  const { L } = ctx;
+  s.lineTo(L, 0);
+}
+function build3DEquilateralTr(path, ctx) {
+  const { L, W1: W, corners: C } = ctx;
+  const startTr = new THREE.Vector3(L / 2, W, 0);
+  const endTr = new THREE.Vector3(L, 0, 0);
+  path.add( new THREE.LineCurve3( startTr, endTr ));
+}
+
+function arc90Bezier(center, radius, startAngle, ccw) {
+  const sign = ccw ? 1 : -1;                  // 方向
+  const a0 = startAngle;
+  const a1 = a0 + sign * Math.PI/2;
+  const k  = (4/3) * radius * Math.tan(Math.PI/8);
+
+  const u  = new THREE.Vector2(Math.cos(a0), Math.sin(a0));
+  const v  = new THREE.Vector2(Math.cos(a1), Math.sin(a1));
+
+  const up = new THREE.Vector2(-sign*u.y, sign*u.x); // +90°(ccw) or -90°(cw)
+  const vp = new THREE.Vector2(+sign*v.y, -sign*v.x);
+
+  const toV3 = (vec2) => new THREE.Vector3(vec2.x, vec2.y, 0);
+
+  const p0 = toV3(u.clone().multiplyScalar(radius).add(center));
+  const p3 = toV3(v.clone().multiplyScalar(radius).add(center));
+  const p1 = toV3(p0.clone().add(up.multiplyScalar(k)));
+  const p2 = toV3(p3.clone().add(vp.multiplyScalar(k)));
+
+  return new THREE.CubicBezierCurve3(p0, p1, p2, p3);
+}
+function arcToBezier(center, R, a0, a1, ccw = true) {
+  const segMax = Math.PI / 2;                              // 90° 以下に分割
+  let Δ = a1 - a0;
+  if (!ccw) Δ = -Δ;
+
+  const nSeg   = Math.ceil(Math.abs(Δ) / segMax);
+  const segAng = Δ / nSeg;                                 // 1 区間の角度
+  const k      = (4 / 3) * Math.tan(Math.abs(segAng) / 4) * R;
+
+  const curves = [];
+  for (let i = 0; i < nSeg; i++) {
+    const aStart = a0 + segAng *  i;
+    const aEnd   = a0 + segAng * (i + 1);
+
+    // 半径ベクトル
+    const u = new THREE.Vector2(Math.cos(aStart), Math.sin(aStart));
+    const v = new THREE.Vector2(Math.cos(aEnd  ), Math.sin(aEnd  ));
+
+    // 接線方向 (= ±90° 回転)
+    const up = ccw ? new THREE.Vector2(-u.y,  u.x) : new THREE.Vector2( u.y, -u.x);
+    const vp = ccw ? new THREE.Vector2( v.y, -v.x) : new THREE.Vector2(-v.y,  v.x);
+
+    // 点を Vector3 に
+    const toV3 = ({x, y}) => new THREE.Vector3(x, y, 0).add(center);
+
+    const p0 = toV3(u.multiplyScalar(R));
+    const p3 = toV3(v.multiplyScalar(R));
+    const p1 = p0.clone().add( toV3(up.setLength( k )).sub(center) );
+    const p2 = p3.clone().add( toV3(vp.setLength( k )).sub(center) );
+
+    curves.push( new THREE.CubicBezierCurve3(p0, p1, p2, p3) );
+  }
+  return curves;
 }

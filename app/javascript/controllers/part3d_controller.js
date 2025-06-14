@@ -10,8 +10,7 @@ import { buildCtx   }    from "helpers/build_ctx";
 import { buildShape }    from "helpers/shape_builders";
 import {
   extrudePlate,
-  applyRoundHoles,
-  applySquareHoles
+  applyEdges
 } from "helpers/modifiers";
 
 export default class extends Controller {
@@ -115,15 +114,19 @@ export default class extends Controller {
     let geom = extrudePlate(shape, ctx.T);
     // --- Extrude した時点で holes が反映されるため追加 CSG 不要
 
-const mesh = new THREE.Mesh(
+    const baseMesh = new THREE.Mesh(
       geom,
       new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness:0.2, roughness:0.7 })
     );
-
-    this._replaceMesh(mesh);
+    // ③ エッジ加工を適用（戻り値を上書き）
+    const finalMesh = applyEdges(baseMesh, ctx);
+    this._replaceMesh(finalMesh);
+    // ↓ デバッグ
+    //this.scene.add(baseMesh);
 
     /* --- カメラとライトをモデル中心へ ------------------------- */
-    const box = new THREE.Box3().setFromObject(mesh);
+    //const box = new THREE.Box3().setFromObject(baseMesh);
+    const box = new THREE.Box3().setFromObject(finalMesh);
     if (!isFinite(box.max.x)) return;            // 空ジオメトリガード
 
     const center = box.getCenter(new THREE.Vector3());

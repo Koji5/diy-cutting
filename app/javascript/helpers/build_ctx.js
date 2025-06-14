@@ -168,6 +168,13 @@ export function buildCtx (form) {
       ctx.corners.bl.r ||= ctx.W1;
       break;
   }
+  // --- エッジ加工 (edge_{key}_code) ---------------------------------
+  const EDGE_KEYS = ["tl","t","tr","l","r","bl","b","br"];
+  ctx.edges = {}; 
+  EDGE_KEYS.forEach(key=>{
+    const raw = ($(form, `edge_${key}_code`)?.value || "NONE").toUpperCase();
+    ctx.edges[key] = { code: raw, opts: {} };
+  });
 
   // --- 丸穴 ----------------------------------------------------------
   // フォーム data-attribute から直径テーブルを取得
