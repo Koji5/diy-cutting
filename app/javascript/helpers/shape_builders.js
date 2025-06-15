@@ -163,6 +163,7 @@ function rectPath({ cx, cy, w, h }) {
   return p;
 }
 
+// -----Bl-----
 function startRectBl(ctx) {
   const { corners: C } = ctx;
   const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
@@ -192,14 +193,15 @@ function build3DRectBl(path, ctx) {
   const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
   const startBl = new THREE.Vector3(blX, 0, 0);
   switch (C.bl.code) {
-    case "ROUND_R": {
+    case "ROUND_R":
+    case "NONE": {
       const center = new THREE.Vector3(C.bl.r, C.bl.r, 0);
-      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, true));
+      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, false));
       break;
     }
     case "INROUND": {
       const center = new THREE.Vector3(0, 0, 0);
-      path.add(arc90Bezier(center, C.bl.r, 0, false));
+      path.add(arc90Bezier(center, C.bl.r, 0, true));
       break;
     }
     case "CHAMFER": {
@@ -216,11 +218,7 @@ function build3DRectBl(path, ctx) {
     }
   }
 }
-function startRectL(ctx) {
-  const { corners: C } = ctx;
-  const lY = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dy : C.bl.r;
-  return new THREE.Vector2(0, lY);
-}
+// -----L-----
 function buildRectL(s, ctx) {
   const { W1: W, corners: C } = ctx;
   const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dy : C.tl.r;
@@ -234,11 +232,7 @@ function build3DRectL(path, ctx) {
   const endL = new THREE.Vector3(0, W - tlY, 0);
   path.add( new THREE.LineCurve3( startL, endL ));
 }
-function startRectTl(ctx) {
-  const { W1: W, corners: C } = ctx;
-  const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? W - C.tl.dy : W - C.tl.r;
-  return new THREE.Vector2(0, tlY);
-}
+// -----Tl-----
 function buildRectTl(s, ctx) {
   const { W1: W, corners: C } = ctx;
   switch (C.tl.code) {
@@ -263,14 +257,15 @@ function build3DRectTl(path, ctx) {
   const tlY = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? W - C.tl.dy : W - C.tl.r;
   const startTl = new THREE.Vector3(0, tlY, 0);
   switch (C.tl.code) {
-    case "ROUND_R": {
+    case "ROUND_R":
+    case "NONE": {
       const center = new THREE.Vector3(C.tl.r, W - C.tl.r, 0);
-      path.add(arc90Bezier(center, C.tl.r, Math.PI, true));
+      path.add(arc90Bezier(center, C.tl.r, Math.PI, false));
       break;
     }
     case "INROUND": {
       const center = new THREE.Vector3(0, W, 0);
-      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, false));
+      path.add(arc90Bezier(center, C.bl.r, -Math.PI / 2, true));
       break;
     }
     case "CHAMFER": {
@@ -287,11 +282,7 @@ function build3DRectTl(path, ctx) {
     }
   }
 }
-function startRectT(ctx) {
-  const { W1: W, corners: C } = ctx;
-  const tX = C.tl.code === "CHAMFER" || C.tl.code === "BEVEL" ? C.tl.dx : C.tl.r;
-  return new THREE.Vector2(tX, W);
-}
+// -----T-----
 function buildRectT(s, ctx) {
   const { L, W1: W, corners: C } = ctx;
   const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? C.tr.dx : C.tr.r;
@@ -305,11 +296,7 @@ function build3DRectT(path, ctx) {
   const endT = new THREE.Vector3(L - trX, W, 0);
   path.add( new THREE.LineCurve3( startT, endT ));
 }
-function startRectTr(ctx) {
-  const { L, W1: W, corners: C } = ctx;
-  const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? L - C.tr.dx : L - C.tr.r;
-  return new THREE.Vector2(trX, W);
-}
+// -----Tr-----
 function buildRectTr(s, ctx) {
   const { L, W1: W, corners: C } = ctx;
   switch (C.tr.code) {
@@ -334,14 +321,15 @@ function build3DRectTr(path, ctx) {
   const trX = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? L - C.tr.dx : L - C.tr.r;
   const startTr = new THREE.Vector3(trX, W, 0);
   switch (C.tr.code) {
-    case "ROUND_R": {
+    case "ROUND_R":
+    case "NONE": {
       const center = new THREE.Vector3(L - C.tr.r, W - C.tr.r, 0);
-      path.add(arc90Bezier(center, C.tr.r, Math.PI / 2, true));
+      path.add(arc90Bezier(center, C.tr.r, Math.PI / 2, false));
       break;
     }
     case "INROUND": {
       const center = new THREE.Vector3(L, W, 0);
-      path.add(arc90Bezier(center, C.tr.r, Math.PI, false));
+      path.add(arc90Bezier(center, C.tr.r, Math.PI, true));
       break;
     }
     case "CHAMFER": {
@@ -358,11 +346,7 @@ function build3DRectTr(path, ctx) {
     }
   }
 }
-function startRectR(ctx) {
-  const { L, W1: W, corners: C } = ctx;
-  const rY = C.tr.code === "CHAMFER" || C.tr.code === "BEVEL" ? W - C.tr.dy : W - C.tr.r;
-  return new THREE.Vector2(L, rY);
-}
+// -----R-----
 function buildRectR(s, ctx) {
   const { L, corners: C } = ctx;
   const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
@@ -376,11 +360,7 @@ function build3DRectR(path, ctx) {
   const endR = new THREE.Vector3(L, brY, 0);
   path.add( new THREE.LineCurve3( startR, endR ));
 }
-function startRectBr(ctx) {
-  const { L, corners: C } = ctx;
-  const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
-  return new THREE.Vector2(L, brY);
-}
+// -----Br-----
 function buildRectBr(s, ctx) {
   const { L, corners: C } = ctx;
   switch (C.br.code) {
@@ -405,14 +385,15 @@ function build3DRectBr(path, ctx) {
   const brY = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? C.br.dy : C.br.r;
   const startBr = new THREE.Vector3(L, brY, 0);
   switch (C.br.code) {
-    case "ROUND_R": {
+    case "ROUND_R":
+    case "NONE": {
       const center = new THREE.Vector3(L - C.br.r, C.br.r, 0);
-      path.add(arc90Bezier(center, C.br.r, 0, true));
+      path.add(arc90Bezier(center, C.br.r, 0, false));
       break;
     }
     case "INROUND": {
       const center = new THREE.Vector3(L, 0, 0);
-      path.add(arc90Bezier(center, C.br.r, Math.PI / 2, false));
+      path.add(arc90Bezier(center, C.br.r, Math.PI / 2, true));
       break;
     }
     case "CHAMFER": {
@@ -429,11 +410,7 @@ function build3DRectBr(path, ctx) {
     }
   }
 }
-function startRectB(ctx) {
-  const { L, corners: C } = ctx;
-  const bX = C.br.code === "CHAMFER" || C.br.code === "BEVEL" ? L - C.br.dx : L - C.br.r;
-  return new THREE.Vector2(bX, 0);
-}
+// -----B-----
 function buildRectB(s, ctx) {
   const { corners: C } = ctx;
   const blX = C.bl.code === "CHAMFER" || C.bl.code === "BEVEL" ? C.bl.dx : C.bl.r;
@@ -463,31 +440,22 @@ function build3DNicheT(path, ctx) {
   const cx    =  L / 2;
   const cy    =  W2 - R;
   const theta = 2 * Math.asin(L / (2 * R));   // 弧の中心角
-
   // 2) 始角 a0, 終角 a1  （XY で上向き 0°=+X 軸想定）
   const a0 = Math.PI / 2 + theta / 2;   // 左端
   const a1 = Math.PI / 2 - theta / 2;   // 右端
   const center = new THREE.Vector3(cx, cy, 0);
-
-  // 3) CubicBezierCurve3 配列を取得（1 本または 2 本）
-  const arcCurves = arcToBezier(center, R, a0, a1, /*ccw=*/true);
-  path.add( new THREE.LineCurve3( new THREE.Vector3(0, W1, 0), arcCurves[0].v0 ) );
-  arcCurves.forEach(c => edgePath.add(c));
-  path.add( new THREE.LineCurve3( arcCurves.at(-1).v3, new THREE.Vector3(L, W1, 0) ));
+  const arc3 = new ArcCurve3( center, R, a0, a1, false );
+  path.add(arc3);
 }
 function buildEquilateralTl(s, ctx) {
   const { L, W1: W } = ctx;
   s.lineTo(L / 2, W);
 }
 function build3DEquilateralTl(path, ctx) {
-  const { W1: W } = ctx;
+  const { L, W1: W } = ctx;
   const startTl = new THREE.Vector3(0, 0, 0);
   const endTl = new THREE.Vector3(L / 2, W, 0);
   path.add( new THREE.LineCurve3( startTl, endTl ));
-}
-function startEquilateralTr(ctx) {
-  const { L, W1: W } = ctx;
-  return new THREE.Vector2(L / 2, W);
 }
 function buildEquilateralTr(s, ctx) {
   const { L } = ctx;
@@ -521,37 +489,26 @@ function arc90Bezier(center, radius, startAngle, ccw) {
 
   return new THREE.CubicBezierCurve3(p0, p1, p2, p3);
 }
-function arcToBezier(center, R, a0, a1, ccw = true) {
-  const segMax = Math.PI / 2;                              // 90° 以下に分割
-  let Δ = a1 - a0;
-  if (!ccw) Δ = -Δ;
-
-  const nSeg   = Math.ceil(Math.abs(Δ) / segMax);
-  const segAng = Δ / nSeg;                                 // 1 区間の角度
-  const k      = (4 / 3) * Math.tan(Math.abs(segAng) / 4) * R;
-
-  const curves = [];
-  for (let i = 0; i < nSeg; i++) {
-    const aStart = a0 + segAng *  i;
-    const aEnd   = a0 + segAng * (i + 1);
-
-    // 半径ベクトル
-    const u = new THREE.Vector2(Math.cos(aStart), Math.sin(aStart));
-    const v = new THREE.Vector2(Math.cos(aEnd  ), Math.sin(aEnd  ));
-
-    // 接線方向 (= ±90° 回転)
-    const up = ccw ? new THREE.Vector2(-u.y,  u.x) : new THREE.Vector2( u.y, -u.x);
-    const vp = ccw ? new THREE.Vector2( v.y, -v.x) : new THREE.Vector2(-v.y,  v.x);
-
-    // 点を Vector3 に
-    const toV3 = ({x, y}) => new THREE.Vector3(x, y, 0).add(center);
-
-    const p0 = toV3(u.multiplyScalar(R));
-    const p3 = toV3(v.multiplyScalar(R));
-    const p1 = p0.clone().add( toV3(up.setLength( k )).sub(center) );
-    const p2 = p3.clone().add( toV3(vp.setLength( k )).sub(center) );
-
-    curves.push( new THREE.CubicBezierCurve3(p0, p1, p2, p3) );
+class ArcCurve3 extends THREE.Curve {
+  constructor( center, radius, startAngle, endAngle, clockwise = false ) {
+    super();
+    this.center = center.clone();
+    this.radius = radius;
+    this.startAngle = startAngle;
+    this.endAngle   = endAngle;
+    this.clockwise  = clockwise;
   }
-  return curves;
+  getPoint( t, target = new THREE.Vector3() ) {
+    // t = 0 → startAngle, t = 1 → endAngle
+    const angle = this.clockwise
+      ? this.startAngle - t * ( this.startAngle - this.endAngle )
+      : this.startAngle + t * ( this.endAngle - this.startAngle );
+
+    target.set(
+      this.center.x + this.radius * Math.cos( angle ),
+      this.center.y + this.radius * Math.sin( angle ),
+      0
+    );
+    return target;
+  }
 }

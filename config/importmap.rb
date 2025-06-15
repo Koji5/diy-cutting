@@ -26,9 +26,9 @@ pin "three/examples/jsm/utils/BufferGeometryUtils.js",
 # --- OrbitControls ---------------------------------------------
 pin "three/examples/jsm/controls/OrbitControls.js",
     to: "https://unpkg.com/three@0.176.0/examples/jsm/controls/OrbitControls.js"
-# --- CSG ---------------------------------------------------------------
-pin_all_from "vendor/javascript/three-csg-ts", under: "three-csg-ts"
 # --- アプリ側ヘルパ -----------------------------------------------------
 pin_all_from "app/javascript/helpers", under: "helpers"
 
 pin "config/geometry", to: "config/geometry.js", preload: true
+pin_all_from "vendor/javascript/three-bvh-csg", under: "three-bvh-csg"
+pin_all_from "vendor/javascript/three-mesh-bvh", under: "three-mesh-bvh"

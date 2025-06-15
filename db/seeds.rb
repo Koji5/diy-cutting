@@ -107,7 +107,7 @@ MShape.upsert_all([
     description_en: "Arc on one long side.",
     allow_shape_json:  %w[tl bl],
     allow_corner_json: %w[tr br],
-    allow_edge_json:   %w[t l r b bl]
+    allow_edge_json:   %w[tl t l r b bl]
   },
   {
     code: "SIDE_UARC1",
@@ -117,7 +117,7 @@ MShape.upsert_all([
     description_en: "U-shaped cut on one side.",
     allow_shape_json: [],
     allow_corner_json: %w[tr br],
-    allow_edge_json:   %w[t l r b bl]
+    allow_edge_json:   %w[tl t r b bl l]
   },
   {
     code: "TRI_EQ",
@@ -167,7 +167,7 @@ MShape.upsert_all([
     description_en: "Circular plate.",
     allow_shape_json: [],
     allow_corner_json: [],
-    allow_edge_json:   %w[tl]
+    allow_edge_json:   %w[tl tr br bl]
   },
   {
     code: "SEMI",
@@ -177,7 +177,7 @@ MShape.upsert_all([
     description_en: "Semicircular plate.",
     allow_shape_json: [],
     allow_corner_json: [],
-    allow_edge_json:   %w[t b]
+    allow_edge_json:   %w[bl br t]
   },
   {
     code: "NICHE",

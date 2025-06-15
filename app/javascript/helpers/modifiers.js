@@ -3,10 +3,8 @@
 // Three.js + three-csg-ts 用ユーティリティ
 // --------------------------------------------------------------
 import * as THREE from "three";
-import { CSG } from "three-csg-ts/CSG";
-// import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { buildEdgeCutters } from "helpers/edge_builders";
+import { Evaluator, Brush, SUBTRACTION } from "three-bvh-csg/index.module";
 
 // --------------------------------------------------------------
 // 1. 平面 Shape → 板 (ExtrudeGeometry)
@@ -24,29 +22,40 @@ export function extrudePlate(shape, t) {
 export function applyEdges(baseMesh, ctx) {
   if (!baseMesh) return;
   const cutters = buildEdgeCutters(ctx);
-  let result;
+  let resultMesh = baseMesh;
   if (cutters.length) {
-    //const validCutters = cutters.filter(g => g && g.isBufferGeometry);
-    //let toolGeo = BufferGeometryUtils.mergeGeometries(validCutters, false);
-    //if (!toolGeo) {
-    //  console.warn('mergeGeometries failed – attribute mismatch');
-    //  return baseMesh;                                // ここで安全に抜ける
-    //}
-    //toolGeo = toolGeo.toNonIndexed();                      //    （重複頂点を展開）
-    //toolGeo.clearGroups();                      // ② マテリアルグループを空に
-    result = baseMesh;
     cutters.forEach(cutter => {
-      result = CSG.subtract(result, new THREE.Mesh(cutter));
-      //const wireMat = new THREE.MeshStandardMaterial({ color: 0xff9966, metalness:0.2, roughness:0.7 });
-      //result = new THREE.Mesh(cutter, wireMat);
+      try {
+        if (!cutter.attributes.normal) {
+          cutter.computeVertexNormals();
+        }
+        const cutterMesh = new THREE.Mesh(
+          cutter,
+          new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness:0.2, roughness:0.7 })
+        );
+        resultMesh.updateMatrixWorld( true );
+        cutterMesh.updateMatrixWorld( true );
+        const resultBrush = new Brush( resultMesh.geometry, resultMesh.material );
+        const cutterBrush = new Brush( cutterMesh.geometry, cutterMesh.material );
+        resultBrush.matrixWorld.copy( resultMesh.matrixWorld );
+        cutterBrush.matrixWorld.copy( cutterMesh.matrixWorld );
+        resultBrush.matrixAutoUpdate = cutterBrush.matrixAutoUpdate = false;
+        const evaluator = new Evaluator();
+        resultMesh = evaluator.evaluate(
+          resultBrush,            // A
+          cutterBrush,           // B
+          SUBTRACTION            // A − B  (= 引き算)
+        );
+      } catch (err) {
+        console.warn(`warn at cutter`);
+        resultMesh = baseMesh;
+      }
     });
-    //result = new THREE.Mesh(toolGeo);
   } else {
     console.warn('cuttersがありません');
-    result = baseMesh;
   }
-  //_centerGeometry(result.geometry);   // エッジ加工後に XYZ 原点合わせ
-  return result;
+  _centerGeometry(resultMesh.geometry);   // エッジ加工後に XYZ 原点合わせ
+  return resultMesh;
 }
 
 // --------------------------------------------------------------

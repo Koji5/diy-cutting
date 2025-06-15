@@ -121,11 +121,8 @@ export default class extends Controller {
     // ③ エッジ加工を適用（戻り値を上書き）
     const finalMesh = applyEdges(baseMesh, ctx);
     this._replaceMesh(finalMesh);
-    // ↓ デバッグ
-    //this.scene.add(baseMesh);
 
     /* --- カメラとライトをモデル中心へ ------------------------- */
-    //const box = new THREE.Box3().setFromObject(baseMesh);
     const box = new THREE.Box3().setFromObject(finalMesh);
     if (!isFinite(box.max.x)) return;            // 空ジオメトリガード
 
