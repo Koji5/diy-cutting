@@ -59,7 +59,6 @@ export default class extends Controller {
       this.checkAll()
     }
 
-    window.dims = this;          // ← デバッグ用 ★
     // 空の number フィールドにフォーカスしたら min を自動入力
     this.element
       .querySelectorAll('input[type="number"]')

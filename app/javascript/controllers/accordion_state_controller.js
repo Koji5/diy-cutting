@@ -12,9 +12,15 @@ export default class extends Controller {
 
   connect () {
     if (!this.hasIdValue) return
+    const modal = document.getElementById("loadingModal")
+    if (modal) {
+      modal.style.display = "flex";
+      console.log("✅ accordion-state から flex化 が呼ばれた")
+    }
     this.restoreState()
     this.element.addEventListener("show.bs.collapse", () => this.saveState(true))
     this.element.addEventListener("hide.bs.collapse", () => this.saveState(false))
+    if (modal) modal.style.display = "none"
   }
 
   // 保存

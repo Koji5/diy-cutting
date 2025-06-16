@@ -38,11 +38,9 @@ export default class extends Controller {
       }
     });
 
-    /* コンソールデバッグ ---------------- */
-    window.part3d   = this;
-    window.THREE    = THREE;
-    window.buildCtx = buildCtx;
-    window.renderer = this.renderer;
+    // NOW LOADINGを消す
+    const modal = document.getElementById("loadingModal")
+    if (modal) modal.style.display = "none"
   }
 
   /*=====================  Three.js 初期化 =======================*/

@@ -1,0 +1,14 @@
+<!-- ローディング専用モーダル -->
+<div class="modal fade show"
+    id="loadingModal"
+    tabindex="-1"
+    aria-hidden="true"
+    style="display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.8); z-index: 2000;">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content text-center border-0 bg-transparent shadow-none">
+      <div class="modal-body">
+        <img src="<%= asset_path('loading.gif') %>" alt="Loading...">
+      </div>
+    </div>
+  </div>
+</div>
