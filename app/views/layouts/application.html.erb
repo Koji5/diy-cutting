@@ -25,7 +25,14 @@
     <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css", media: "all", rel: "stylesheet", crossorigin: "anonymous" %>
   </head>
 
-  <body class="d-flex flex-column min-vh-100">
+  <body class="d-flex flex-column min-vh-100" data-controller="page-loading">
+    <div
+      data-page-loading-target="overlay"
+      class="loading-overlay position-fixed top-0 start-0 w-100 h-100
+            bg-white bg-opacity-75 d-flex align-items-center justify-content-center"
+      style="z-index:2000">
+      <img src="<%= asset_path('loading.gif') %>" alt="Loading…" width="48" height="48">
+    </div>
 
     <!-- ===== ヘッダー ===== -->
     <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">

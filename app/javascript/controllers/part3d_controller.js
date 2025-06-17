@@ -14,33 +14,46 @@ import {
 } from "helpers/modifiers";
 
 export default class extends Controller {
-  connect () {
-    /* フォーム --------------------------- */
-    this.form = this.element.closest("form") || document.forms[0];
+  async connect () {
+    const loaderCtrl = this.application.getControllerForElementAndIdentifier(
+      document.body, "page-loading"
+    )
 
-    /* Three.js -------------------------- */
-    this._initThree();
+    // メソッド自体が Promise を返す形に
+    const p = this._asynchronousProcessing()
 
-    /* 初回描画 & 監視 ------------------- */
-    this._updateModel();
-    this.form.addEventListener("input", () => this._updateModel());
-    window.addEventListener("resize", () => this._handleResize());
+    loaderCtrl?.register(p)
+    await p         // 処理完了を待ってから connect() を抜ける
+  }
 
-    /* Bootstrap タブが表示された瞬間にリサイズ+再描画 */
-    document.addEventListener("shown.bs.tab", e => {
-      const target = e.target.dataset.bsTarget || "";
-      if (target === "#preview-pane") {
-        // 少し遅らせて layout が確定してから実行
-        setTimeout(() => {
-          this._handleResize();
-          this._updateModel();
-        }, 10);
-      }
-    });
+  /**
+   * Three.js の初期化が終わったら resolve する Promise を返す
+   */
+  _asynchronousProcessing () {
+    return new Promise(resolve => {
+      /* フォーム --------------------------- */
+      this.form = this.element.closest("form") || document.forms[0]
 
-    // NOW LOADINGを消す
-    const modal = document.getElementById("loadingModal")
-    if (modal) modal.style.display = "none"
+      /* Three.js -------------------------- */
+      this._initThree()
+      //this._initThree().then(() => {
+        /* 初回描画 & 監視 ------------------- */
+        this._updateModel()
+        this.form.addEventListener("input", () => this._updateModel())
+        window.addEventListener("resize", () => this._handleResize())
+
+        document.addEventListener("shown.bs.tab", e => {
+          if ((e.target.dataset.bsTarget || "") === "#preview-pane") {
+            setTimeout(() => {
+              this._handleResize()
+              this._updateModel()
+            }, 10)
+          }
+        })
+
+        resolve()           // ← ここで完了を通知
+      //})
+    })
   }
 
   /*=====================  Three.js 初期化 =======================*/

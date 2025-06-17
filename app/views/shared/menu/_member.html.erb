@@ -1,19 +1,25 @@
 <!-- ▼ 部品管理（アコーディオン） -->
-<div class="accordion" id="memberPartsAccordion">
+<div class="accordion"
+     id="memberPartsAccordion"
+     data-controller="accordion-state"
+     data-accordion-state-id-value="memberPartsMenu"> <!-- ← ① -->
+
+  <!-- ===== セクション：部品管理 ===== -->
   <div class="accordion-item border-0">
     <h2 class="accordion-header">
       <button class="accordion-button collapsed py-2 px-3"
-              type="button" data-bs-toggle="collapse"
-              data-bs-target="#memberPartsMenu" aria-expanded="false">
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#memberPartsMenuPane">
         <i class="bi bi-box-seam me-2"></i> 部品管理
       </button>
     </h2>
 
-    <div id="memberPartsMenu"
+    <div id="memberPartsMenuPane"
          class="accordion-collapse collapse"
-         data-controller="accordion-state"
-         data-accordion-state-id-value="memberPartsMenu"
-         data-bs-parent="#memberPartsAccordion">
+         data-accordion-state-target="collapse"
+         data-bs-parent="#memberPartsAccordion">      <!-- ← ② -->
+
       <div class="accordion-body py-1 px-0">
 
         <%= link_to new_part_path, class: "nav-link ps-5 py-1" do %>
@@ -27,4 +33,31 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== ここから新しいセクションを追加していける ===== -->
+  <!-- サンプル：見積り管理 -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed py-2 px-3"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#memberQuotesPane">
+        <i class="bi bi-receipt me-2"></i> 見積り管理
+      </button>
+    </h2>
+
+    <div id="memberQuotesPane"
+         class="accordion-collapse collapse"
+         data-accordion-state-target="collapse"
+         data-bs-parent="#memberPartsAccordion">
+
+      <div class="accordion-body py-1 px-0">
+        <%= link_to parts_path, class: "nav-link ps-5 py-1" do %>
+          <i class="bi bi-card-list me-1"></i> 見積り一覧
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- さらに項目が増えても同じブロックをコピーで OK -->
 </div>
