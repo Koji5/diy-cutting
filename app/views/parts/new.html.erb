@@ -700,7 +700,9 @@
   
       <!-- ───────── 3D プレビュータブ（プレースホルダ） ───────── -->
       <div class="tab-pane fade" id="preview-pane" role="tabpanel">
-        <div class="ratio ratio-16x9 bg-light" data-controller="part3d">
+        <div class="ratio ratio-16x9 bg-light" 
+            data-controller="part3d" 
+            data-part3d-shader-url-value="<%= asset_path('wood_shader.json') %>">
             <canvas data-part3d-target="canvas" class="w-100 h-100"></canvas>
         </div>
       </div>
