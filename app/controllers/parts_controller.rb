@@ -113,7 +113,9 @@ class PartsController < ApplicationController
       :edge_l_code,                :edge_r_code,
       :edge_bl_code, :edge_b_code, :edge_br_code,
       # 塗装加工（paint_json）
-      :paint_surface_code, :paint_color_code, :grain_finish_code, :gloss_code
+      :paint_surface_code, :paint_color_code, :grain_finish_code, :gloss_code,
+      # サムネイル画像
+      :thumbnail_data, :camera_state_json
     )
   end
 

@@ -9,3 +9,7 @@ canvas { width:100%; height:100%; }
 
 .loading-overlay          { display:none !important; }
 .loading-overlay.is-active{ display:flex !important; }
+
+@media (min-width: 992px) {     /* lg 以上でタブを常に見せる */
+  .tab-content > .tab-pane { display:block; opacity:1; }  /* Bootstrap の fade 効果を解除 */
+}

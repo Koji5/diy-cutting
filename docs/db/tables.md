@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-05-29 19:22 JST
+生成日: 2025-06-19 15:48 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -562,6 +562,7 @@
 | updated_by_id | bigint | ○ |  |  |
 | origin_snapshot_id | bigint | ○ |  |  |
 | origin_owner_id | bigint | ○ |  |  |
+| camera_state | jsonb | ○ |  |  |
 
 **インデックス**:
 - parts_pkey (id) [PK]
@@ -641,6 +642,14 @@
         FOREIGN KEY (corner_tl_proc)
         REFERENCES m_corner_processes(code);
       ```
+* **camera_state**は JSON で
+   ```json
+   {
+      "pos":  [300, 300, 300],   // camera.position
+      "tgt":  [0, 0, 0],         // controls.target
+      "zoom": 1.2                // camera.zoom (Orthographic の場合)
+   }
+   ```
 <!-- NOTE END -->
 
 <!-- TABLE_END parts -->
@@ -4173,4 +4182,83 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END m_glosses -->
+
+<!-- TABLE_BEGIN active_storage_blobs -->
+## active_storage_blobs
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| key | character varying | × |  |  |
+| filename | character varying | × |  |  |
+| content_type | character varying | ○ |  |  |
+| metadata | text | ○ |  |  |
+| service_name | character varying | × |  |  |
+| byte_size | bigint | × |  |  |
+| checksum | character varying | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- active_storage_blobs_pkey (id) [PK]
+- index_active_storage_blobs_on_key (key) [UNIQUE]
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END active_storage_blobs -->
+
+<!-- TABLE_BEGIN active_storage_attachments -->
+## active_storage_attachments
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| name | character varying | × |  |  |
+| record_type | character varying | × |  |  |
+| record_id | bigint | × |  |  |
+| blob_id | bigint | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- active_storage_attachments_pkey (id) [PK]
+- index_active_storage_attachments_on_blob_id (blob_id)
+- index_active_storage_attachments_uniqueness (record_type, record_id, name, blob_id) [UNIQUE]
+
+**外部キー**:
+- fk_rails_c3b3935057 (blob_id) → active_storage_blobs.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END active_storage_attachments -->
+
+<!-- TABLE_BEGIN active_storage_variant_records -->
+## active_storage_variant_records
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| blob_id | bigint | × |  |  |
+| variation_digest | character varying | × |  |  |
+
+**インデックス**:
+- active_storage_variant_records_pkey (id) [PK]
+- index_active_storage_variant_records_uniqueness (blob_id, variation_digest) [UNIQUE]
+
+**外部キー**:
+- fk_rails_993965df05 (blob_id) → active_storage_blobs.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END active_storage_variant_records -->
 

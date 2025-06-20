@@ -35,6 +35,26 @@ export default class extends Controller {
     await p                         // 完了してから connect() を抜ける
   }
 
+  disconnect() {
+    if (this.observer) this.observer.disconnect() // ★ 監視解除
+    this.stop()                // ★ アニメーションループ停止
+    this.renderer.dispose()    //   GPU リソース解放（任意）
+  }
+
+  start() { this.renderer.setAnimationLoop(this.render) }
+  stop()  { this.renderer.setAnimationLoop(null)        }
+
+  /*======================== 描画ループ ========================*/
+  /*  start() で renderer.setAnimationLoop(this.render) が呼ばれ、
+      stop()   で null がセットされて停止します。            */
+  render = (time) => {
+    // OrbitControls を使っている場合、update() が必要
+    this.controls?.update();
+  
+    // シーンを描画
+    this.renderer.render(this.scene, this.camera);
+  };
+
   /*====================  ⚡同期初期化処理 ========================*/
   _synchronization () {
     /* フォーム --------------------------------- */
@@ -45,7 +65,7 @@ export default class extends Controller {
 
     /* イベント --------------------------------- */
     this.form.addEventListener("input",  () => this._updateModel())
-    window.addEventListener("resize", () => this._handleResize())
+    this.controls.addEventListener("change", () => this._syncCameraState());
 
     document.addEventListener("shown.bs.tab", e => {
       if ((e.target.dataset.bsTarget || "") === "#preview-pane") {
@@ -55,6 +75,23 @@ export default class extends Controller {
         }, 10)
       }
     })
+    // --- 追加：ループ ON/OFF を自動制御 ---
+    this.observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => entry.isIntersecting ? this.start() : this.stop())
+    }, { threshold: 0.1 })
+    this.observer.observe(this.renderer.domElement)
+
+    /* === ResizeObserver でキャンバスサイズを監視 === */
+    this.resizeObs = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect
+      if (!width || !height) return          // 幅 0 は無視
+      this.renderer.setSize(width, height, false)
+      this.camera.aspect = width / height
+      this.camera.updateProjectionMatrix()
+      this.render()                          // 1 フレームだけ描画
+    })
+    // ratio-16x9 の <div> を監視（this.element がそれ）
+    this.resizeObs.observe(this.element)
   }
 
   /*================  🕒初回モデル描画（非同期） =================*/
@@ -65,10 +102,9 @@ export default class extends Controller {
 
   /*=====================  Three.js 初期化 =======================*/
   _initThree () {
-    /* サイズ (高さ 0 → 16:9 仮決め) */
-    const rect = this.element.getBoundingClientRect();
-    this.w = rect.width;
-    this.h = rect.height || rect.width * 9/16;
+    /* サイズ (仮決め) */
+    this.w = 640;
+    this.h = 360;
 
     /* シーン */
     this.scene = new THREE.Scene();
@@ -85,32 +121,27 @@ export default class extends Controller {
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
     /* レンダラー */
-    this.renderer = new THREE.WebGLRenderer({ antialias:true });
+    this.renderer = new THREE.WebGLRenderer({ 
+      antialias:             true,
+      alpha:                 true,
+      preserveDrawingBuffer: true
+    });
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    /* 仮サイズで一旦 setSize —— 実サイズは ResizeObserver が上書き */
     this.renderer.setSize(this.w, this.h, false);
-    this.element.appendChild(this.renderer.domElement);
+    // ① プレースホルダを本物キャンバスに置き換え
+    const ph = this.element.querySelector("canvas[data-part3d-target='canvas']");
+    ph?.replaceWith(this.renderer.domElement);
+
+    // ② data-attribute を付け直し (thumb_capture が拾いやすいように)
+    this.renderer.domElement.dataset.part3dTarget = "canvas";
 
     /* Controls */
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
 
-    /* ループ */
-    const animate = () => {
-      requestAnimationFrame(animate);
-      this.controls.update();
-      this.renderer.render(this.scene, this.camera);
-    };
-    animate();
-  }
-
-  /*========================= リサイズ ============================*/
-  _handleResize () {
-    const rect = this.element.getBoundingClientRect();
-    this.w = rect.width;
-    this.h = rect.height || rect.width * 9/16;
-    this.renderer.setSize(this.w, this.h, false);
-    this.camera.aspect = this.w / this.h;
-    this.camera.updateProjectionMatrix();
+    /* === ここで 1 フレーム描画して黒画面を防ぐ === */
+    this.renderer.render(this.scene, this.camera);
   }
 
   /*====================== モデル更新 (async) ====================*/
@@ -224,4 +255,13 @@ export default class extends Controller {
     }
   }
 
+  _syncCameraState() {
+    const cam  = this.camera;
+    const json = JSON.stringify({
+      pos:  [cam.position.x, cam.position.y, cam.position.z],
+      tgt:  [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      zoom: cam.zoom
+    });
+    document.getElementById("camera_state_json").value = json;
+  }
 }

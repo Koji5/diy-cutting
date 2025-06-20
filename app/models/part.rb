@@ -66,9 +66,9 @@ class Part < ApplicationRecord
   # ─────────────────────────────
   has_one_attached :thumbnail
   attr_accessor :_outer, :_holes
-  # 生成と更新を分ける
-  after_create_commit :generate_thumbnail
-  after_update_commit :regenerate_thumbnail
+  attr_accessor :thumbnail_data   # 仮想属性（form から受け取るだけ）
+  before_validation :attach_thumbnail_from_base64, if: -> { thumbnail_data.present? }
+  after_commit :sync_thumbnail, on: %i[create update]
 
   # ─────────────────────────────
   # JSONB アクセサ
@@ -175,11 +175,23 @@ class Part < ApplicationRecord
   end
 
   # ─────────────────────────────
+  # カメラ位置
+  # ─────────────────────────────
+  before_validation :assign_camera_state
+  def camera_state_json=(v)
+    @camera_state_json = v
+  end
+  def assign_camera_state
+    self.camera_state = JSON.parse(@camera_state_json) if @camera_state_json.present?
+  end
+
+  # ─────────────────────────────
   # キャッシュ付きユーティリティ
   # ─────────────────────────────
   def self.master_codes(klass)
     Rails.cache.fetch("#{klass.name.underscore}/codes") { klass.pluck(:code) }
   end
+
 
   # ─────────────────────────────
   # バリデーション
@@ -242,12 +254,6 @@ class Part < ApplicationRecord
 
   private
 
-  def regenerate_thumbnail
-    # 添付 (thumbnail.attach) が触っただけなら何もしない
-    return if saved_changes.except(:updated_at, "updated_at").blank?
-    generate_thumbnail
-  end
-
   def generate_thumbnail
     puts "=== THUMB GEN START ==="
     outer = _outer || OuterShapeBuilder.build_outer_path(attributes.symbolize_keys)
@@ -266,11 +272,6 @@ class Part < ApplicationRecord
       io.read
     end
     raise "rsvg-convert failed" if png_data.empty?
-    #puts "🔥MiniMagick bytes=#{png.to_blob.bytesize} format=#{png['format']}"
-    #puts  "mime=#{png["format"]}"
-    #png = MiniMagick::Image.read(svg_str) do |img|
-    #  img.format "png"                     # ★ ここで必ず PNG に変換
-    #end
   
     # === 重要ポイント ========================================
     # 1. `png.to_blob` を attach する
@@ -282,5 +283,30 @@ class Part < ApplicationRecord
       filename: "thumb_#{id}.png",
       content_type: "image/png"
     )
+  end
+
+  # Three.js から送られてきた base64 PNG を attach
+  def attach_thumbnail_from_base64
+    return if thumbnail.attached? # 二重 attach 防止
+
+    png = Base64.decode64(thumbnail_data)
+    thumbnail.attach(
+      io: StringIO.new(png),
+      filename: "thumb_#{SecureRandom.hex(4)}.png",
+      content_type: "image/png"
+    )
+  end
+
+  # フロントが無効／失敗した場合のみ従来処理を実行
+  def sync_thumbnail
+    # ---------- 無限ループ防止 ----------
+    return if saved_changes.except(:updated_at, "updated_at").blank?
+
+    # ---------- Three.js からのデータ優先 ----------
+    return if thumbnail_data.present?      # すでに base64 が届いている
+    return if thumbnail.attached?          # attach 済（create 時など）
+
+    # ---------- フォールバック ----------
+    generate_thumbnail                     # SVG → PNG
   end
 end
