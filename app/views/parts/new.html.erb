@@ -5,8 +5,8 @@
                   controller: "dims thumb-capture",
                   dims_rules_value:     GLOBAL_DIM_RULE.to_json,
                   dims_hole_diameters_value: @hole_diameters.index_by(&:code)
-                                              .transform_values(&:hole_mm).to_json
-                }, data: { turbo_frame: "main" } do |f| %>
+                                              .transform_values(&:hole_mm).to_json,
+                  turbo_frame: "main" } do |f| %>
     <%= hidden_field_tag "part[thumbnail_data]", "", id: "thumbnail_data" %>
 
     <!-- = nav tabs（モバイルのみ表示） = -->

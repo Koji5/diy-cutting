@@ -51,11 +51,14 @@
           <% if user_signed_in? %>
             <span class="text-white me-3"><%= role_badge(current_user) %></span>
             <span class="text-white me-3">こんにちは、<%= current_user.display_name %>さん</span>
-            <%= link_to "ログアウト", destroy_user_session_path,
-                        data: { turbo_method: :delete, turbo_confirm: "本当にログアウトしますか？" }, class: "btn btn-sm btn-outline-light" %>
+            <%= button_to "ログアウト",
+                        destroy_user_session_path,
+                        method: :delete,
+                        form:  { data: { turbo_confirm: "本当にログアウトしますか?", turbo_frame: "_top" }, class: "d-inline" },
+                        class: "btn btn-sm btn-outline-light" %>
           <% else %>
-            <%= link_to "ログイン",  new_user_session_path,        class: "btn btn-sm btn-light me-2" %>
-            <%= link_to "新規登録", new_user_registration_path, class: "btn btn-sm btn-warning" %>
+            <%= link_to "ログイン", new_user_session_path,      data:  { turbo_frame: "_top" }, class: "btn btn-sm btn-light me-2" %>
+            <%= link_to "新規登録", new_user_registration_path, data:  { turbo_frame: "_top" }, class: "btn btn-sm btn-warning" %>
           <% end %>
         </div>
 
