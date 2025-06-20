@@ -1,53 +1,59 @@
 import { Controller } from "@hotwired/stimulus"
 
+/*
+  Shows an overlay (target: overlay) while Turbo navigation / requests are in flight.
+  - Adds .is-active on show(), removes on hide()
+  - Keeps an internal Set of pending Promises so you can call `register(promise)` from
+    other controllers / fetches and have the overlay automatically disappear when all
+    are resolved.
+*/
 export default class extends Controller {
   static targets = ["overlay"]
   pending = new Set()
 
-  connect() {
-    /* --- Visit 開始：とりあえず is-active を付ける ---- */
-    addEventListener("turbo:before-visit",        () => this.show())
-    addEventListener("turbo:before-fetch-request", (e) => {
-      const headers = e.detail.fetchOptions.headers || {};
-      // ↓ prefetch 判定：Purpose, Sec-Purpose, X-Sec-Purpose いずれかが "prefetch"
-      const isPrefetch =
-        headers["Purpose"] === "prefetch" ||
-        headers["Sec-Purpose"] === "prefetch" ||
-        headers["X-Sec-Purpose"] === "prefetch";
-      console.log(e.detail.fetchOptions);
-      if (isPrefetch) return;   // ← ホバーによる先読みは無視
+  connect () {
+    /* ---------------- Turbo navigation / request ---------------- */
+    addEventListener("turbo:before-visit",            () => this.show())
+    addEventListener("turbo:before-fetch-request",    (e) => {
+      const headers = e.detail.fetchOptions.headers || {}
+      const isPrefetch = headers["Purpose"]       === "prefetch" ||
+                         headers["Sec-Purpose"]   === "prefetch" ||
+                         headers["X-Sec-Purpose"] === "prefetch"
+      if (!isPrefetch) this.show()
+    })
 
-      this.show();              // 実際の遷移・フォーム送信だけオーバーレイ表示
-    });
-    /* --- 本番 HTML が描画された瞬間 ---------------------- */
-    addEventListener("turbo:render", (e) => {
-      // preview (= キャッシュ) ならスルー
+    /* Frame・Full reload both trigger turbo:render */
+    addEventListener("turbo:render",  (e) => {
+      // Skip preview (bfcache) renders
       if (document.documentElement.hasAttribute("data-turbo-preview")) return
-      this.show()                // ② ここで CSS => JS に引き継ぐ
-      // 1フレーム待って pending が無ければ即 hide
+      this.show()           // hand‑off CSS overlay → JS overlay
       requestAnimationFrame(() => { if (this.pending.size === 0) this.hide() })
     })
 
-    /* --- 422/500 などエラー応答 -------------------------- */
+    /* NEW — hide after *any* frame or full load completes */
+    addEventListener("turbo:frame-load", () => this.hide())
+    addEventListener("turbo:load",       () => this.hide())
+
+    /* Error responses (422/500 etc.) */
     addEventListener("turbo:before-fetch-response", (e) => {
       if (e.detail.fetchResponse.response.status >= 400) this.hide()
     })
 
-    /* --- Promise 完了通知 ------------------------------- */
+    /* Promise completion hook */
     addEventListener("page-loading:done", ({ detail: promise }) => {
       this.pending.delete(promise)
-      if (this.pending.size === 0) this.hide()    // ③
+      if (this.pending.size === 0) this.hide()
     })
   }
 
-  /* --- 外部から Promise を登録する API ------------------ */
-  register(promise) {
+  /* Register an external promise to keep the overlay visible */
+  register (promise) {
     this.pending.add(promise)
     promise.finally(() =>
       dispatchEvent(new CustomEvent("page-loading:done", { detail: promise }))
     )
   }
 
-  show() { this.overlayTarget.classList.add("is-active") }
-  hide() { this.overlayTarget.classList.remove("is-active") }
+  show () { this.overlayTarget.classList.add("is-active") }
+  hide () { this.overlayTarget.classList.remove("is-active") }
 }

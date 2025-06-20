@@ -85,7 +85,9 @@
         <!-- メイン：ここに各ページが入る -->
         <main class="col-12 col-lg-10 py-3">
           <div class="container py-5">
-          <%= yield %>            <!-- ★ この行は絶対に残す -->
+            <turbo-frame id="main">
+              <%= yield %>            <!-- ★ この行は絶対に残す -->
+            </turbo-frame>
           </div>
         </main>
 

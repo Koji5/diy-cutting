@@ -1,4 +1,5 @@
 class Part < ApplicationRecord
+  include Discardable
   require "stringio"
   # ─────────────────────────────
   # 関連
@@ -69,6 +70,8 @@ class Part < ApplicationRecord
   attr_accessor :thumbnail_data   # 仮想属性（form から受け取るだけ）
   before_validation :attach_thumbnail_from_base64, if: -> { thumbnail_data.present? }
   after_commit :sync_thumbnail, on: %i[create update]
+  after_commit :generate_thumbnail_variant, on: [:create, :update]
+  after_discard :purge_thumbnail!
 
   # ─────────────────────────────
   # JSONB アクセサ
@@ -250,7 +253,7 @@ class Part < ApplicationRecord
   # ─────────────────────────────
   # スコープ
   # ─────────────────────────────
-  scope :alive, -> { where(deleted_flag: false) }
+  default_scope -> { kept }
 
   private
 
@@ -308,5 +311,22 @@ class Part < ApplicationRecord
 
     # ---------- フォールバック ----------
     generate_thumbnail                     # SVG → PNG
+  end
+
+  def generate_thumbnail_variant
+    # 添付なし・SVG など非可変はスキップ
+    return unless thumbnail.attached? && thumbnail.variable?
+
+    # ビューと同じ定義でバリアントを作成
+    thumbnail
+      .variant(resize_to_fill: [160, 160],
+               saver:  { quality: 70 },
+               format: :webp)
+      .processed            # ← ここが “事前生成” の核心
+  end
+
+  # discard された直後に添付を物理削除
+  def purge_thumbnail!
+    thumbnail.purge_later if thumbnail.attached?
   end
 end

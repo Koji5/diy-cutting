@@ -7,7 +7,7 @@ class PartsController < ApplicationController
   # ───────────────────────
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @parts = current_user.parts.alive.includes(:origin_owner).order(updated_at: :desc)
+    @parts = current_user.parts.kept.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
     # affiliate の場合のみ “オリジナル作成者” を表示するため
     @show_owner = current_user.affiliate?
   end
@@ -28,6 +28,25 @@ class PartsController < ApplicationController
     else
       load_masters
       render :new, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @part = Part.kept.find(params[:id])
+    @part.discard!
+
+    respond_to do |format|
+      # Turbo Drive (通常のリンク) → 行を DOM から外す
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.remove(helpers.dom_id(@part))
+      end
+
+      # 非 Turbo (従来のブラウザ遷移) → 一覧へリダイレクト
+      format.html do
+        redirect_to parts_path,
+                    status: :see_other,
+                    notice: "部品「#{@part.name}」を削除しました。"
+      end
     end
   end
 
