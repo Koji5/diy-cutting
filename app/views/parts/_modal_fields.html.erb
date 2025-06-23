@@ -1,0 +1,141 @@
+<%# 部品名称説明 %>
+<div class="modal fade" id="help-name" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">部品名称とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        例）「棚板‐上段」など、一覧で識別しやすい名前を入力してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 樹種説明 %>
+<div class="modal fade" id="help-material" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">樹種とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        樹種（材質）を選択してください。例：シナ合板、ナラ無垢 など。
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 平面形状説明 %>
+<div class="modal fade" id="help-shape" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">平面形状とは？</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 説明文をここに記述 -->
+        矩形や三角形など、部品の平面形状を選択してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 寸法ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-dims" tabindex="-1" aria-hidden="true"
+      data-controller="dimhelp" data-dimhelp-target="modal">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">寸法入力のヒント</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body dim-help-body">
+        <!-- Stimulus がここを書き換える -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 加工設定ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-shapeproc" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">加工設定のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body" id="shapeproc-help">
+      形状を選択すると、ここに説明が入ります。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── コーナー(角)加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-corners" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">コーナー加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角丸め (R) は半径を指定 / 角落とし・斜めカットは dx,dy を指定してください。<br>
+      形状によって指定できるコーナーが異なります。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 丸穴加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-holes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">丸穴加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角のチェックを入れると、中心位置 (縦・横) と丸穴径を設定できます。<br>
+      <code>16mm 以上</code> を選ぶと任意径を直接入力してください。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 四角穴加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-sqholes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">四角穴加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      角のチェックを入れると、穴中心までの距離 (縦・横) と<br>
+      四角穴サイズ (縦・横) を設定できます。
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── 断面加工設定 (オプション)ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-edges" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">断面加工のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      方向ごとに糸面・R 面・ボーズ面などを選択できます。<br>
+      平面形状によって選択できない方向はグレーアウトされます。
+    </div>
+  </div></div>
+</div>
+  
+  <!-- ───────── 塗装ヘルプモーダル ───────── -->
+<div class="modal fade" id="help-paint" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">塗装設定のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body small">
+      <p>塗装種類を選択すると、選べる塗装面・色・導管仕上げ・ツヤが自動で切り替わります。</p>
+      <ul class="mb-0">
+        <li><strong>選択なし</strong>… 無塗装</li>
+        <li><strong>ウレタン塗装</strong>… すべての項目が選択可能</li>
+        <li><strong>自然塗装</strong>… 面と色のみ選択可能</li>
+      </ul>
+    </div>
+  </div></div>
+</div>

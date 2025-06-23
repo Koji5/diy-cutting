@@ -1,5 +1,5 @@
-<!-- app/views/parts/new.html.erb -->
-<h3 class="mb-4">部品新規作成</h1>
+<!-- app/views/parts/edit.html.erb -->
+<h3 class="mb-4">部品編集</h1>
 <%= form_with model: @part,
               data: {
                 controller: "dims thumb-capture",
@@ -9,7 +9,7 @@
                 turbo_frame: "main" } do |f| %>
 <%= render "form_fields", f: f %>
 
-      <%= f.submit "登録する", class: "btn btn-primary" %>
+      <%= f.submit "更新する", class: "btn btn-primary" %>
     </div>
 
     <!-- ───────── 3D プレビュータブ ───────── -->

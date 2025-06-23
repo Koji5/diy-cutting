@@ -1,6 +1,7 @@
 class PartsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_member_or_affiliate
+  before_action :set_part, only: %i[edit update]
 
   # ───────────────────────
   # 一覧 (SID-PR-100)
@@ -28,6 +29,22 @@ class PartsController < ApplicationController
     else
       load_masters
       render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    load_masters
+  end
+
+  def update
+    @part.material_category_code ||= "WOOD"
+    #   ↑ フォームで送られていなければ強制的に WOOD をセット
+    #   （将来カテゴリ選択式にしたときはこの行を削除 or 条件分岐）
+    if @part.update(basic_part_params)
+      redirect_to parts_path, notice: "部品を更新しました"
+    else
+      load_masters
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -136,6 +153,10 @@ class PartsController < ApplicationController
       # サムネイル画像
       :thumbnail_data, :camera_state_json
     )
+  end
+
+  def set_part
+    @part = current_user.parts.kept.find(params[:id])
   end
 
 end
