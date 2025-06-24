@@ -13,3 +13,15 @@ canvas { width:100%; height:100%; }
 @media (min-width: 992px) {     /* lg 以上でタブを常に見せる */
   .tab-content > .tab-pane { display:block; opacity:1; }  /* Bootstrap の fade 効果を解除 */
 }
+
+.form-select-plaintext {
+  pointer-events: none !important;
+  border: 0 !important;
+  appearance: none;
+}
+.form-number-plaintext {
+  pointer-events: none !important;
+  border: 0 !important;
+  max-width: 60px;
+  padding-inline: 1px;
+}

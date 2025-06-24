@@ -64,8 +64,8 @@
 
             <!-- ボタン群 -->
             <div class="mt-auto d-flex gap-2">
-              <!-- 詳細 -->
-              <%= link_to part_path(part), data: { turbo_frame: "main" }, class: "btn btn-outline-secondary btn-icon" do %>
+              <!-- 詳細：モーダル用 Turbo Frame に流し込む -->
+              <%= link_to part_path(part), data: { turbo_frame: "part_modal" }, class: "btn btn-outline-secondary btn-icon" do %>
                 <i class="bi bi-eye"></i>
               <% end %>
 
@@ -87,4 +87,18 @@
       </div>
     </div>
   <% end %>
+</div>
+<!-- --- 部品詳細モーダル骨格 -------------------- -->
+<div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">部品詳細</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
+        </div>
+    </div>
+  </div>
 </div>

@@ -1,7 +1,7 @@
 class PartsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_member_or_affiliate
-  before_action :set_part, only: %i[edit update]
+  before_action :set_part, only: %i[edit update show]
 
   # ───────────────────────
   # 一覧 (SID-PR-100)
@@ -13,9 +13,15 @@ class PartsController < ApplicationController
     @show_owner = current_user.affiliate?
   end
 
+  def show
+    load_masters
+    render layout: (turbo_frame_request? ? false : "application")
+  end
+
   def new
     @part = Part.new
     load_masters
+    load_rules
   end
 
   def create
@@ -28,12 +34,14 @@ class PartsController < ApplicationController
       redirect_to parts_path, notice: "部品を登録しました"
     else
       load_masters
+      load_rules
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
     load_masters
+    load_rules
   end
 
   def update
@@ -44,6 +52,7 @@ class PartsController < ApplicationController
       redirect_to parts_path, notice: "部品を更新しました"
     else
       load_masters
+      load_rules
       render :edit, status: :unprocessable_entity
     end
   end
@@ -98,6 +107,9 @@ class PartsController < ApplicationController
     @grain_finishes  = MGrainFinish.order(:code)
     @glosses         = MGloss.order(:code)
 
+  end
+
+  def load_rules
     # --- グローバルルール -----------------------------------------
     @global_dim_rule = GLOBAL_DIM_RULE
 
@@ -118,7 +130,6 @@ class PartsController < ApplicationController
                            .transform_values(&:allow_paint_json)
                            .to_json
   end
-
 
     # ───────── 基本項目 (テーブルの直接カラム) ─────────
   def basic_part_params
