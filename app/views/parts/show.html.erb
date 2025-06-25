@@ -113,26 +113,20 @@
                             } %>
           <span>mm</span>
         </span>
-        <span class="input-group-text" data-readonly-section="<%= "corner_#{key}_dx" %>">
+        <% value = @part.public_send("corner_#{key}_dx") %>
+        <span class="<%= value.present? ? 'input-group-text' : 'ig-hidden' %>">
           <%= f.label "corner_#{key}_dx", "縦：", class: "small" %>
           <%= f.number_field  "corner_#{key}_dx",
                             value: @part.public_send("corner_#{key}_dx").to_i,
-                            class: "form-number-plaintext form-control",
-                            data: {
-                              part_show_target: "number",
-                              readonly_section_param: "corner_#{key}_dx"
-                            } %>
+                            class: "form-number-plaintext form-control" %>
           <span>mm</span>
         </span>
-        <span class="input-group-text" data-readonly-section="<%= "corner_#{key}_dy" %>">
+        <% value = @part.public_send("corner_#{key}_dy") %>
+        <span class="<%= value.present? ? 'input-group-text' : 'ig-hidden' %>">
           <%= f.label "corner_#{key}_dy", "横：", class: "small" %>
           <%= f.number_field  "corner_#{key}_dy",
                             value: @part.public_send("corner_#{key}_dy").to_i,
-                            class: "form-number-plaintext form-control",
-                            data: {
-                              part_show_target: "number",
-                              readonly_section_param: "corner_#{key}_dy"
-                            } %>
+                            class: "form-number-plaintext form-control" %>
           <span>mm</span>
         </span>
       </div>
