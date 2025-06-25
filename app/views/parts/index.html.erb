@@ -18,15 +18,10 @@
             <% if part.thumbnail.attached? %>
               <% if part.thumbnail.variable? %>
                 <%= image_tag part.thumbnail
-                               .variant(resize_to_fill: [160, 160],
-                                        saver: { quality: 70 },
-                                        format: :webp)
-                               .processed,
+                               .variant(resize_to_fill: [160, 160]),
                                width: 160,
                                height: 160,
-                               class: "rounded border",
-                               loading: "lazy",
-                               decoding: "async" %>
+                               class: "rounded border" %>
               <% else %> <!-- SVG など -->
                 <%= image_tag part.thumbnail,
                                width: 160,

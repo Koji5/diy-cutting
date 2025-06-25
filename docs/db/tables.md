@@ -654,6 +654,123 @@
 
 <!-- TABLE_END parts -->
 
+<!-- TABLE_BEGIN recipes -->
+## recipes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  |  |
+| name | character varying(60) | × |  |  |
+| status | integer | × | 0 |  |
+| latest_snapshot_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- recipes_pkey (id) [PK]
+- index_recipes_on_latest_snapshot_id (latest_snapshot_id)
+- index_recipes_on_user_id (user_id)
+
+**外部キー**:
+- fk_rails_9606fce865 (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END recipes -->
+
+<!-- TABLE_BEGIN recipe_parts -->
+## recipe_parts — レシピを構成する部品リスト （中間テーブル）
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| recipe_id | bigint | × |  | 親レシピ (recipes.id) |
+| part_id | bigint | × |  | 構成部品 (parts.id) |
+| quantity | integer | × | 1 | レシピ内で使用する数量 |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- recipe_parts_pkey (id) [PK]
+- index_recipe_parts_on_part_id (part_id)
+- index_recipe_parts_on_recipe_id (recipe_id)
+
+**外部キー**:
+- fk_rails_220f43ebf6 (recipe_id) → recipes.id
+- fk_rails_7138980aad (part_id) → parts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+**メモ**:
+- **同一レシピ内で同じ部品を重複させたくない** 場合は`UNIQUE (recipe_id, part_id)` 制約を追加。
+- `quantity` は正整数のみ許容。モデル側で `numericality: { greater_than: 0 }` を付ける。
+- リレーションは `Recipe has_many :recipe_parts` / `Part has_many :recipe_parts` を想定。
+<!-- NOTE END -->
+
+<!-- TABLE_END recipe_parts -->
+
+<!-- TABLE_BEGIN recipe_snapshots -->
+## recipe_snapshots
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| recipe_id | bigint | × |  |  |
+| version | integer | × |  |  |
+| published_at | timestamp(6) without time zone | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- recipe_snapshots_pkey (id) [PK]
+- index_recipe_snapshots_on_recipe_id (recipe_id)
+
+**外部キー**:
+- fk_rails_c19cfa2d34 (recipe_id) → recipes.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END recipe_snapshots -->
+
+<!-- TABLE_BEGIN recipe_snapshot_parts -->
+## recipe_snapshot_parts
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| recipe_snapshot_id | bigint | × |  |  |
+| part_snapshot_id | bigint | × |  |  |
+| quantity | integer | × | 1 |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- recipe_snapshot_parts_pkey (id) [PK]
+- index_recipe_snapshot_parts_on_part_snapshot_id (part_snapshot_id)
+- index_recipe_snapshot_parts_on_recipe_snapshot_id (recipe_snapshot_id)
+
+**外部キー**:
+- fk_rails_0989e6ad85 (recipe_snapshot_id) → recipe_snapshots.id
+- fk_rails_eede368e91 (part_snapshot_id) → part_snapshots.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END recipe_snapshot_parts -->
+
 <!-- TABLE_BEGIN affiliate_signups -->
 ## affiliate_signups
 
@@ -2233,33 +2350,6 @@
 
 <!-- TABLE_END h_error_logs_202507 -->
 
-<!-- TABLE_BEGIN recipe_snapshots -->
-## recipe_snapshots
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| recipe_id | bigint | × |  |  |
-| version | integer | × |  |  |
-| published_at | timestamp(6) without time zone | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- recipe_snapshots_pkey (id) [PK]
-- index_recipe_snapshots_on_recipe_id (recipe_id)
-
-**外部キー**:
-- fk_rails_c19cfa2d34 (recipe_id) → recipes.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END recipe_snapshots -->
-
 <!-- TABLE_BEGIN h_error_logs_202508 -->
 ## h_error_logs_202508
 
@@ -3160,96 +3250,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END part_files -->
-
-<!-- TABLE_BEGIN recipes -->
-## recipes
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
-| name | character varying(60) | × |  |  |
-| status | integer | × | 0 |  |
-| latest_snapshot_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- recipes_pkey (id) [PK]
-- index_recipes_on_latest_snapshot_id (latest_snapshot_id)
-- index_recipes_on_user_id (user_id)
-
-**外部キー**:
-- fk_rails_9606fce865 (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END recipes -->
-
-<!-- TABLE_BEGIN recipe_parts -->
-## recipe_parts — レシピを構成する部品リスト （中間テーブル）
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| recipe_id | bigint | × |  | 親レシピ (recipes.id) |
-| part_id | bigint | × |  | 構成部品 (parts.id) |
-| quantity | integer | × | 1 | レシピ内で使用する数量 |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- recipe_parts_pkey (id) [PK]
-- index_recipe_parts_on_part_id (part_id)
-- index_recipe_parts_on_recipe_id (recipe_id)
-
-**外部キー**:
-- fk_rails_220f43ebf6 (recipe_id) → recipes.id
-- fk_rails_7138980aad (part_id) → parts.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-**メモ**:
-- **同一レシピ内で同じ部品を重複させたくない** 場合は`UNIQUE (recipe_id, part_id)` 制約を追加。
-- `quantity` は正整数のみ許容。モデル側で `numericality: { greater_than: 0 }` を付ける。
-- リレーションは `Recipe has_many :recipe_parts` / `Part has_many :recipe_parts` を想定。
-<!-- NOTE END -->
-
-<!-- TABLE_END recipe_parts -->
-
-<!-- TABLE_BEGIN recipe_snapshot_parts -->
-## recipe_snapshot_parts
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| recipe_snapshot_id | bigint | × |  |  |
-| part_snapshot_id | bigint | × |  |  |
-| quantity | integer | × | 1 |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- recipe_snapshot_parts_pkey (id) [PK]
-- index_recipe_snapshot_parts_on_part_snapshot_id (part_snapshot_id)
-- index_recipe_snapshot_parts_on_recipe_snapshot_id (recipe_snapshot_id)
-
-**外部キー**:
-- fk_rails_0989e6ad85 (recipe_snapshot_id) → recipe_snapshots.id
-- fk_rails_eede368e91 (part_snapshot_id) → part_snapshots.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END recipe_snapshot_parts -->
 
 <!-- TABLE_BEGIN carts -->
 ## carts

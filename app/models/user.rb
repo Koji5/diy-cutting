@@ -17,6 +17,7 @@ class User < ApplicationRecord
   has_many :parts,
            dependent: :destroy,
            inverse_of: :user
+  has_many :recipes, dependent: :destroy
 
   # ロール毎に “詳細テーブル” と “候補カラム” をマッピング
   DISPLAY_NAME_MAP = {

@@ -36,3 +36,4 @@ pin_all_from "app/javascript/helpers", under: "helpers"
 pin "config/geometry", to: "config/geometry.js", preload: true
 pin_all_from "vendor/javascript/three-bvh-csg", under: "three-bvh-csg"
 pin_all_from "vendor/javascript/three-mesh-bvh", under: "three-mesh-bvh"
+pin "sortablejs", to: "sortable.esm.js"

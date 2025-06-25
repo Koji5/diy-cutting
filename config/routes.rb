@@ -44,4 +44,5 @@ Rails.application.routes.draw do
   end
 
   resources :parts, only: %i[index new create show edit update destroy]
+  resources :recipes, only: %i[new create show]
 end
