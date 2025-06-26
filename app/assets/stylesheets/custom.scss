@@ -1,3 +1,81 @@
+/* 基本レイアウト: アイコンのみサイドレール */
+:root {
+  --main-header-h: 48px;           /* Header inside main */
+  --footer-h: 56px;                 /* Bottom bar 高さ */
+  --rail-left-narrow: 72px;   /* 左:アイコンのみ幅 */
+  --rail-left-wide: 260px;    /* 左:ラベル付き幅 */
+  --rail-right-wide: 350px;   /* 右:プレースホルダー幅 (PC) */
+}
+.SideRail {
+  position: fixed; top: 0; left: 0;
+  width: var(--rail-left-narrow);
+  height: 100vh;
+  z-index: 1020;
+  overflow-y: auto;
+}
+.SideLink  { display: flex; align-items: center; justify-content: center; width: 100%; }
+.SideLabel { display: none; }
+.Main {
+  margin-left: var(--rail-left-narrow);   /* 左サイド幅 */
+  margin-right: 0;                        /* 右レールはモバイルで 0 */
+  /*max-width: 600px;*/
+  margin-inline: auto;                    /* 中央寄せ */
+}
+/***** MAIN HEADER (sticky glass) *****/
+.MainHeader{
+  position:sticky;
+  top: 0;
+  left:0;
+  height:var(--main-header-h);
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(12px);
+  z-index:1025;
+}
+/***** RIGHT PLACEHOLDER RAIL *****/
+.RightRail {
+  position: fixed; top: 0; right: 0;
+  width: 0;                       /* モバイルでは非表示 */
+  height: 100vh;
+  z-index: 1010;
+  font-size: .875rem;
+}
+/***** XL (xl ≥ 1200px) → 右レール表示 *****/
+@media (min-width: 1200px) {
+  .RightRail { width: var(--rail-right-wide); }
+  .Main { margin-right: var(--rail-right-wide); }
+}
+/***** LARGE (lg ≥ 992px) → 左レール フルラベル *****/
+@media (min-width: 992px) {
+  .SideRail { width: var(--rail-left-wide); }
+  .SideLink { justify-content: flex-start; padding-left: 24px; }
+  .SideLabel { display: inline; }
+  .Main { margin-left: var(--rail-left-wide); }
+}
+/***** md *****/
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .Main { margin-left: var(--rail-left-narrow); }
+}
+/***** SMALL (sm < 768px) → 左レール非表示 *****/
+@media (max-width: 767.98px) {
+  .SideRail { display: none; width: 0; }
+  .Main { margin-left: 0; padding-bottom:var(--footer-h);}
+}
+/***** BOTTOM TAB BAR *****/
+.BottomBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:var(--footer-h);
+  z-index:1030
+}
+.BottomLink{display:flex;align-items:center;justify-content:center;color:#000;padding-top:.25rem}
+.BottomLink:active,.BottomLink.active{color:#0d6efd}
+/***** OPTIONAL TRANSITIONS *****/
+.SideRail, .RightRail, .Main { transition: margin .2s ease, width .2s ease; }
+/* スクロール慣性 (iOS) */
+html,body{-webkit-overflow-scrolling:touch;}
+
 .toast-over-footer {
   position: fixed;
   z-index: 1100;

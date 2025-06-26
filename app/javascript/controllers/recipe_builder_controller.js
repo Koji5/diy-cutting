@@ -33,7 +33,7 @@ export default class extends Controller {
 
   listTemplate(name, thumbUrl) {
     return `
-      <img src="${thumbUrl}" width="48" height="48"
+      <img src="${thumbUrl}" width="40" height="40"
           class="rounded me-2 flex-shrink-0 object-fit-cover" alt="">
       <span>${name}</span>
     `
@@ -53,6 +53,7 @@ export default class extends Controller {
     }
 
     el.innerHTML = this.cardTemplate(id, name, obj.qty, thumbUrl)
+    el.style.minWidth = "315px";
     this.updateHidden()
   }
 
@@ -99,7 +100,7 @@ export default class extends Controller {
     const trashHtml  = '<i class="bi bi-trash"></i>'     // ごみ箱アイコン
     const removeIcon = (qty === 1) ? trashHtml : minusHtml
     return `
-      <img src="${thumbUrl}" width="32" height="32"
+      <img src="${thumbUrl}" width="40" height="40"
          class="rounded me-2 flex-shrink-0 object-fit-cover" alt="">
 
       <span class="flex-grow-1">${name}</span>

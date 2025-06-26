@@ -8,13 +8,6 @@
 // ③ Bootstrap Icons
 @import "bootstrap-icons/font/bootstrap-icons";
 
-// ----------------------------------------
-// サイドメニュー
-aside {
-  height: calc(100vh - var(--bs-navbar-height)); // or 56px
-  overflow-y: auto;
-}
-
 // メニュー内リンクの強調
 .nav-link.active,
 .nav-link:hover {

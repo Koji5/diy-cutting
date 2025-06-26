@@ -26,6 +26,8 @@
   </head>
 
   <body class="d-flex flex-column min-vh-100" data-controller="page-loading">
+
+    <%# ===== Now Loading GIF ===== %>
     <div
       data-page-loading-target="overlay"
       class="loading-overlay position-fixed top-0 start-0 w-100 h-100
@@ -34,84 +36,57 @@
       <img src="<%= asset_path('loading.gif') %>" alt="Loading…" width="48" height="48">
     </div>
 
-    <!-- ===== ヘッダー ===== -->
-    <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-      <div class="container-fluid">
-
-        <%= link_to "DIY Cutting", root_path, class: "navbar-brand" %>
-
-        <!-- モバイル用ハンバーガー -->
-        <button class="navbar-toggler d-lg-none" type="button"
-                data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- 右寄せ：ログイン / ログアウト -->
-        <div class="ms-auto">
-          <% if user_signed_in? %>
-            <span class="text-white me-3"><%= role_badge(current_user) %></span>
-            <span class="text-white me-3">こんにちは、<%= current_user.display_name %>さん</span>
-            <%= button_to "ログアウト",
-                        destroy_user_session_path,
-                        method: :delete,
-                        form:  { data: { turbo_confirm: "本当にログアウトしますか?", turbo_frame: "_top" }, class: "d-inline" },
-                        class: "btn btn-sm btn-outline-light" %>
-          <% else %>
-            <%= link_to "ログイン", new_user_session_path,      data:  { turbo_frame: "_top" }, class: "btn btn-sm btn-light me-2" %>
-            <%= link_to "新規登録", new_user_registration_path, data:  { turbo_frame: "_top" }, class: "btn btn-sm btn-warning" %>
-          <% end %>
-        </div>
-
-      </div>
-    </header>
-
-    <!-- ===== フラッシュメッセージ ===== -->
-    <div class="container-fluid mt-2">
-      <% flash.each do |type, message| %>
-        <% bs = { "notice" => "success", "alert" => "danger" }[type] || "info" %>
-        <div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
-          <%= message %>
-          <button class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <%# ===== 左サイドバーレール ===== %>
+    <nav class="SideRail d-flex flex-column pt-3 border-end bg-white">
+      <%# サンプルリンク: アイコンだけ（md以下）/アイコン+ラベル（lg以上） %>
+      <%= link_to root_path, class: "SideLink mb-2" do %>
+        <i class="bi bi-house fs-4" aria-label="ホーム"></i>
+        <span class="SideLabel ms-3">ホーム</span>
       <% end %>
-    </div>
+      <%= link_to new_part_path, data: { turbo_frame: "main" }, class: "SideLink mb-2" do %>
+        <i class="bi bi-puzzle fs-4" aria-label="パーツ"></i>
+        <span class="SideLabel ms-3">パーツ</span>
+      <% end %>
+      <%= link_to new_recipe_path, data: { turbo_frame: "main" }, class: "SideLink mb-2" do %>
+        <i class="bi bi-fork-knife fs-4" aria-label="レシピ"></i>
+        <span class="SideLabel ms-3">レシピ</span>
+      <% end %>
+    </nav>
 
-    <!-- ===== コンテンツ 2 カラム ===== -->
-    <div class="container-fluid flex-grow-1">
-      <div class="row">
+    <%# ===== RIGHT PLACEHOLDER RAIL ===== %>
+    <aside class="RightRail d-none d-xl-flex flex-column border-start bg-white align-items-center justify-content-center text-secondary">
+      <p class="px-3 text-center small mb-0">placeholder</p>
+    </aside>
 
-        <!-- サイドメニュー：PC だけ表示 -->
-        <aside class="col-lg-2 d-none d-lg-block border-end pt-3">
-          <%= render "shared/menu" %>
-        </aside>
-
-        <!-- メイン：ここに各ページが入る -->
-        <main class="col-12 col-lg-10 py-3">
-          <div class="container py-5">
-            <turbo-frame id="main">
-              <%= yield %>            <!-- ★ この行は絶対に残す -->
-            </turbo-frame>
+    <%# ===== メインコンテンツ ===== %>
+    <main class="Main">
+      <%# ===== フラッシュメッセージ ===== %>
+      <div class="container-fluid">
+        <% flash.each do |type, message| %>
+          <% bs = { "notice" => "success", "alert" => "danger" }[type] || "info" %>
+          <div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
+            <%= message %>
+            <button class="btn-close" data-bs-dismiss="alert"></button>
           </div>
-        </main>
-
+        <% end %>
       </div>
-    </div>
-
-    <!-- ===== フッター ===== -->
-    <footer class="bg-light text-center small py-2 fixed-bottom border-top">
-      &copy; <%= Time.current.year %> DIY Cutting
-    </footer>
-
-    <!-- ===== モバイル用オフキャンバスメニュー ===== -->
-    <div class="offcanvas offcanvas-start" id="mobileMenu" tabindex="-1">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title">メニュー</h5>
-        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
-      </div>
-      <div class="offcanvas-body">
-        <%= render "shared/menu" %>
-      </div>
-    </div>
+      <%= yield %>
+    </main>
+    <%# ===== BOTTOM TAB BAR (Mobile) ===== %>
+    <nav class="BottomBar d-flex d-md-none border-top bg-white">
+      <%= link_to root_path, class: "BottomLink flex-fill" do %>
+        <i class="bi bi-house fs-5"></i>
+      <% end %>
+      <%= link_to new_part_path, data: { turbo_frame: "main" }, class: "BottomLink flex-fill" do %>
+        <i class="bi bi-puzzle fs-5"></i>
+      <% end %>
+      <%= link_to new_recipe_path, data: { turbo_frame: "main" }, class: "BottomLink flex-fill" do %>
+        <i class="bi bi-fork-knife fs-5"></i>
+      <% end %>
+      <%# 追加アイコン… %>
+    </nav>
+    <%# ===== トーストエリア ===== %>
     <turbo-frame id="toast-frame" target="_top"></turbo-frame>
+
   </body>
 </html>

@@ -1,97 +1,101 @@
-<%= form_with model: @recipe, data: { controller: "thumbnail-upload" }, class: "vh-100 d-flex flex-column" do |f| %>
+<%= render "recipes/link_recipe" %>
+<section class="px-3">
+  <%= form_with model: @recipe, data: { controller: "thumbnail-upload" }, class: "vh-100 d-flex flex-column" do |f| %>
 
-  <!-- レシピ名 -->
-  <div class="mb-3">
-    <%= f.label :name, 'レシピ名', class: 'form-label' %>
-    <%= f.text_field :name, class: 'form-control', autofocus: true %>
-  </div>
-
-  <!-- ★ サムネイル画像 (1:1 プレビュー付) -->
-  <div class="mb-3">
-    <%= f.label :thumbnail, 'サムネイル', class: 'form-label' %>
-    <!-- プレビュー枠 -->
-    <div class="thumb-box position-relative mb-3"
-       data-thumbnail-upload-target="box">
-      <!-- プレビュー用 -->
-      <img data-thumbnail-upload-target="preview"
-          class="w-100 h-100 object-fit-cover d-none" alt="プレビュー">
-      <!-- カメラアイコン -->
-      <label for="recipe_thumbnail"
-            class="overlay-label position-absolute w-100 h-100 top-0 start-0 d-flex
-                    align-items-center justify-content-center cursor-pointer">
-        <i class="bi bi-camera-fill fs-1 icon"></i>
-      </label>
-      <%= f.file_field :thumbnail,
-            accept: "image/*",
-            class: "d-none",
-            id: "recipe_thumbnail",
-            data: { action: "change->thumbnail-upload#update",
-                    thumbnail_upload_target: "input" } %>
-    </div>
-    <style>
-      .thumb-box    { width:120px; aspect-ratio:1/1; border:1px dashed var(--bs-secondary); border-radius:.5rem; overflow:hidden; }
-      .icon         { color:rgba(255,255,255,.8); text-shadow:0 0 4px rgba(0,0,0,.6); }     /* 半透明＋わずかな影 */
-      .overlay-label:hover .icon { color:#fff; }                                             /* ホバー時だけくっきり */
-    </style>
-  </div>
-
-  <!-- 部品一覧＋レシピエリア -->
-  <div data-controller="recipe-builder"
-       class="flex-grow-1 d-flex flex-column flex-md-row gap-3 overflow-auto" style="min-height: 0;">
-
-    <!-- 部品一覧 -->
-    <aside data-recipe-builder-target="partsList"
-           class="order-1 order-md-0 flex-md-shrink-0"
-           style="width:280px; max-height:100%; overflow:auto;">
-      <% @parts.each do |part| %>
-        <%#== 1:1 48px サムネイル / プレースホルダ ==%>
-        <% thumb_tag =
-            if part.thumbnail.attached?
-              image_tag(part.thumbnail
-                            .variant(resize_to_fill: [48, 48]),  # 48×48 に正方形トリム
-                        loading: "lazy",
-                        decoding: "async",
-                        width: 48, height: 48,
-                        class: "rounded me-2 flex-shrink-0")
-            else
-              tag.div "No image",
-                      class: "border rounded d-flex align-items-center justify-content-center text-muted me-2 flex-shrink-0",
-                      style: "width:48px; height:48px;",
-                      role: "img",
-                      aria: { label: "No image" }
-            end
-        %>
-        <div class="card part-card d-flex align-items-center mb-2 px-2 py-1"
-             data-part-id="<%= part.id %>"
-             data-part-name="<%= j part.name %>"
-             data-thumb-url="<%= part.thumbnail.attached? ? url_for(part.thumbnail.variant(resize_to_fill: [48,48])) : asset_path('no_thumb.svg') %>"
-             draggable="true">
-          <%= thumb_tag %>
-          <span><%= part.name %></span>
-          <%= link_to part_path(part), data: { turbo_frame: "part_modal" }, class: "btn btn-outline-secondary btn-icon" do %>
-            <i class="bi bi-eye"></i>
-          <% end %>
+    <div class="d-flex flex-wrap gap-3 mb-3">
+      <!-- ★ サムネイル画像 (1:1 プレビュー付) -->
+      <div>
+        <!-- プレビュー枠 -->
+        <div class="thumb-box position-relative"
+          data-thumbnail-upload-target="box">
+          <!-- プレビュー用 -->
+          <img data-thumbnail-upload-target="preview"
+              class="w-100 h-100 object-fit-cover d-none" alt="プレビュー">
+          <!-- カメラアイコン -->
+          <label for="recipe_thumbnail"
+                class="overlay-label position-absolute w-100 h-100 top-0 start-0 d-flex
+                        align-items-center justify-content-center cursor-pointer">
+            <i class="bi bi-camera-fill fs-1 icon"></i>
+          </label>
+          <%= f.file_field :thumbnail,
+                accept: "image/*",
+                class: "d-none",
+                id: "recipe_thumbnail",
+                data: { action: "change->thumbnail-upload#update",
+                        thumbnail_upload_target: "input" } %>
         </div>
-      <% end %>
-    </aside>
+        <style>
+          .thumb-box    { width:120px; aspect-ratio:1/1; border:1px dashed var(--bs-secondary); border-radius:.5rem; overflow:hidden; }
+          .icon         { color:rgba(255,255,255,.8); text-shadow:0 0 4px rgba(0,0,0,.6); }     /* 半透明＋わずかな影 */
+          .overlay-label:hover .icon { color:#fff; }                                             /* ホバー時だけくっきり */
+        </style>
+      </div>
 
-    <!-- ドロップゾーン -->
-    <p class="text-muted">ここにドラッグしてください</p>
-    <main data-recipe-builder-target="dropZone"
-          class="order-0 order-md-1 flex-grow-1 border rounded p-3 d-flex flex-wrap gap-2 align-content-start align-items-start overflow-auto"
-          style="min-height: 240px; height: 65vh; ">
-      
-    </main>
-
-    <!-- hidden JSON -->
-    <%= hidden_field_tag 'recipe[parts_json]', '', id: 'recipe_parts_json',
-          data: { recipe_builder_target: 'hidden' } %>
+      <!-- レシピ名 -->
+      <div class="align-self-center input-group" style="max-width:500px;">
+        <span class="input-group-text"><%= f.label :name, 'レシピ名', class: 'form-label' %></span>
+        <%= f.text_field :name, class: 'form-control', autofocus: true %>
+      </div>
   </div>
 
-  <!-- 登録ボタン -->
-  <%= f.submit '登録', class: 'btn btn-primary w-100 mt-3' %>
-<% end %>
+    <!-- 部品一覧＋レシピエリア -->
+    <div data-controller="recipe-builder"
+        class="flex-grow-1 d-flex flex-column flex-md-row gap-3"
+        style="min-height:520px; max-height:420px">
 
+      <!-- 部品一覧 -->
+      <aside data-recipe-builder-target="partsList"
+            class="d-flex flex-column order-1 order-md-0 flex-md-shrink-0"
+            style="min-width:320px; overflow:auto;">
+        <% @parts.each do |part| %>
+          <%#== 1:1 48px サムネイル / プレースホルダ ==%>
+          <% thumb_tag =
+              if part.thumbnail.attached?
+                image_tag(part.thumbnail
+                              .variant(resize_to_fill: [40, 40]),  # 48×48 に正方形トリム
+                          loading: "lazy",
+                          decoding: "async",
+                          width: 40, height: 40,
+                          class: "rounded me-2 flex-shrink-0")
+              else
+                tag.div "No image",
+                        class: "border rounded d-flex align-items-center justify-content-center text-muted me-2 flex-shrink-0",
+                        style: "width:40px; height:40px;",
+                        role: "img",
+                        aria: { label: "No image" }
+              end
+          %>
+          <div class="card part-card d-flex flex-row mb-2 px-2 py-1"
+              data-part-id="<%= part.id %>"
+              data-part-name="<%= j part.name %>"
+              data-thumb-url="<%= part.thumbnail.attached? ? url_for(part.thumbnail.variant(resize_to_fill: [48,48])) : asset_path('no_thumb.svg') %>"
+              draggable="true">
+            <%= thumb_tag %>
+            <span style="width: 100%"><%= part.name %></span>
+            <%= link_to part_path(part), data: { turbo_frame: "part_modal" }, class: "btn btn-outline-secondary btn-icon", style: "min-width: 40px;" do %>
+              <i class="bi bi-eye"></i>
+            <% end %>
+          </div>
+        <% end %>
+      </aside>
+
+      <!-- ドロップゾーン -->
+      <p class="text-muted">ここにドラッグしてください</p>
+      <main data-recipe-builder-target="dropZone"
+            class="order-0 order-md-1 flex-grow-1 border rounded p-3 d-flex flex-wrap gap-2 align-content-start align-items-start overflow-auto"
+            style="min-height: 200px;">
+        
+      </main>
+
+      <!-- hidden JSON -->
+      <%= hidden_field_tag 'recipe[parts_json]', '', id: 'recipe_parts_json',
+            data: { recipe_builder_target: 'hidden' } %>
+    </div>
+
+    <!-- 登録ボタン -->
+    <%= f.submit '登録', class: 'btn btn-primary w-100 mt-3' %>
+  <% end %>
+</section>
 <!-- Bootstrap トースト -->
 <!-- %= render 'shared/toast' % -->
 <!-- --- 部品詳細モーダル骨格 -------------------- -->

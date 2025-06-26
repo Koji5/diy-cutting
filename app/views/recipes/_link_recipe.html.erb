@@ -1,0 +1,27 @@
+<%#-- 表示するラベルとパスをハッシュで用意（必要に応じて locals で上書き可） --%>
+<% links ||= {
+     "新規作成" => new_recipe_path,
+     "一覧"     => new_recipe_path
+   } %>
+<header class="MainHeader d-flex flex-row align-items-center">
+  <h3 class="px-3">
+    <i class="bi bi-fork-knife me-2"></i>
+    レシピ
+  </h3>
+  <div class="btn-group flex-grow-1 px-3" role="group" data-bs-toggle="buttons">
+    <% links.each do |label, path| %>
+      <% if current_page?(path) %>
+        <%= link_to label,
+        "#",                         # 実際には遷移しない
+        class: "btn btn-outline-secondary active pe-none",
+        aria:  { current: "page" },
+        tabindex: "-1" %>
+      <% else %>
+        <%= link_to label,
+              path,
+              data:  { turbo_frame: "main" },
+              class: "btn btn-outline-secondary" %>
+      <% end %>
+    <% end %>
+  </div>
+</header>
