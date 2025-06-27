@@ -1,0 +1,108 @@
+/*================ 変数 =================*/
+:root{
+  --rail-left-narrow:  72px;
+  --rail-left-wide:   260px;
+  --rail-right-wide:  350px;
+  --main-fixed:       600px;
+  --layout-max: calc(var(--rail-left-wide) + var(--main-fixed) + var(--rail-right-wide)); /*1210*/
+}
+
+/*================ 外側 =================*/
+html,body{ height:auto; }                 /* body スクロール */
+.AppWrap{
+  width:100%;
+  display:flex; justify-content:center;   /* 子を中央に */
+}
+
+/*================ 3 カラム行 ============*/
+.LayoutRow{
+  display:flex;
+  width:100%;
+  max-width:var(--layout-max);            /* 1210px で打ち止め */
+}
+
+/*================ Side / Right ==========*/
+.SideRail,
+.RightRail{
+  position:sticky; top:0;                 /* 常に貼り付き */
+  height:100vh; overflow-y:auto;          /* 中身だけスクロール */
+  flex-shrink:0;                          /* 幅を守る */
+}
+
+/*----- 初期：左 narrow／右非表示 -----*/
+.SideRail { width:var(--rail-left-narrow); }
+.RightRail{ display:none; width:var(--rail-right-wide); }
+
+/*================ Main ================*/
+.Main{
+  width:100%; max-width:var(--main-fixed);   /* 〜600px */
+  margin-inline:auto;                        /* 行中で中央 */
+}
+
+/*================ BottomBar ベース ===========*/
+.BottomBar{
+  display:none;
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:var(--footer-h);
+  z-index:1030
+}
+/* ベース：アイコンのみ */
+.SideLink  { display:flex; align-items:center; justify-content:center; }
+.SideLabel { display:none; }
+.BottomLink{display:flex;align-items:center;justify-content:center;color:#000;padding-top:.25rem}
+.BottomLink:active,.BottomLink.active{color:#0d6efd}
+/*================ 幅別ルール ============*/
+/* sm 未満：左レール消し・Main 全幅 */
+@media (max-width:575.98px){
+  .SideRail{ display:none; }
+  .Main{ max-width:100%; }
+  .BottomBar{ display:flex; }
+}
+@media (min-width:576px){
+
+}
+
+/* md：左 72px ／ Main 可変 480〜600px */
+@media (min-width:768px){
+  .SideRail{ width:var(--rail-left-narrow); }
+  .Main{
+    max-width:clamp(480px, 60vw, var(--main-fixed));
+  }
+}
+
+/* lg：左 260px（ラベル付） */
+@media (min-width:992px){
+  .SideRail{ width:var(--rail-left-wide); }
+  .SideLink{
+    justify-content:flex-start;     /* 左寄せ */
+    padding-left:24px;
+  }
+  .SideLabel{
+    display:inline;
+  }
+}
+
+/* xl：右レール表示 + Main を中央寄せ調整 */
+@media (min-width:1200px){
+  .SideRail{ width:var(--rail-left-wide); }
+  .RightRail{ display:block; }              /* 登場 */
+}
+
+/***** OPTIONAL TRANSITIONS *****/
+.SideRail, .RightRail, .Main { transition: margin .2s ease, width .2s ease; }
+/* スクロール慣性 (iOS) */
+html,body{-webkit-overflow-scrolling:touch;}
+
+/***** MAIN HEADER (sticky glass) *****/
+.MainHeader{
+  position:sticky;
+  top: 0;
+  left:0;
+  height:var(--main-header-h);
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(12px);
+  z-index:1025;
+}

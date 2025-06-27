@@ -1,0 +1,34 @@
+<%# --------------------------------------------
+     必須 local:
+       - placement: :side  または :bottom
+--------------------------------------------- %>
+
+<%#
+  ログインしていない場合は guest=9 扱い
+  enum role { member:0, vendor:1, admin:2, affiliate:3 }
+%>
+<% role_int = current_user&.role_before_type_cast || 0 %>
+
+<% menu = [
+  { path:  ->{ root_path },        icon: "house",     label:"ホーム",  roles:[0,1,2,3]             },
+  { path:  ->{ new_part_path },    icon: "puzzle",    label:"パーツ",  roles:[0,1,2,3], turbo:true   },
+  { path:  ->{ new_recipe_path },  icon: "fork-knife",label:"レシピ",  roles:[0,1,2,3], turbo:true   },
+  { path:  ->{ admin_root_path },  icon: "shield-lock",label:"管理",   roles:[2], turbo:true                }
+] %>
+
+<% menu.each do |item| %>
+  <% next unless item[:roles].include?(role_int) %>  <%# ← ロールチェック %>
+  <% link_opts = item[:turbo] ? { data:{ turbo_frame:"main"} } : {} %>
+
+  <% if placement == :side %>
+    <%= link_to item[:path].call, { class:"SideLink mb-2" }.merge(link_opts) do %>
+      <i class="bi bi-<%= item[:icon] %> fs-4" aria-label="<%= item[:label] %>"></i>
+      <span class="SideLabel ms-3"><%= item[:label] %></span>
+    <% end %>
+
+  <% else %> <%# :bottom %>
+    <%= link_to item[:path].call, { class:"BottomLink flex-fill" }.merge(link_opts) do %>
+      <i class="bi bi-<%= item[:icon] %> fs-5"></i>
+    <% end %>
+  <% end %>
+<% end %>
