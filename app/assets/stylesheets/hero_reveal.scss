@@ -1,0 +1,19 @@
+:root{ --hero-h: 30vh; --fade-s: .5s; } 
+.hero{
+  position: fixed;
+  height:var(--hero-h);
+  background:url(hero.jpg) center/cover no-repeat;
+  color:#fff; padding:2rem;
+  font-size:2rem;
+  z-index: 100;
+  transition: transform var(--fade-s) ease, opacity var(--fade-s) ease;
+}
+.hero.hidden{
+  transform: translateY(-100%);   /* 画面の上へ退避 */
+  opacity: 0;
+}
+.content{
+  padding-top:var(--hero-h);
+  transition: padding-top var(--fade-s) ease;
+}
+body.hero-hidden .content{ padding-top:0; }

@@ -1,6 +1,10 @@
 <!-- app/views/parts/new.html.erb -->
 <%= render "parts/link_part" %>
-<section class="px-3">
+
+<section class="hero" data-controller="hero-reveal" style="height:50px;">
+  <h1>ヒーロー画像</h1>
+</section>
+<section class="px-3 content">
   <%= form_with model: @part,
                 data: {
                   controller: "dims thumb-capture",
@@ -24,6 +28,5 @@
     </div>
   <% end %>
 </section>
-
 <!-- ───────── モーダル群（説明プレースホルダ）───────── -->
 <%= render "help_modal_fields" %>

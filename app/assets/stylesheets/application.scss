@@ -24,8 +24,10 @@ html,body{ height:auto; }                 /* body スクロール */
 /*================ Side / Right ==========*/
 .SideRail,
 .RightRail{
-  position:sticky; top:0;                 /* 常に貼り付き */
-  height:100vh; overflow-y:auto;          /* 中身だけスクロール */
+  position:sticky;
+  top:0;                 /* 常に貼り付き */
+  height:100vh;
+  overflow-y:auto;          /* 中身だけスクロール */
   flex-shrink:0;                          /* 幅を守る */
 }
 
