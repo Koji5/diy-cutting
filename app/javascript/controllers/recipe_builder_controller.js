@@ -18,6 +18,18 @@ export default class extends Controller {
       sort: false,
       onAdd: ({ item }) => this.addList(item)
     })
+
+    this.#delegateClick(this.partsListTarget)
+  }
+
+  #delegateClick (container) {
+    container.addEventListener("click", evt => {
+      const card = evt.target.closest(".part-card")
+      if (card && card.parentNode === this.partsListTarget) {
+        this.addPart(card);
+        this.dropZoneTarget.prepend(card);
+      }
+    })
   }
 
   /* ドロップ後に数量 UI 付きカードへ置換 */
@@ -88,7 +100,6 @@ export default class extends Controller {
   }
 
   updateHidden() {
-    console.log("updateHidden", this.hasHiddenTarget, this.hiddenTarget)
     if (!this.hasHiddenTarget) return   // 落ちない保険は後で
     this.hiddenTarget.value = JSON.stringify(this.recipeParts)
   }
