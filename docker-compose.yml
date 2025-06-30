@@ -17,6 +17,7 @@ services:
         bin/dev"
     volumes:
       - .:/app
+      - storage_volume:/app/storage 
     # ★ AL2023 上でも env はそのまま
     environment:
       RAILS_ENV: development
@@ -56,3 +57,4 @@ volumes:
   db_data:
     external: true
     name: b7921c7195273aa2439ae5e5918fe1ff8e698e073cb9d2ff0aa568a808d5c291
+  storage_volume:

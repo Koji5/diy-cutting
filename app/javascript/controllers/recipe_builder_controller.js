@@ -1,18 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 import Sortable from "sortablejs"
 
-// SortableJS を Importmap でピン留めしておく
-// pin "sortablejs", to: "https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/+esm"
-
 export default class extends Controller {
   static targets = ["dropZone", "partsList", "hidden"]
 
-  initialize() {
-    console.log("init", this.hasHiddenTarget)
-  }
-
   connect() {
-    console.log("connect", this.hasHiddenTarget, this.hiddenTarget)
     this.recipeParts = []
     // ドロップ側
     Sortable.create(this.dropZoneTarget, {
@@ -23,27 +15,14 @@ export default class extends Controller {
     // 一覧側（カードを戻せるように group を合わせる）
     Sortable.create(this.partsListTarget, {
       group: "parts",
-      sort: false
+      sort: false,
+      onAdd: ({ item }) => this.addList(item)
     })
-  }
-
-  disconnect() {
-    console.log("disconnect")
-  }
-
-  listTemplate(name, thumbUrl) {
-    return `
-      <img src="${thumbUrl}" width="40" height="40"
-          class="rounded me-2 flex-shrink-0 object-fit-cover" alt="">
-      <span>${name}</span>
-    `
   }
 
   /* ドロップ後に数量 UI 付きカードへ置換 */
   addPart(el) {
     const id   = Number(el.dataset.partId)
-    const name = el.dataset.partName
-    const thumbUrl = el.dataset.thumbUrl
 
     /* ★ まだ登録されていなければ配列に push */
     let obj = this.recipeParts.find(p => p.part_id === id)
@@ -51,9 +30,22 @@ export default class extends Controller {
       obj = { part_id: id, qty: 1 }
       this.recipeParts.push(obj)
     }
+    const fs    = el.querySelector("fieldset");
+    fs.disabled = false;
+    this.updateQtyDisplay(id, obj.qty)
+    this.updateHidden()
+  }
 
-    el.innerHTML = this.cardTemplate(id, name, obj.qty, thumbUrl)
-    el.style.minWidth = "315px";
+  addList(el) {
+    const id   = Number(el.dataset.partId)
+
+    this._updateRemoveIcon(id, 1)
+    this.updateQtyDisplay(id, 0)
+    const fs    = el.querySelector("fieldset");
+    fs.disabled = true;
+
+    this.partsListTarget.prepend(el)
+    this.recipeParts = this.recipeParts.filter(p => p.part_id !== id)
     this.updateHidden()
   }
 
@@ -64,7 +56,7 @@ export default class extends Controller {
     obj.qty++
 
     this.updateQtyDisplay(id, obj.qty)
-    this._updateRemoveIcon(id, obj.qty)     // ← 追加
+    this._updateRemoveIcon(id, obj.qty)
     this.updateHidden()
   }
 
@@ -78,7 +70,7 @@ export default class extends Controller {
       this.removeCard(id, event)
     } else {
       this.updateQtyDisplay(id, obj.qty)
-      this._updateRemoveIcon(id, obj.qty)   // ← 追加
+      this._updateRemoveIcon(id, obj.qty)
     }
     this.updateHidden()
   }
@@ -86,48 +78,13 @@ export default class extends Controller {
   /* カードを一覧に戻す */
   removeCard(id, e) {
     const card = e.currentTarget.closest(".part-card")
-    card.innerHTML = this.listTemplate(
-                      card.dataset.partName,
-                      card.dataset.thumbUrl
-                    )
-    this.partsListTarget.prepend(card)
-    this.recipeParts = this.recipeParts.filter(p => p.part_id !== id)
-  }
-
-  /* ------------------ util ------------------ */
-  cardTemplate(id, name, qty, thumbUrl) {
-    const minusHtml  = '<i class="bi bi-dash-lg"></i>'   // －アイコン
-    const trashHtml  = '<i class="bi bi-trash"></i>'     // ごみ箱アイコン
-    const removeIcon = (qty === 1) ? trashHtml : minusHtml
-    return `
-      <img src="${thumbUrl}" width="40" height="40"
-         class="rounded me-2 flex-shrink-0 object-fit-cover" alt="">
-
-      <span class="flex-grow-1">${name}</span>
-
-      <div class="btn-group btn-group-sm" role="group" data-part-id="${id}">
-        <button type="button"
-                class="btn btn-outline-secondary"
-                data-turbo="false"
-                data-action="click->recipe-builder#decrease"
-                data-remove-btn-for="${id}">
-          ${removeIcon}
-        </button>
-
-        <span class="px-2 fw-bold"
-              data-quantity-for="${id}">${qty}</span>
-
-        <button type="button"
-                class="btn btn-outline-secondary"
-                data-turbo="false"
-                data-action="click->recipe-builder#increase">＋</button>
-      </div>`
+    this.addList(card)
   }
 
   partId(e) { return Number(e.currentTarget.parentElement.dataset.partId) }
 
   updateQtyDisplay(id, qty) {
-    this.element.querySelector(`[data-quantity-for="${id}"]`).textContent = qty
+    this.element.querySelector(`[data-quantity-for="${id}"]`).value = qty
   }
 
   updateHidden() {

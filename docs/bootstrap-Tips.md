@@ -628,3 +628,18 @@ $hero-height-lg: 420px;
 * **読み込みは Bootstrap 後**、命名衝突を避け BEM 風で意味中心に。
 * Rails 8 + Hotwire + cssbundling-rails では、パーシャル SCSS と ViewComponent を組み合わせると **“SCSS ↔ HTML ↔ Stimulus”** が一貫して管理しやすい。
 * 「*一度書いたらどこからでも呼べる*」状態を目指し、ユーティリティ乱用で HTML が読めなくなる前に独自クラス化—これが実践的なバランスです。
+
+## Bootstrap 5 “flex-*” ユーティリティ早見表
+
+| 分類                   | 主なクラス                                                                                                 | 付与される CSS                         | 使いどころ                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------- | -------------------------------------- |
+| **1. フレックス化**        | `d-flex` / `d-inline-flex`                                                                            | `display:flex / inline-flex`      | 要素をフレックスコンテナにする“入口”                    |
+| **2. 方向（主軸）**        | `flex-row` (既定) / `flex-row-reverse` / `flex-column` / `flex-column-reverse`                          | `flex-direction:`                 | 横並び／縦積み／逆順などを切替                        |
+| **3. 折り返し**          | `flex-wrap` / `flex-nowrap` / `flex-wrap-reverse`                                                     | `flex-wrap:`                      | 行がはみ出した時に改行するか                         |
+| **4. アイテム伸縮**        | `flex-grow-0` / `flex-grow-1`<br>`flex-shrink-0` / `flex-shrink-1` (既定)                               | `flex-grow / flex-shrink`         | 余白を埋める・縮ませない                           |
+| **5. 幅ショートハンド**      | `flex-fill` → `1 1 auto`<br>`flex-*-auto` / `flex-*-none`                                             | `flex:` 値一式                       | 幅固定or自動をワンライナーで                        |
+| **6. 位置揃え（子をグループで）** | `justify-content-start / center / between ...`（主軸）<br>`align-items-start / center / stretch ...`（交差軸） | `justify-content` / `align-items` | 左右端寄せ・中央寄せ・伸ばし                         |
+| **7. 個別揃え**          | `align-self-start / center / end`                                                                     | `align-self:`                     | 特定アイテムだけ縦位置を変える                        |
+| **8. オーダー**          | `order-0 – 5` / `order-first` / `order-last`                                                          | `order:`                          | 並び順を簡単に入替え                             |
+| **9. ギャップ**          | `gap-0 – 5`¹                                                                                          | `gap:`                            | 行・列のすき間を統一<br>¹ v5.3 で追加               |
+| **10. レスポンシブ接尾辞**    | 例: `flex-md-row`, `justify-content-lg-between`                                                        | `@media (min-width: …)`           | sm ≥ 576 / md ≥ 768 / lg ≥ 992 … で自動切替 |

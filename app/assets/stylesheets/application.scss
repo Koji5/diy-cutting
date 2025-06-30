@@ -5,6 +5,7 @@
   --rail-right-wide:  350px;
   --main-fixed:       600px;
   --layout-max: calc(var(--rail-left-wide) + var(--main-fixed) + var(--rail-right-wide)); /*1210*/
+  --footer-h:         40px;
 }
 
 /*================ 外側 =================*/
@@ -54,13 +55,13 @@ html,body{ height:auto; }                 /* body スクロール */
 /* ベース：アイコンのみ */
 .SideLink  { display:flex; align-items:center; justify-content:center; }
 .SideLabel { display:none; }
-.BottomLink{display:flex;align-items:center;justify-content:center;color:#000;padding-top:.25rem}
+.BottomLink{ display:flex;align-items:center;justify-content:center;color:#000;padding-top:.25rem}
 .BottomLink:active,.BottomLink.active{color:#0d6efd}
 /*================ 幅別ルール ============*/
 /* sm 未満：左レール消し・Main 全幅 */
 @media (max-width:575.98px){
   .SideRail{ display:none; }
-  .Main{ max-width:100%; }
+  .Main{ max-width:100%; padding-bottom:var(--footer-h)}
   .BottomBar{ display:flex; }
 }
 @media (min-width:576px){
