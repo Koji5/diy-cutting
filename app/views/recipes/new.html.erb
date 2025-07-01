@@ -86,23 +86,19 @@
               <fieldset class="input-group flex-shrink-1 flex-grow-0 me-3"
                     role="group" style="max-width:130px;"
                     data-part-id="<%= part.id %>" disabled>
-                <!--div class="input-group flex-shrink-1 flex-grow-0"
-                    role="group" style="max-width:130px;"
-                    data-part-id="<%= part.id %>" -->
-                  <button type="button"
-                          class="btn btn-outline-secondary"
-                          data-turbo="false"
-                          data-action="click->recipe-builder#decrease"
-                          data-remove-btn-for="<%= part.id %>">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                  <input class="form-control text-center"
-                        data-quantity-for="<%= part.id %>" value="0">
-                  <button type="button"
-                          class="btn btn-outline-secondary"
-                          data-turbo="false"
-                          data-action="click->recipe-builder#increase">＋</button>
-                <!--/div -->
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-turbo="false"
+                        data-action="click->recipe-builder#decrease"
+                        data-remove-btn-for="<%= part.id %>">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <input class="form-control text-center"
+                      data-quantity-for="<%= part.id %>" value="0">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-turbo="false"
+                        data-action="click->recipe-builder#increase">＋</button>
               </fieldset>
               <%= link_to part_path(part), data: { turbo_frame: "part_modal" }, class: "btn btn-outline-secondary btn-icon", style: "min-width: 40px;" do %>
                 <i class="bi bi-eye"></i>

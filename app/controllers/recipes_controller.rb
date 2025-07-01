@@ -1,5 +1,11 @@
 # app/controllers/recipes_controller.rb
 class RecipesController < ApplicationController
+
+  def index
+    # 今は全件。次フェーズで検索・並び替えを入れる
+    @recipes = current_user.recipes.kept.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
+  end
+
   def new
     @recipe = Recipe.new
     @parts = current_user.parts

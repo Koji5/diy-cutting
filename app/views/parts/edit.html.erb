@@ -1,5 +1,5 @@
 <!-- app/views/parts/edit.html.erb -->
-<h3 class="mb-4">部品編集</h1>
+<%= render "parts/link_part" %>
 <%= form_with model: @part,
               data: {
                 controller: "dims thumb-capture",

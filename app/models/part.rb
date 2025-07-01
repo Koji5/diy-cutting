@@ -199,7 +199,7 @@ class Part < ApplicationRecord
   # ─────────────────────────────
   # バリデーション
   # ─────────────────────────────
-  validates_with DimensionValidator
+  validates_with PartDimensionValidator
 
   validates :name, presence: true, length: { maximum: 50 }
 

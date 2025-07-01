@@ -2,7 +2,7 @@
 
 # GeometryChecks
 # ------------------------------------------------------------
-# DimensionValidator から呼び出されるジオメトリ検証モジュール。
+# PartDimensionValidator から呼び出されるジオメトリ検証モジュール。
 # 外周ポリライン (outer) と穴リスト (holes) を検査し、
 #   1. 穴が外周をはみ出していないか（SAFE_EDGE）
 #   2. 穴どうしが安全マージン (SAFE_OVERLAP) を保っているか
@@ -24,7 +24,7 @@ module GeometryChecks
   SAFE_OVERLAP = SAFE[:safe_overlap_mm].to_f   # 穴どうしの安全マージン
 
   # ============================================================
-  # Public: DimensionValidator から呼ばれるメイン関数
+  # Public: PartDimensionValidator から呼ばれるメイン関数
   # ------------------------------------------------------------
   def check_geometry(record, outer, holes)
     Rails.logger.debug { "OUTER: #{outer.inspect}" }

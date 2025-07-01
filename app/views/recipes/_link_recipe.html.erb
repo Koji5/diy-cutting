@@ -1,27 +1,46 @@
-<%#-- 表示するラベルとパスをハッシュで用意（必要に応じて locals で上書き可） --%>
-<% links ||= {
-     "新規作成" => new_recipe_path,
-     "一覧"     => new_recipe_path
-   } %>
+<% menu = [
+  {
+    path:  -> { edit_recipe_path(@recipe) if @recipe },
+    match: -> { controller_name == "recipes" && action_name == "edit" },
+    icon:  "pencil",
+    label: "編集",
+    link:  false                # 編集画面ではリンクを出さない
+  },
+  {
+    path:  -> { recipes_path },
+    match: -> { current_page?(recipes_path) },
+    icon:  "list-ul",
+    label: "一覧",
+    link:  true
+  },
+  {
+    path:  -> { new_recipe_path },
+    match: -> { current_page?(new_recipe_path) },
+    icon:  "plus-lg",
+    label: "新規作成",
+    link:  true
+  }
+] %>
+<% title_tag = "" %> 
+<% menu.each do |item| %>
+  <% title_tag = item[:label] if item[:match].call %>
+<% end %>
+
 <header class="MainHeader d-flex flex-row align-items-center">
-  <h3 class="px-3">
+  <h3 class="d-flex px-3 flex-nowrap">
     <i class="bi bi-fork-knife me-2"></i>
-    レシピ
+    マイレシピ － <%= title_tag %>
   </h3>
-  <div class="btn-group flex-grow-1 px-3" role="group" data-bs-toggle="buttons">
-    <% links.each do |label, path| %>
-      <% if current_page?(path) %>
-        <%= link_to label,
-        "#",                         # 実際には遷移しない
-        class: "btn btn-outline-secondary active pe-none",
-        aria:  { current: "page" },
-        tabindex: "-1" %>
-      <% else %>
-        <%= link_to label,
-              path,
-              data:  { turbo_frame: "main" },
-              class: "btn btn-outline-secondary" %>
+  <div class="flex-grow-1 min-w-0">
+    <div class="input-group px-3">
+      <% menu.each do |item| %>
+        <% next if item[:match].call || !item[:link] %>
+        <%= link_to item[:path].call,
+          data:  { turbo_frame: "main" },
+          class: "btn btn-outline-secondary form-control" do %>
+          <i class="<%= "bi bi-#{item[:icon]}" %>"></i>&nbsp;<%= item[:label] %>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
 </header>

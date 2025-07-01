@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 # ------------------------------------------------------------
-# DimensionValidator
+# PartDimensionValidator
 #   GLOBAL_DIM_RULE（+ 形状別 dims_rule_json）を評価し
 #   Part に寸法エラーを付与する共通バリデータ
 # ------------------------------------------------------------
-class DimensionValidator < ActiveModel::Validator
+class PartDimensionValidator < ActiveModel::Validator
   include GeometryChecks
   # ======== 入口 ============================================
   def validate(record)

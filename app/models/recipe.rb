@@ -1,6 +1,6 @@
 class Recipe < ApplicationRecord
-  # gem 'active_storage_validations', '~> 1.2'
   #include ActiveStorage::Validations
+  include Discardable
   ## 関連
   belongs_to :user
   has_many   :recipe_parts,  dependent: :destroy
@@ -9,7 +9,7 @@ class Recipe < ApplicationRecord
 
   # Snapshot モデルがある場合
   belongs_to :latest_snapshot,
-             class_name: "Snapshot",
+             class_name: "RecipeSnapshot",
              optional: true
 
   ## enum - ユーザーが好むシンボル第一引数形式
@@ -17,9 +17,16 @@ class Recipe < ApplicationRecord
 
   ## バリデーション
   validates :name, presence: true, length: { maximum: 60 }
-  #validates :thumbnail,
-  #          content_type: { in: %w[image/png image/jpeg image/webp],
-  #                          message: 'は PNG / JPG / WEBP にしてください' },
-  #          size:         { less_than: 5.megabytes,
-  #                          message: 'は 5 MB 以内にしてください' }
+  validates :thumbnail,
+            content_type: { in: %w[image/png image/jpeg image/webp],
+                            message: 'は PNG / JPG / WEBP にしてください' },
+            size:         { less_than: 5.megabytes,
+                            message: 'は 5 MB 以内にしてください' }
+
+  # ─────────────────────────────
+  # スコープ
+  # ─────────────────────────────
+  default_scope -> { kept }
+
+  private
 end
