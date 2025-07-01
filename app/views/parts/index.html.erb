@@ -9,7 +9,7 @@
   <!-- 1200px 以上で 2 列、それ未満は 1 列 -->
   <div class="row row-cols-1 row-cols-xl-2 g-3">
     <% @parts.each do |part| %>
-      <div class="col" id="<%= dom_id(part) %>" data-controller="part-card">
+      <div class="col" id="<%= dom_id(part) %>" data-controller="remove-card">
         <div class="card h-100 p-3">
           <!-- 幅が狭いと縦並び、md 以上で横並び -->
           <div class="d-flex flex-column flex-md-row gap-3">

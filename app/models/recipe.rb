@@ -1,6 +1,4 @@
 class Recipe < ApplicationRecord
-  #include ActiveStorage::Validations
-  include Discardable
   ## 関連
   belongs_to :user
   has_many   :recipe_parts,  dependent: :destroy
@@ -12,6 +10,11 @@ class Recipe < ApplicationRecord
              class_name: "RecipeSnapshot",
              optional: true
 
+  belongs_to :origin_owner,
+             class_name:  'User',
+             foreign_key: :origin_owner_id,
+             optional:    true
+
   ## enum - ユーザーが好むシンボル第一引数形式
   enum :status, { draft: 0, published: 1, archived: 2 }
 
@@ -22,11 +25,6 @@ class Recipe < ApplicationRecord
                             message: 'は PNG / JPG / WEBP にしてください' },
             size:         { less_than: 5.megabytes,
                             message: 'は 5 MB 以内にしてください' }
-
-  # ─────────────────────────────
-  # スコープ
-  # ─────────────────────────────
-  default_scope -> { kept }
 
   private
 end

@@ -1,9 +1,9 @@
 # app/controllers/recipes_controller.rb
 class RecipesController < ApplicationController
-
+  before_action :authenticate_user!
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @recipes = current_user.recipes.kept.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
+    @recipes = current_user.recipes.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
   end
 
   def new
@@ -30,6 +30,25 @@ class RecipesController < ApplicationController
     else
       @parts = Part.order(:name)
       render :new, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @recipe = Recipe.find(params[:id])
+    @recipe.destroy
+
+    respond_to do |format|
+      # Turbo Drive (通常のリンク) → 行を DOM から外す
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.remove(helpers.dom_id(@recipe))
+      end
+
+      # 非 Turbo (従来のブラウザ遷移) → 一覧へリダイレクト
+      format.html do
+        redirect_to recipes_path,
+                    status: :see_other,
+                    notice: "レシピ「#{@recipe.name}」を削除しました。"
+      end
     end
   end
 

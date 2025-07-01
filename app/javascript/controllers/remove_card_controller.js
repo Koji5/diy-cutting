@@ -1,4 +1,4 @@
-// app/javascript/controllers/part_card_controller.js
+// app/javascript/controllers/remove_card_controller.js
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
