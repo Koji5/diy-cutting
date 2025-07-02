@@ -33,6 +33,15 @@ class RecipesController < ApplicationController
     end
   end
 
+  def edit
+    @recipe = current_user.recipes.find(params[:id])
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(:part)
+    # レシピに含まれていないパーツ
+    @excluded_parts = current_user.parts
+                              .where.not(id: @recipe.recipe_parts.select(:part_id))
+  end
+
   def destroy
     @recipe = Recipe.find(params[:id])
     @recipe.destroy

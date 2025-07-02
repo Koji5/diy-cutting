@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import Sortable from "sortablejs"
 
 export default class extends Controller {
-  static targets = ["dropZone", "partsList", "hidden"]
+  static targets = ["dropZone", "partsList", "hidden", "item"]
 
   connect() {
     this.recipeParts = []
@@ -18,12 +18,34 @@ export default class extends Controller {
       sort: false,
       onAdd: ({ item }) => this.addList(item)
     })
-
+    this.itemTargets.forEach((el) => {
+      this.firstAddPart(el)
+    })
     this.#delegateClick(this.partsListTarget)
+  }
+
+  firstAddPart(el) {
+    if (this.dropZoneTarget.contains(el)) {
+      const id   = Number(el.dataset.partId)
+      const input = el.querySelector(`[data-quantity-for="${id}"]`)
+      const qty = input ? parseInt(input.value, 10) : 0
+      /* ★ まだ登録されていなければ配列に push */
+      let obj = this.recipeParts.find(p => p.part_id === id)
+      if (!obj) {
+        obj = { part_id: id, qty: qty }
+        this.recipeParts.push(obj)
+      } else {
+        obj.qty = qty // すでにあれば更新する
+      }
+      const fs    = el.querySelector("fieldset");
+      console.log("fieldset:", fs)
+      fs.disabled = false;
+    }
   }
 
   #delegateClick (container) {
     container.addEventListener("click", evt => {
+      if (evt.target.closest(".eye-area")) return;
       const card = evt.target.closest(".part-card")
       if (card && card.parentNode === this.partsListTarget) {
         this.addPart(card);

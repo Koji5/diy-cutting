@@ -1,0 +1,54 @@
+<%#== 1:1 48px サムネイル / プレースホルダ ==%>
+<% thumb_tag =
+    if part.thumbnail.attached?
+      image_tag(part.thumbnail
+                    .variant(resize_to_fill: [40, 40]),
+                loading: "lazy",
+                decoding: "async",
+                width: 40, height: 40,
+                class: "rounded me-2 flex-shrink-0")
+    else
+      tag.div "No image",
+              class: "border rounded d-flex align-items-center justify-content-center text-muted me-2 flex-shrink-0",
+              style: "width:40px; height:40px;",
+              role: "img",
+              aria: { label: "No image" }
+    end
+%>
+<div class="card part-card d-flex flex-row flex-grow-1 align-items-center mb-2 px-2 py-1"
+    data-recipe-builder-target="item"
+    data-part-id="<%= part.id %>"
+    data-part-name="<%= j part.name %>"
+    data-thumb-url="<%= part.thumbnail.attached? ? url_for(part.thumbnail.variant(resize_to_fill: [48,48])) : asset_path('no_thumb.svg') %>"
+    draggable="true">
+  <%= thumb_tag %>
+  <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= part.name %></div>
+  <fieldset class="input-group flex-shrink-1 flex-grow-0 me-3"
+        role="group" style="max-width:130px;"
+        data-part-id="<%= part.id %>" disabled>
+    <button type="button"
+            class="btn btn-outline-secondary"
+            data-turbo="false"
+            data-action="click->recipe-builder#decrease"
+            data-remove-btn-for="<%= part.id %>">
+      <i class="bi bi-trash"></i>
+    </button>
+    <input data-quantity-for="<%= part.id %>"
+          <% if defined?(quantity) %>
+            value="<%= quantity %>"
+          <% else %>
+            value="0"
+          <% end %>
+          class="form-control text-center">
+    <button type="button"
+            class="btn btn-outline-secondary"
+            data-turbo="false"
+            data-action="click->recipe-builder#increase">＋</button>
+  </fieldset>
+  <%= link_to part_path(part),
+          data: { turbo_frame: "part_modal" },
+          class: "btn btn-outline-secondary btn-icon eye-area",
+          style: "min-width: 40px;" do %>
+    <i class="bi bi-eye"></i>
+  <% end %>
+</div>

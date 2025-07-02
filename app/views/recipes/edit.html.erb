@@ -13,6 +13,15 @@
       <div class="thumb-box position-relative"
         data-thumbnail-upload-target="box">
         <!-- プレビュー用 -->
+        <% if @recipe.thumbnail.attached? %>
+          <%= image_tag @recipe.thumbnail.variant(resize_to_limit: [300, 300]),
+              data: { thumbnail_upload_target: "preview" },
+              class: "w-100 h-100 object-fit-cover" %>
+        <% else %>
+          <%= image_tag "", alt: "プレビュー",
+              data: { thumbnail_upload_target: "preview" },
+              class: "w-100 h-100 object-fit-cover d-none" %>
+        <% end %>
         <img data-thumbnail-upload-target="preview"
             class="w-100 h-100 object-fit-cover d-none" alt="プレビュー">
         <!-- カメラアイコン -->
@@ -45,6 +54,9 @@
         <main data-recipe-builder-target="dropZone" id="floatingInput"
               class="d-flex flex-wrap align-content-start overflow-auto form-control"
               style="min-height: 256px;">
+          <% @recipe_parts.each do |recipe_part| %>
+            <%= render "part_card", part: recipe_part.part, quantity: recipe_part.quantity %>
+          <% end %>
         </main>
         <label for="floatingInput">ここにドロップしてください</label>
       </div>
@@ -58,8 +70,8 @@
               class="overflow-auto form-control"
               style="min-height:256px;"
               id="floatingPartsList">
-          <% @parts.each do |part| %>
-            <%= render "part_card", part: part %>
+          <% @excluded_parts.each do |excluded_part| %>
+            <%= render "part_card", part: excluded_part %>
           <% end %>
         </div>
         <label for="floatingPartsList">選択可能部品一覧</label>

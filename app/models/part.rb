@@ -29,7 +29,10 @@ class Part < ApplicationRecord
              primary_key: :code,
              optional:    true
 
-  # コーナー加工（四隅）
+  has_many :recipe_parts, dependent: :destroy
+  has_many :recipes, through: :recipe_parts
+
+# コーナー加工（四隅）
   belongs_to :corner_tl_process, class_name: 'MCornerProcess', foreign_key: :corner_tl_code, primary_key: :code, optional: true
   belongs_to :corner_tr_process, class_name: 'MCornerProcess', foreign_key: :corner_tr_code, primary_key: :code, optional: true
   belongs_to :corner_bl_process, class_name: 'MCornerProcess', foreign_key: :corner_bl_code, primary_key: :code, optional: true
