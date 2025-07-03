@@ -25,9 +25,9 @@
   <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= part.name %></div>
   <fieldset class="input-group flex-shrink-1 flex-grow-0 me-3"
         role="group" style="max-width:130px;"
-        data-part-id="<%= part.id %>" disabled>
+        data-part-id="<%= part.id %>">
     <button type="button"
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary interactive-lock"
             data-turbo="false"
             data-action="click->recipe-builder#decrease"
             data-remove-btn-for="<%= part.id %>">
@@ -39,7 +39,8 @@
           <% else %>
             value="0"
           <% end %>
-          class="form-control text-center">
+          class="form-control text-center interactive-lock"
+          data-action="change->recipe-builder#onChangeQty">
     <button type="button"
             class="btn btn-outline-secondary"
             data-turbo="false"

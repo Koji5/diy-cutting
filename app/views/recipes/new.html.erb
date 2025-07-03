@@ -3,31 +3,8 @@
   <%= form_with model: @recipe, data: { controller: "thumbnail-upload" } do |f| %>
 
     <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
-      <!-- ★ サムネイル画像 (1:1 プレビュー付) -->
-      <style>
-        .thumb-box    { width:120px; aspect-ratio:1/1; border:1px dashed var(--bs-secondary); border-radius:.5rem; overflow:hidden; }
-        .icon         { color:rgba(255,255,255,.8); text-shadow:0 0 4px rgba(0,0,0,.6); }     /* 半透明＋わずかな影 */
-        .overlay-label:hover .icon { color:#fff; }                                             /* ホバー時だけくっきり */
-      </style>
       <!-- プレビュー枠 -->
-      <div class="thumb-box position-relative"
-        data-thumbnail-upload-target="box">
-        <!-- プレビュー用 -->
-        <img data-thumbnail-upload-target="preview"
-            class="w-100 h-100 object-fit-cover d-none" alt="プレビュー">
-        <!-- カメラアイコン -->
-        <label for="recipe_thumbnail"
-              class="overlay-label position-absolute w-100 h-100 top-0 start-0 d-flex
-                      align-items-center justify-content-center cursor-pointer">
-          <i class="bi bi-camera-fill fs-1 icon"></i>
-        </label>
-        <%= f.file_field :thumbnail,
-              accept: "image/*",
-              class: "d-none",
-              id: "recipe_thumbnail",
-              data: { action: "change->thumbnail-upload#update",
-                      thumbnail_upload_target: "input" } %>
-      </div>
+      <%= render "thumbnail_edit", f: f %>
       <!-- レシピ名 -->
       <div class="flex-grow-1 align-self-end">
         <div class="input-group">

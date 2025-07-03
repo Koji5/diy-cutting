@@ -1,0 +1,29 @@
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100px); /* 上に浮いた状態から */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100px); /* 下から現れる */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-down {
+  animation: fadeSlideDown 0.7s ease;
+}
+
+.animate-up {
+  animation: fadeSlideUp 0.7s ease;
+}
