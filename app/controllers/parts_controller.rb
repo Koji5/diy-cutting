@@ -1,7 +1,7 @@
 class PartsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_member_or_affiliate
-  before_action :set_part, only: %i[edit update show]
+  before_action :set_part, only: %i[edit update]
 
   # ───────────────────────
   # 一覧 (SID-PR-100)
@@ -15,6 +15,7 @@ class PartsController < ApplicationController
 
   def show
     load_masters
+    @part = Part.find(params[:id])
     render layout: (turbo_frame_request? ? false : "application")
   end
 
@@ -74,6 +75,12 @@ class PartsController < ApplicationController
                     notice: "部品「#{@part.name}」を削除しました。"
       end
     end
+  end
+
+  def inline_detail
+    load_masters
+    @part = Part.find(params[:id])
+    render partial: "parts/inline_detail", locals: { part: @part }
   end
 
   private

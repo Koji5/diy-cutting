@@ -10,9 +10,7 @@ export default class extends Controller {
   }
 
   open () {
-    console.log("✅ open called");
     this.modal.show()
-    console.log("✅ show() executed");
     setTimeout(() => {
       console.log("isShown?", this.modal._isShown)          // ← true なら JS 側OK
     }, 100)

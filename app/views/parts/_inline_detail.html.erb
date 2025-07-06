@@ -1,0 +1,232 @@
+<div class="d-flex flex-column" style="height: auto; opacity: 1;">
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">基本形状</div>
+  <!-- === 樹種 ============================ -->
+  <ul class="list-group list-group-horizontal mb-1">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">樹種</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= @materials.find { |m| m.code == part.material_code }&.name_ja || "―" %>
+    </li>
+  </ul>
+  <!-- === 平面形状 ============================ -->
+  <ul class="list-group list-group-horizontal mb-1">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">平面形状</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= @shapes.find { |m| m.code == part.shape_code }&.name_ja || "―" %>
+    </li>
+  </ul>
+  <!-- === 厚み・長さ・巾1・巾2（ニッチ型のみ） ============================ -->
+  <% w2 = part.width2_mm %>
+  <ul class="list-group list-group-horizontal mb-1">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">厚み</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= part.thickness_mm %>mm
+    </li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">長さ</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= part.length_mm %>mm
+    </li>
+    <% if w2.present? %>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-1">
+    <% end %>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">巾1</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= part.width1_mm %>mm
+    </li>
+    <% if w2.present? %>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">巾2</li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= part.width2_mm %>mm
+    </li>
+    <% end %>
+  </ul>
+  <!-- === 加工設定グループ ============================ -->
+  <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
+  <% flag = true %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">形状加工</div>
+  <% corners.each do |key, label| %>
+    <% if part.public_send("shape_#{key}_r").present? %>
+      <ul class="list-group list-group-horizontal mb-1">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2"><%= label %>半径</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+          <%= part.public_send("shape_#{key}_r") %>mm
+        </li>
+      </ul>
+      <% flag = false %>
+    <% end %>
+  <% end %>
+  <% if flag %><div class="small mb-1">なし</div><% end %>
+  <!-- === コーナー加工設定グループ ============================ -->
+  <% flag = true %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">コーナー加工</div>
+  <% corners.each do |key, label| %>
+    <% if part.public_send("corner_#{key}_r").present? || part.public_send("corner_#{key}_dx").present? %>
+      <ul class="list-group list-group-horizontal mb-1">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2"><%= label %></li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+          <%= @corner_processes.find { |m| m.code == part.public_send("corner_#{key}_code") }&.name_ja || "―" %>
+        </li>
+        <% if part.public_send("corner_#{key}_r").present? %>
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">半径</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+          <%= part.public_send("corner_#{key}_r") %>mm
+        </li>
+        <% end %>
+        <% if part.public_send("corner_#{key}_dx").present? %>
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">縦 x 横</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+          <%= part.public_send("corner_#{key}_dy") %>mm x <%= part.public_send("corner_#{key}_dx") %>mm
+        </li>
+        <% end %>
+      </ul>
+      <% flag = false %>
+    <% end %>
+  <% end %>
+  <% if flag %><div class="small mb-1">なし</div><% end %>
+  <%# ==== 丸穴加工 ================================= %>
+  <% flag = true %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">丸穴加工</div>
+  <% corners.each do |key, label| %>
+    <% if part.public_send("hole_#{key}_dia_code").present? %>
+      <ul class="list-group list-group-horizontal mb-0">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-bottom-radius"><%= label %>直径</li>
+        <% if !part.public_send("hole_#{key}_dia_mm").present? %>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2 no-bottom-radius">
+          <%= @hole_diameters.find { |m| m.code == part.public_send("hole_#{key}_dia_code") }&.name_ja || "―" %>
+        </li>
+        <% end %>
+        <% if part.public_send("hole_#{key}_dia_mm").present? %>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2 no-bottom-radius">
+          <%= part.public_send("hole_#{key}_dia_mm") %>mm
+        </li>
+        <% end %>
+      </ul>
+      <ul class="list-group list-group-horizontal mb-1">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-top-radius"><%= label %>からの距離（縦 x 横）</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2 no-top-radius">
+          <%= part.public_send("hole_#{key}_dy") %>mm x <%= part.public_send("hole_#{key}_dx") %>mm
+        </li>
+      </ul>
+      <% flag = false %>
+    <% end %>
+  <% end %>
+  <% if flag %><div class="small mb-1">なし</div><% end %>
+  <%# ==== 四角穴加工 ================================= %>
+  <% flag = true %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">四角穴加工</div>
+  <% corners.each do |key, label| %>
+    <% if part.public_send("sqhole_#{key}_h").present? %>
+      <ul class="list-group list-group-horizontal mb-0">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-bottom-radius"><%= label %>サイズ（縦 x 横）</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2 no-bottom-radius">
+          <%= part.public_send("sqhole_#{key}_h") %>mm x <%= part.public_send("sqhole_#{key}_w") %>mm
+        </li>
+      </ul>
+      <ul class="list-group list-group-horizontal mb-1">
+        <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-top-radius"><%= label %>からの距離（縦 x 横）</li>
+        <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2 no-top-radius">
+          <%= part.public_send("sqhole_#{key}_dy") %>mm x <%= part.public_send("sqhole_#{key}_dx") %>mm
+        </li>
+      </ul>
+      <% flag = false %>
+    <% end %>
+  <% end %>
+  <% if flag %><div class="small mb-1">なし</div><% end %>
+  <%# ==== 断面加工 =================================== %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">断面加工</div>
+  <ul class="list-group list-group-horizontal mb-0">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-bottom-radius-33">左上加工</li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-bottom-radius-33">上面加工</li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-bottom-radius-33">右上加工</li>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-0">
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_tl_code }&.name_ja || "―" %>
+    </li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_t_code }&.name_ja || "―" %>
+    </li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_tr_code }&.name_ja || "―" %>
+    </li>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-0">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33">左面加工</li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33"></li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33">右面加工</li>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-0">
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_l_code }&.name_ja || "―" %>
+    </li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33"></li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_r_code }&.name_ja || "―" %>
+    </li>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-0">
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33">左下加工</li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33">下面加工</li>
+    <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2 no-radius-33">右下加工</li>
+  </ul>
+  <ul class="list-group list-group-horizontal mb-1">
+    <li class="list-group-item min-w-0 py-1 px-2 no-top-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_bl_code }&.name_ja || "―" %>
+    </li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-top-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_b_code }&.name_ja || "―" %>
+    </li>
+    <li class="list-group-item min-w-0 py-1 px-2 no-top-radius-33">
+      <%= @edge_processes.find { |m| m.code == part.edge_br_code }&.name_ja || "―" %>
+    </li>
+  </ul>
+  <%# ==== 塗装 ======================================= %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">塗装</div>
+  <% if part.paint_type_code.present? %>
+    <ul class="list-group list-group-horizontal mb-1">
+      <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">塗装種類</li>
+      <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+        <%= @paint_types.find { |m| m.code == part.paint_type_code }&.name_ja || "―" %>
+      </li>
+    </ul>
+  <% end %>
+  <% if part.paint_surface_code.present? %>
+    <ul class="list-group list-group-horizontal mb-1">
+      <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">塗装面</li>
+      <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+        <%= @paint_surfaces.find { |m| m.code == part.paint_surface_code }&.name_ja || "―" %>
+      </li>
+    </ul>
+  <% end %>
+  <% if part.paint_color_code.present? %>
+    <ul class="list-group list-group-horizontal mb-1">
+      <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">塗装色</li>
+      <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+        <%= @paint_colors.find { |m| m.code == part.paint_color_code }&.name_ja || "―" %>
+      </li>
+    </ul>
+  <% end %>
+  <% if part.grain_finish_code.present? %>
+    <ul class="list-group list-group-horizontal mb-1">
+      <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">木目・導管の見え方</li>
+      <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+        <%= @grain_finishes.find { |m| m.code == part.grain_finish_code }&.name_ja || "―" %>
+      </li>
+    </ul>
+  <% end %>
+  <% if part.gloss_code.present? %>
+    <ul class="list-group list-group-horizontal mb-1">
+      <li class="list-group-item list-group-item-secondary fw-bold small py-1 px-2">ツヤ</li>
+      <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+        <%= @glosses.find { |m| m.code == part.gloss_code }&.name_ja || "―" %>
+      </li>
+    </ul>
+  <% end %>
+  <%# ==== 備考・メモ ================================================ %>
+  <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">備考・メモ</div>
+  <ul class="list-group list-group-horizontal mb-1">
+  <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+    <%= part.note %>
+  </li>
+  </ul>
+</div>

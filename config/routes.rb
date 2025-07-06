@@ -43,6 +43,10 @@ Rails.application.routes.draw do
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
 
-  resources :parts
+  resources :parts do
+    member do
+      get :inline_detail
+    end
+  end
   resources :recipes
 end

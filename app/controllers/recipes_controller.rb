@@ -64,6 +64,13 @@ class RecipesController < ApplicationController
     end
   end
 
+  def show
+    @recipe = current_user.recipes.find(params[:id])
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(:part)
+    render layout: (turbo_frame_request? ? false : "application")
+  end
+
   def destroy
     @recipe = Recipe.find(params[:id])
     @recipe.destroy
