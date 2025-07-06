@@ -225,8 +225,8 @@
   <%# ==== 備考・メモ ================================================ %>
   <div class="p-1 mb-1 bg-secondary flex-grow-1 text-white">備考・メモ</div>
   <ul class="list-group list-group-horizontal mb-1">
-  <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
-    <%= part.note %>
-  </li>
+    <li class="list-group-item flex-grow-1 min-w-0 py-1 px-2">
+      <%= part.note %><% if !part.note.present? %>なし<% end %>
+    </li>
   </ul>
 </div>
