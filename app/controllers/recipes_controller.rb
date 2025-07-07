@@ -1,6 +1,7 @@
 # app/controllers/recipes_controller.rb
 class RecipesController < ApplicationController
   before_action :authenticate_user!
+
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
     @recipes = current_user.recipes.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
@@ -68,6 +69,13 @@ class RecipesController < ApplicationController
     @recipe = current_user.recipes.find(params[:id])
     # レシピに含まれているパーツ
     @recipe_parts = @recipe.recipe_parts.includes(:part)
+    @carts = current_user.carts.includes(cart_recipes: :recipe)
+  end
+
+  def show_modal
+    @recipe = current_user.recipes.find(params[:id])
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(:part)
     render layout: (turbo_frame_request? ? false : "application")
   end
 
@@ -111,46 +119,47 @@ class RecipesController < ApplicationController
   def recipe_params
     params.require(:recipe).permit(:name, :thumbnail).merge(status: :draft)
   end
-end
 
-def sync_recipe_parts(parts_data)
-  if parts_data.blank?
-    # すべて削除（レシピに紐づくパーツが空になった）
-    @recipe.recipe_parts.destroy_all
-    return
-  end
-
-  # 現在の中間データ（part_id をキーに）
-  current_parts = @recipe.recipe_parts.index_by(&:part_id)
-  new_part_ids  = parts_data.map { |p| p[:part_id] }
-
-  # 1. 更新 or 追加
-  parts_data.each do |entry|
-    part_id  = entry[:part_id]
-    quantity = entry[:qty].to_i
-
-    if current_parts[part_id]
-      current_parts[part_id].update!(quantity: quantity)
-    else
-      @recipe.recipe_parts.create!(part_id: part_id, quantity: quantity)
+  def sync_recipe_parts(parts_data)
+    if parts_data.blank?
+      # すべて削除（レシピに紐づくパーツが空になった）
+      @recipe.recipe_parts.destroy_all
+      return
     end
+
+    # 現在の中間データ（part_id をキーに）
+    current_parts = @recipe.recipe_parts.index_by(&:part_id)
+    new_part_ids  = parts_data.map { |p| p[:part_id] }
+
+    # 1. 更新 or 追加
+    parts_data.each do |entry|
+      part_id  = entry[:part_id]
+      quantity = entry[:qty].to_i
+
+      if current_parts[part_id]
+        current_parts[part_id].update!(quantity: quantity)
+      else
+        @recipe.recipe_parts.create!(part_id: part_id, quantity: quantity)
+      end
+    end
+
+    # 2. 削除（存在していたが送られてこなかったパーツ）
+    to_remove = current_parts.keys - new_part_ids
+    @recipe.recipe_parts.where(part_id: to_remove).destroy_all
   end
 
-  # 2. 削除（存在していたが送られてこなかったパーツ）
-  to_remove = current_parts.keys - new_part_ids
-  @recipe.recipe_parts.where(part_id: to_remove).destroy_all
-end
+  def load_recipe_edit_data
+    # 1. parts_json から再構築
+    parts_data = JSON.parse(params[:recipe][:parts_json], symbolize_names: true)
 
-def load_recipe_edit_data
-  # 1. parts_json から再構築
-  parts_data = JSON.parse(params[:recipe][:parts_json], symbolize_names: true)
+    # 2. recipe_parts を仮想的に復元（保存されていない状態）
+    @recipe.recipe_parts = parts_data.map do |entry|
+      @recipe.recipe_parts.build(part_id: entry[:part_id], quantity: entry[:qty])
+    end
 
-  # 2. recipe_parts を仮想的に復元（保存されていない状態）
-  @recipe.recipe_parts = parts_data.map do |entry|
-    @recipe.recipe_parts.build(part_id: entry[:part_id], quantity: entry[:qty])
+    # 3. 含まれていないパーツを抽出
+    used_part_ids = parts_data.map { |p| p[:part_id] }
+    @excluded_parts = current_user.parts.where.not(id: used_part_ids)
   end
 
-  # 3. 含まれていないパーツを抽出
-  used_part_ids = parts_data.map { |p| p[:part_id] }
-  @excluded_parts = current_user.parts.where.not(id: used_part_ids)
 end

@@ -3,6 +3,8 @@ class Recipe < ApplicationRecord
   belongs_to :user
   has_many   :recipe_parts,  dependent: :destroy
   has_many   :parts,         through: :recipe_parts
+  has_many   :cart_recipes,  dependent: :destroy
+  has_many   :carts,         through: :cart_recipes
   has_one_attached :thumbnail
 
   # Snapshot モデルがある場合

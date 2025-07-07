@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-06-19 15:48 JST
+生成日: 2025-07-07 14:26 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -771,6 +771,344 @@
 
 <!-- TABLE_END recipe_snapshot_parts -->
 
+<!-- TABLE_BEGIN part_snapshots -->
+## part_snapshots
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| part_id | bigint | × |  |  |
+| checksum | character varying | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| material_category_code | character varying(10) | × |  |  |
+| material_code | character varying(16) | × |  |  |
+| shape_code | character varying(8) | × |  |  |
+| paint_type_code | character varying(4) | ○ |  |  |
+| thickness_mm | numeric(8,2) | × |  |  |
+| width1_mm | numeric(8,2) | × |  |  |
+| width2_mm | numeric(8,2) | ○ |  |  |
+| length_mm | numeric(8,2) | × |  |  |
+| shape_json | jsonb | ○ | {} |  |
+| corner_proc_json | jsonb | ○ | {} |  |
+| hole_json | jsonb | ○ | {} |  |
+| sqhole_json | jsonb | ○ | {} |  |
+| edge_json | jsonb | ○ | {} |  |
+| paint_json | jsonb | ○ | {} |  |
+| note | text | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| origin_snapshot_id | bigint | ○ |  |  |
+| origin_owner_id | bigint | ○ |  |  |
+
+**インデックス**:
+- part_snapshots_pkey (id) [PK]
+- index_part_snapshots_on_checksum (checksum)
+- index_part_snapshots_on_corner_proc_json (corner_proc_json)
+- index_part_snapshots_on_created_by_id (created_by_id)
+- index_part_snapshots_on_deleted_by_id (deleted_by_id)
+- index_part_snapshots_on_hole_json (hole_json)
+- index_part_snapshots_on_origin_snapshot_id (origin_snapshot_id)
+- index_part_snapshots_on_part_id (part_id)
+- index_part_snapshots_on_sqhole_json (sqhole_json)
+- index_part_snapshots_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_0a3ba229b5 (paint_type_code) → m_paint_types.code
+- fk_rails_140f6f0234 (material_code) → m_materials.code
+- fk_rails_44200a9608 (material_category_code) → m_categories.code
+- fk_rails_4a942da875 (created_by_id) → users.id
+- fk_rails_c44e04702a (updated_by_id) → users.id
+- fk_rails_c87b5a313e (part_id) → parts.id
+- fk_rails_d38f648163 (shape_code) → m_shapes.code
+- fk_rails_dc20f86c16 (deleted_by_id) → users.id
+
+**チェック制約**:
+- chk_ps_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END part_snapshots -->
+
+<!-- TABLE_BEGIN part_files -->
+## part_files
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| part_id | bigint | × |  |  |
+| file_key | character varying | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- part_files_pkey (id) [PK]
+- index_part_files_on_part_id (part_id)
+
+**外部キー**:
+- fk_rails_0484e77ee6 (part_id) → parts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END part_files -->
+
+<!-- SECTION_BEGIN 注文系 -->
+# 注文系
+<!-- SECTION_END 注文系 -->
+
+<!-- TABLE_BEGIN carts -->
+## carts
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  |  |
+| name | character varying(50) | × |  |  |
+| status | integer | × | 0 |  |
+| shipping_address_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- carts_pkey (id) [PK]
+- index_carts_on_shipping_address_id (shipping_address_id)
+- index_carts_on_user_id (user_id)
+
+**外部キー**:
+- fk_rails_ea59a35211 (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END carts -->
+
+<!-- TABLE_BEGIN cart_parts -->
+## cart_parts
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| cart_id | bigint | × |  |  |
+| part_id | bigint | × |  |  |
+| quantity | integer | × | 1 |  |
+| origin_snapshot_id | bigint | ○ |  |  |
+| origin_owner_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- cart_parts_pkey (id) [PK]
+- index_cart_parts_on_cart_id (cart_id)
+- index_cart_parts_on_part_id (part_id)
+
+**外部キー**:
+- fk_rails_2c21490359 (part_id) → parts.id
+- fk_rails_68d2a11300 (cart_id) → carts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END cart_parts -->
+
+<!-- TABLE_BEGIN cart_recipes -->
+## cart_recipes
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| cart_id | bigint | × |  |  |
+| recipe_id | bigint | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- cart_recipes_pkey (id) [PK]
+- index_cart_recipes_on_cart_id (cart_id)
+- index_cart_recipes_on_recipe_id (recipe_id)
+
+**外部キー**:
+- fk_rails_420803c62f (recipe_id) → recipes.id
+- fk_rails_dfe4fd2b4e (cart_id) → carts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END cart_recipes -->
+
+<!-- TABLE_BEGIN rfqs -->
+## rfqs
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  |  |
+| shipping_address_id | bigint | ○ |  |  |
+| status | integer | × | 0 |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- rfqs_pkey (id) [PK]
+- index_rfqs_on_shipping_address_id (shipping_address_id)
+- index_rfqs_on_user_id (user_id)
+
+**外部キー**:
+- fk_rails_d1a7ab1876 (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END rfqs -->
+
+<!-- TABLE_BEGIN rfq_parts -->
+## rfq_parts — 見積依頼 (RFQ) を構成する部品スナップショット明細テーブル
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| rfq_id | bigint | × |  | 見積依頼ヘッダ (rfqs.id) |
+| part_snapshot_id | bigint | × |  | 対象部品スナップショット (part_snapshots.id) |
+| quantity | integer | × | 1 | 見積対象数量 |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| origin_snapshot_id | bigint | × |  | 部品が初出公開されたレシピ‐snapshot ID |
+| origin_owner_id | bigint | × |  | 初出公開者ユーザー ID |
+
+**インデックス**:
+- rfq_parts_pkey (id) [PK]
+- index_rfq_parts_on_origin_owner_id (origin_owner_id)
+- index_rfq_parts_on_part_snapshot_id (part_snapshot_id)
+- index_rfq_parts_on_rfq_id (rfq_id)
+
+**外部キー**:
+- fk_rails_923102ee88 (part_snapshot_id) → part_snapshots.id
+- fk_rails_dea4f7c049 (rfq_id) → rfqs.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+**メモ**
+- `origin_*` 列は **部品単価報酬先** を決定するキー。  
+  *origin が NULL の部品は、`part_snapshot.owner_user_id` を報酬先とみなす。*
+- `quantity` は正整数のみ許容。
+- `rfq_parts` → `vendor_offer_items` → `orders` と進むことで、部品単価の見積・採用・売上が一貫してトレース可能。
+<!-- NOTE END -->
+
+<!-- TABLE_END rfq_parts -->
+
+<!-- TABLE_BEGIN vendor_offers -->
+## vendor_offers
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| rfq_id | bigint | × |  |  |
+| vendor_id | bigint | × |  |  |
+| status | integer | × | 0 |  |
+| total_price | numeric(18,4) | ○ | 0.0 |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| sub_total | numeric(18,4) | × | 0.0 |  |
+| shipping_fee | numeric(18,4) | × | 0.0 |  |
+| tax_rate | numeric(4,2) | × | 10.0 |  |
+| tax_amount | numeric(18,4) | × | 0.0 |  |
+| received_at | timestamp(6) without time zone | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+
+**インデックス**:
+- vendor_offers_pkey (id) [PK]
+- index_vendor_offers_on_created_by_id (created_by_id)
+- index_vendor_offers_on_deleted_by_id (deleted_by_id)
+- index_vendor_offers_on_rfq_id (rfq_id)
+- index_vendor_offers_on_rfq_id_and_status (rfq_id, status)
+- index_vendor_offers_on_status (status)
+- index_vendor_offers_on_updated_by_id (updated_by_id)
+- index_vendor_offers_on_vendor_id (vendor_id)
+- index_vendor_offers_on_vendor_id_and_status (vendor_id, status)
+- uniq_vendor_offer_per_rfq (rfq_id, vendor_id) WHERE (deleted_flag = false) [UNIQUE]
+
+**外部キー**:
+- fk_rails_37424dfe2f (updated_by_id) → users.id
+- fk_rails_4fe5613415 (deleted_by_id) → users.id
+- fk_rails_8ad36f27c5 (created_by_id) → users.id
+- fk_rails_a3eca65d17 (rfq_id) → rfqs.id
+- fk_rails_b8710e984c (vendor_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END vendor_offers -->
+
+<!-- TABLE_BEGIN vendor_offer_items -->
+## vendor_offer_items
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| vendor_offer_id | bigint | × |  |  |
+| rfq_part_id | bigint | × |  |  |
+| unit_price | numeric(18,4) | × |  |  |
+| lead_time_days | integer | ○ |  |  |
+| note | text | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+
+**インデックス**:
+- vendor_offer_items_pkey (id) [PK]
+- index_vendor_offer_items_on_created_by_id (created_by_id)
+- index_vendor_offer_items_on_deleted_by_id (deleted_by_id)
+- index_vendor_offer_items_on_rfq_part_id (rfq_part_id)
+- index_vendor_offer_items_on_updated_by_id (updated_by_id)
+- index_vendor_offer_items_on_vendor_offer_id (vendor_offer_id)
+- uniq_offer_item (vendor_offer_id, rfq_part_id) [UNIQUE]
+
+**外部キー**:
+- fk_rails_276f1f2b18 (rfq_part_id) → rfq_parts.id
+- fk_rails_8605eefbf2 (vendor_offer_id) → vendor_offers.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END vendor_offer_items -->
+
 <!-- TABLE_BEGIN affiliate_signups -->
 ## affiliate_signups
 
@@ -1300,86 +1638,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END h_payment_webhooks -->
-
-<!-- TABLE_BEGIN m_process_types -->
-## m_process_types
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(10) | × |  |  |
-| category_code | character varying(10) | × |  |  |
-| name_ja | character varying(40) | × |  |  |
-| name_en | character varying(40) | × |  |  |
-| description_ja | character varying(80) | ○ |  |  |
-| description_en | character varying(80) | ○ |  |  |
-| jis_iso | character varying(12) | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- m_process_types_pkey (code) [PK]
-- index_m_process_types_on_category_code (category_code)
-- index_m_process_types_on_created_by_id (created_by_id)
-- index_m_process_types_on_deleted_by_id (deleted_by_id)
-- index_m_process_types_on_name_en (name_en) [UNIQUE]
-- index_m_process_types_on_name_ja (name_ja) [UNIQUE]
-- index_m_process_types_on_updated_by_id (updated_by_id)
-
-**外部キー**:
-- fk_rails_50d97028ce (created_by_id) → users.id
-- fk_rails_9a94eea366 (category_code) → m_categories.code
-- fk_rails_9ae1a206fd (updated_by_id) → users.id
-- fk_rails_9c515c2693 (deleted_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_process_types -->
-
-<!-- TABLE_BEGIN m_authorities -->
-## m_authorities
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| code | character varying(30) | × |  |  |
-| name_ja | character varying(60) | × |  |  |
-| default_roles | jsonb | ○ |  |  |
-| active_flag | boolean | × | true |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- index_m_authorities_on_active_flag (active_flag)
-- index_m_authorities_on_code (code) [UNIQUE]
-- index_m_authorities_on_created_by_id (created_by_id)
-- index_m_authorities_on_deleted_by_id (deleted_by_id)
-- index_m_authorities_on_updated_by_id (updated_by_id)
-
-**外部キー**:
-- fk_rails_44f5207aff (deleted_by_id) → users.id
-- fk_rails_5230eda4ef (created_by_id) → users.id
-- fk_rails_e964d916b9 (updated_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END m_authorities -->
 
 <!-- TABLE_BEGIN h_payout_events -->
 ## h_payout_events
@@ -3225,206 +3483,6 @@
 
 <!-- TABLE_END h_payment_webhooks_202604 -->
 
-<!-- TABLE_BEGIN part_files -->
-## part_files
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| part_id | bigint | × |  |  |
-| file_key | character varying | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- part_files_pkey (id) [PK]
-- index_part_files_on_part_id (part_id)
-
-**外部キー**:
-- fk_rails_0484e77ee6 (part_id) → parts.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END part_files -->
-
-<!-- TABLE_BEGIN carts -->
-## carts
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
-| name | character varying(50) | × |  |  |
-| status | integer | × | 0 |  |
-| shipping_address_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- carts_pkey (id) [PK]
-- index_carts_on_shipping_address_id (shipping_address_id)
-- index_carts_on_user_id (user_id)
-
-**外部キー**:
-- fk_rails_ea59a35211 (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END carts -->
-
-<!-- TABLE_BEGIN rfqs -->
-## rfqs
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
-| shipping_address_id | bigint | ○ |  |  |
-| status | integer | × | 0 |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-
-**インデックス**:
-- rfqs_pkey (id) [PK]
-- index_rfqs_on_shipping_address_id (shipping_address_id)
-- index_rfqs_on_user_id (user_id)
-
-**外部キー**:
-- fk_rails_d1a7ab1876 (user_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END rfqs -->
-
-<!-- TABLE_BEGIN cart_items -->
-## cart_items
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| cart_id | bigint | × |  |  |
-| part_id | bigint | × |  |  |
-| quantity | integer | × | 1 |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| origin_snapshot_id | bigint | ○ |  |  |
-| origin_owner_id | bigint | ○ |  |  |
-
-**インデックス**:
-- cart_items_pkey (id) [PK]
-- index_cart_items_on_cart_id (cart_id)
-- index_cart_items_on_part_id (part_id)
-
-**外部キー**:
-- fk_rails_592e298682 (part_id) → parts.id
-- fk_rails_6cdb1f0139 (cart_id) → carts.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END cart_items -->
-
-<!-- TABLE_BEGIN rfq_parts -->
-## rfq_parts — 見積依頼 (RFQ) を構成する部品スナップショット明細テーブル
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| rfq_id | bigint | × |  | 見積依頼ヘッダ (rfqs.id) |
-| part_snapshot_id | bigint | × |  | 対象部品スナップショット (part_snapshots.id) |
-| quantity | integer | × | 1 | 見積対象数量 |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| origin_snapshot_id | bigint | × |  | 部品が初出公開されたレシピ‐snapshot ID |
-| origin_owner_id | bigint | × |  | 初出公開者ユーザー ID |
-
-**インデックス**:
-- rfq_parts_pkey (id) [PK]
-- index_rfq_parts_on_origin_owner_id (origin_owner_id)
-- index_rfq_parts_on_part_snapshot_id (part_snapshot_id)
-- index_rfq_parts_on_rfq_id (rfq_id)
-
-**外部キー**:
-- fk_rails_923102ee88 (part_snapshot_id) → part_snapshots.id
-- fk_rails_dea4f7c049 (rfq_id) → rfqs.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-**メモ**
-- `origin_*` 列は **部品単価報酬先** を決定するキー。  
-  *origin が NULL の部品は、`part_snapshot.owner_user_id` を報酬先とみなす。*
-- `quantity` は正整数のみ許容。
-- `rfq_parts` → `vendor_offer_items` → `orders` と進むことで、部品単価の見積・採用・売上が一貫してトレース可能。
-<!-- NOTE END -->
-
-<!-- TABLE_END rfq_parts -->
-
-<!-- TABLE_BEGIN vendor_offers -->
-## vendor_offers
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| rfq_id | bigint | × |  |  |
-| vendor_id | bigint | × |  |  |
-| status | integer | × | 0 |  |
-| total_price | numeric(18,4) | ○ | 0.0 |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| sub_total | numeric(18,4) | × | 0.0 |  |
-| shipping_fee | numeric(18,4) | × | 0.0 |  |
-| tax_rate | numeric(4,2) | × | 10.0 |  |
-| tax_amount | numeric(18,4) | × | 0.0 |  |
-| received_at | timestamp(6) without time zone | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-
-**インデックス**:
-- vendor_offers_pkey (id) [PK]
-- index_vendor_offers_on_created_by_id (created_by_id)
-- index_vendor_offers_on_deleted_by_id (deleted_by_id)
-- index_vendor_offers_on_rfq_id (rfq_id)
-- index_vendor_offers_on_rfq_id_and_status (rfq_id, status)
-- index_vendor_offers_on_status (status)
-- index_vendor_offers_on_updated_by_id (updated_by_id)
-- index_vendor_offers_on_vendor_id (vendor_id)
-- index_vendor_offers_on_vendor_id_and_status (vendor_id, status)
-- uniq_vendor_offer_per_rfq (rfq_id, vendor_id) WHERE (deleted_flag = false) [UNIQUE]
-
-**外部キー**:
-- fk_rails_37424dfe2f (updated_by_id) → users.id
-- fk_rails_4fe5613415 (deleted_by_id) → users.id
-- fk_rails_8ad36f27c5 (created_by_id) → users.id
-- fk_rails_a3eca65d17 (rfq_id) → rfqs.id
-- fk_rails_b8710e984c (vendor_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_offers -->
-
 <!-- TABLE_BEGIN transaction_shipping_addresses -->
 ## transaction_shipping_addresses
 
@@ -3449,112 +3507,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END transaction_shipping_addresses -->
-
-<!-- TABLE_BEGIN vendor_offer_items -->
-## vendor_offer_items
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| vendor_offer_id | bigint | × |  |  |
-| rfq_part_id | bigint | × |  |  |
-| unit_price | numeric(18,4) | × |  |  |
-| lead_time_days | integer | ○ |  |  |
-| note | text | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-
-**インデックス**:
-- vendor_offer_items_pkey (id) [PK]
-- index_vendor_offer_items_on_created_by_id (created_by_id)
-- index_vendor_offer_items_on_deleted_by_id (deleted_by_id)
-- index_vendor_offer_items_on_rfq_part_id (rfq_part_id)
-- index_vendor_offer_items_on_updated_by_id (updated_by_id)
-- index_vendor_offer_items_on_vendor_offer_id (vendor_offer_id)
-- uniq_offer_item (vendor_offer_id, rfq_part_id) [UNIQUE]
-
-**外部キー**:
-- fk_rails_276f1f2b18 (rfq_part_id) → rfq_parts.id
-- fk_rails_8605eefbf2 (vendor_offer_id) → vendor_offers.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END vendor_offer_items -->
-
-<!-- TABLE_BEGIN part_snapshots -->
-## part_snapshots
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| id | bigint | × |  |  |
-| part_id | bigint | × |  |  |
-| checksum | character varying | × |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| material_category_code | character varying(10) | × |  |  |
-| material_code | character varying(16) | × |  |  |
-| shape_code | character varying(8) | × |  |  |
-| paint_type_code | character varying(4) | ○ |  |  |
-| thickness_mm | numeric(8,2) | × |  |  |
-| width1_mm | numeric(8,2) | × |  |  |
-| width2_mm | numeric(8,2) | ○ |  |  |
-| length_mm | numeric(8,2) | × |  |  |
-| shape_json | jsonb | ○ | {} |  |
-| corner_proc_json | jsonb | ○ | {} |  |
-| hole_json | jsonb | ○ | {} |  |
-| sqhole_json | jsonb | ○ | {} |  |
-| edge_json | jsonb | ○ | {} |  |
-| paint_json | jsonb | ○ | {} |  |
-| note | text | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| origin_snapshot_id | bigint | ○ |  |  |
-| origin_owner_id | bigint | ○ |  |  |
-
-**インデックス**:
-- part_snapshots_pkey (id) [PK]
-- index_part_snapshots_on_checksum (checksum)
-- index_part_snapshots_on_corner_proc_json (corner_proc_json)
-- index_part_snapshots_on_created_by_id (created_by_id)
-- index_part_snapshots_on_deleted_by_id (deleted_by_id)
-- index_part_snapshots_on_hole_json (hole_json)
-- index_part_snapshots_on_origin_snapshot_id (origin_snapshot_id)
-- index_part_snapshots_on_part_id (part_id)
-- index_part_snapshots_on_sqhole_json (sqhole_json)
-- index_part_snapshots_on_updated_by_id (updated_by_id)
-
-**外部キー**:
-- fk_rails_0a3ba229b5 (paint_type_code) → m_paint_types.code
-- fk_rails_140f6f0234 (material_code) → m_materials.code
-- fk_rails_44200a9608 (material_category_code) → m_categories.code
-- fk_rails_4a942da875 (created_by_id) → users.id
-- fk_rails_c44e04702a (updated_by_id) → users.id
-- fk_rails_c87b5a313e (part_id) → parts.id
-- fk_rails_d38f648163 (shape_code) → m_shapes.code
-- fk_rails_dc20f86c16 (deleted_by_id) → users.id
-
-**チェック制約**:
-- chk_ps_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
-<!-- NOTE END -->
-
-<!-- TABLE_END part_snapshots -->
 
 <!-- TABLE_BEGIN affiliate_recipe_commissions -->
 ## affiliate_recipe_commissions
@@ -4183,6 +4135,86 @@
 
 <!-- TABLE_END m_glosses -->
 
+<!-- TABLE_BEGIN m_process_types -->
+## m_process_types
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(10) | × |  |  |
+| category_code | character varying(10) | × |  |  |
+| name_ja | character varying(40) | × |  |  |
+| name_en | character varying(40) | × |  |  |
+| description_ja | character varying(80) | ○ |  |  |
+| description_en | character varying(80) | ○ |  |  |
+| jis_iso | character varying(12) | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_process_types_pkey (code) [PK]
+- index_m_process_types_on_category_code (category_code)
+- index_m_process_types_on_created_by_id (created_by_id)
+- index_m_process_types_on_deleted_by_id (deleted_by_id)
+- index_m_process_types_on_name_en (name_en) [UNIQUE]
+- index_m_process_types_on_name_ja (name_ja) [UNIQUE]
+- index_m_process_types_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_50d97028ce (created_by_id) → users.id
+- fk_rails_9a94eea366 (category_code) → m_categories.code
+- fk_rails_9ae1a206fd (updated_by_id) → users.id
+- fk_rails_9c515c2693 (deleted_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_process_types -->
+
+<!-- TABLE_BEGIN m_authorities -->
+## m_authorities
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(30) | × |  |  |
+| name_ja | character varying(60) | × |  |  |
+| default_roles | jsonb | ○ |  |  |
+| active_flag | boolean | × | true |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- index_m_authorities_on_active_flag (active_flag)
+- index_m_authorities_on_code (code) [UNIQUE]
+- index_m_authorities_on_created_by_id (created_by_id)
+- index_m_authorities_on_deleted_by_id (deleted_by_id)
+- index_m_authorities_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_44f5207aff (deleted_by_id) → users.id
+- fk_rails_5230eda4ef (created_by_id) → users.id
+- fk_rails_e964d916b9 (updated_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_authorities -->
+
 <!-- TABLE_BEGIN active_storage_blobs -->
 ## active_storage_blobs
 
@@ -4261,4 +4293,3 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END active_storage_variant_records -->
-

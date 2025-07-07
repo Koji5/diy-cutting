@@ -1,5 +1,4 @@
-<%= render "recipes/link_recipe" %>
-<section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
+<turbo-frame id="recipe_modal" data-action="turbo:frame-load->recipe-show-modal#open">
   <!-- ✅ 上部：固定のレシピ情報欄 -->
   <div class="d-flex flex-row flex-grow-1 mb-3 recipe-modal" style="min-height: 80px;">
     <div class="d-flex thumb-box me-3">
@@ -15,33 +14,9 @@
       <p class="mb-0 text-muted small">
         作成日：<%= l(@recipe.created_at.to_date) %> / 作成者：<%= @recipe.user.id %>
       </p>
-      <div class=" flex-grow-1">
-        <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            カートに追加
-          </button>
-          <ul class="dropdown-menu" data-controller="cart-add">
-            <li>
-              <%= link_to "新規作成して追加", new_cart_path(recipe_id: @recipe.id), class: "dropdown-item" %>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <% current_user.carts.each do |cart| %>
-              <li>
-                <%= link_to cart.name, "#",
-                      class: "dropdown-item",
-                      data: {
-                        action: "click->cart-add#select",
-                        "cart-id": cart.id,
-                        "recipe-id": @recipe.id
-                      } %>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      </div>
     </div>
   </div>
-  <div>
+  <div class="overflow-auto" style="max-height: 50vh;">
     <% @recipe_parts.each do |recipe_part| %>
       <% part = recipe_part.part %>
       <% thumb_tag =
@@ -92,4 +67,4 @@
       </div>
     <% end %>
   </div>
-</section>
+</turbo-frame>

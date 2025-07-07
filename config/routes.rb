@@ -48,5 +48,14 @@ Rails.application.routes.draw do
       get :inline_detail
     end
   end
-  resources :recipes
+  resources :recipes do
+    member do
+      get :show_modal
+    end
+  end
+  resources :carts do
+    member do
+      get :check_and_add
+    end
+  end
 end

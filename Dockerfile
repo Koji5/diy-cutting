@@ -13,7 +13,7 @@ RUN dnf -y groupinstall "Development Tools"
 RUN dnf -y install \
       ruby ruby-devel                       \
       libyaml-devel zlib-devel openssl-devel\
-      postgresql15-devel                    \
+      postgresql15 postgresql15-devel       \
       nodejs npm                            \
       ImageMagick ImageMagick-libs \
       librsvg2-tools cairo pango \

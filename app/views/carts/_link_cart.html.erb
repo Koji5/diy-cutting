@@ -1,28 +1,28 @@
 <% menu = [
   {
-    path:  -> { edit_recipe_path(@recipe) if @recipe },
-    match: -> { controller_name == "recipes" && action_name == "edit" },
+    path:  -> { edit_cart_path(@cart) if @cart },
+    match: -> { controller_name == "carts" && action_name == "edit" },
     icon:  "pencil",
     label: "編集",
     link:  false                # 編集画面へのリンクは出さない
   },
   {
-    path:  -> { recipe_path(@recipe) if @recipe },
-    match: -> { controller_name == "recipes" && action_name == "show" },
+    path:  -> { cart_path(@cart) if @cart },
+    match: -> { controller_name == "carts" && action_name == "show" },
     icon:  "eye",
     label: "詳細",
     link:  false                # 詳細画面へのリンクは出さない
   },
   {
-    path:  -> { recipes_path },
-    match: -> { current_page?(recipes_path) },
+    path:  -> { carts_path },
+    match: -> { current_page?(carts_path) },
     icon:  "list-ul",
     label: "一覧",
     link:  true
   },
   {
-    path:  -> { new_recipe_path },
-    match: -> { current_page?(new_recipe_path) },
+    path:  -> { new_cart_path },
+    match: -> { current_page?(new_cart_path) },
     icon:  "plus-lg",
     label: "新規作成",
     link:  true
@@ -35,8 +35,8 @@
 
 <header class="MainHeader d-flex flex-row align-items-center">
   <h3 class="d-flex px-3 flex-nowrap">
-    <i class="bi bi-fork-knife me-2"></i>
-    マイレシピ － <%= title_tag %>
+    <i class="bi bi-cart4 me-2"></i>
+    カート － <%= title_tag %>
   </h3>
   <div class="flex-grow-1 min-w-0">
     <div class="input-group px-3">

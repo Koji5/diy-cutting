@@ -10,10 +10,11 @@
 <% role_int = current_user&.role_before_type_cast || 0 %>
 
 <% menu = [
-  { path:  ->{ root_path },        icon: "house",     label:"ホーム",  roles:[0,1,2,3]             },
-  { path:  ->{ new_part_path },    icon: "puzzle",    label:"パーツ",  roles:[0,1,2,3], turbo:true   },
-  { path:  ->{ new_recipe_path },  icon: "fork-knife",label:"レシピ",  roles:[0,1,2,3], turbo:true   },
-  { path:  ->{ admin_root_path },  icon: "shield-lock",label:"管理",   roles:[2], turbo:true                }
+  { path:  ->{ root_path },       icon: "house",        label:"ホーム",     roles:[0,1,2,3]               },
+  { path:  ->{ parts_path },      icon: "puzzle",       label:"マイパーツ", roles:[0,1,2,3],  turbo:true  },
+  { path:  ->{ recipes_path },    icon: "fork-knife",   label:"マイレシピ", roles:[0,1,2,3],  turbo:true  },
+  { path:  ->{ carts_path },      icon: "cart4",        label:"カート",     roles:[0,1,2,3],  turbo:true  },
+  { path:  ->{ admin_root_path }, icon: "shield-lock",  label:"管理",       roles:[2],        turbo:true  }
 ] %>
 
 <% menu.each do |item| %>
@@ -21,7 +22,7 @@
   <% link_opts = item[:turbo] ? { data:{ turbo_frame:"main"} } : {} %>
 
   <% if placement == :side %>
-    <%= link_to item[:path].call, { class:"SideLink mb-2" }.merge(link_opts) do %>
+    <%= link_to item[:path].call, { class:"SideLink mb-2 link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" }.merge(link_opts) do %>
       <i class="bi bi-<%= item[:icon] %> fs-4" aria-label="<%= item[:label] %>"></i>
       <span class="SideLabel ms-3"><%= item[:label] %></span>
     <% end %>
