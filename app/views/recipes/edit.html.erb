@@ -20,10 +20,10 @@
       <!-- ドロップゾーン -->
       <div class="form-floating mb-3 flex-grow-1">
         <main data-recipe-builder-target="dropZone" id="floatingInput"
-              class="d-flex flex-wrap align-content-start overflow-auto form-control"
+              class="overflow-auto form-control"
               style="min-height: 256px;">
           <% @recipe_parts.each do |recipe_part| %>
-            <%= render "part_card", part: recipe_part.part, quantity: recipe_part.quantity %>
+            <%= render "recipe_item_card", part: recipe_part.part, quantity: recipe_part.quantity %>
           <% end %>
         </main>
         <label for="floatingInput">ここにドロップしてください</label>
@@ -39,7 +39,7 @@
               style="min-height:256px;"
               id="floatingPartsList">
           <% @excluded_parts.each do |excluded_part| %>
-            <%= render "part_card", part: excluded_part %>
+            <%= render "recipe_item_card", part: excluded_part %>
           <% end %>
         </div>
         <label for="floatingPartsList">選択可能部品一覧</label>

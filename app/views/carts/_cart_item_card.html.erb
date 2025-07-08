@@ -1,0 +1,83 @@
+<%#== 1:1 48px サムネイル / プレースホルダ ==%>
+<% thumb_tag =
+    if item.thumbnail.attached?
+      image_tag(item.thumbnail
+                    .variant(resize_to_fill: [100, 100]),
+                loading: "lazy",
+                decoding: "async",
+                width: 84, height: 84,
+                class: "img-fluid rounded-start")
+    else
+      tag.div "No image",
+              class: "img-fluid rounded-start",
+              style: "width:84px; height:84px;",
+              role: "img",
+              aria: { label: "No image" }
+    end
+%>
+<div class="card item-card mb-2"
+    data-cart-builder-target="item"
+    data-item-id="<%= item.id %>"
+    data-item-type="<%= target %>"
+    draggable="true">
+  <div class="d-flex flex-row flex-grow-1">
+    <div style="min-width:84px;">
+      <%= thumb_tag %>
+    </div>
+      <div class="d-flex flex-grow-1">
+      <div class="card-body p-2">
+        <div class="flex-grow-1 min-w-0 text-truncate mb-2"><%= item.name %></div>
+        <div class="d-flex flex-row">
+          <div class="d-flex flex-grow-1 align-items-center">
+              <% if target == "part" %>
+                <span class="badge rounded-pill text-bg-info">パーツ
+              <% elsif target == "recipe" %>
+                <span class="badge rounded-pill text-bg-warning">レシピ
+              <% end %>
+            </span>
+          </div>
+          <div class="d-flex flex-row">
+            <fieldset class="input-group flex-shrink-1 flex-grow-0 me-3"
+                  role="group" style="max-width:130px;"
+                  data-item-id="<%= item.id %>">
+              <button type="button"
+                      class="btn btn-outline-secondary interactive-lock"
+                      data-turbo="false"
+                      data-action="click->cart-builder#decrease"
+                      data-remove-btn-for="<%= item.id %>">
+                <i class="bi bi-trash"></i>
+              </button>
+              <input data-quantity-for="<%= item.id %>"
+                    <% if defined?(quantity) %>
+                      value="<%= quantity %>"
+                    <% else %>
+                      value="0"
+                    <% end %>
+                    class="form-control text-center interactive-lock"
+                    data-action="change->cart-builder#onChangeQty">
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-turbo="false"
+                      data-action="click->cart-builder#increase">＋</button>
+            </fieldset>
+            <% if target == "part" %>
+              <%= link_to part_path(item),
+                      data: { turbo_frame: "part_modal" },
+                      class: "btn btn-outline-secondary btn-icon eye-area",
+                      style: "min-width: 40px;" do %>
+                <i class="bi bi-eye"></i>
+              <% end %>
+            <% elsif target == "recipe" %>
+              <%= link_to show_modal_recipe_path(item),
+                      data: { turbo_frame: "recipe_modal" },
+                      class: "btn btn-outline-secondary btn-icon eye-area",
+                      style: "min-width: 40px;" do %>
+                <i class="bi bi-eye"></i>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -26,8 +26,9 @@ export default class extends Controller {
   }
 
   firstAddPart(el) {
+    const id   = Number(el.dataset.partId)
+    const fs    = el.querySelector("fieldset");
     if (this.dropZoneTarget.contains(el)) {
-      const id   = Number(el.dataset.partId)
       const input = el.querySelector(`[data-quantity-for="${id}"]`)
       const qty = input ? parseInt(input.value, 10) : 0
       /* ★ まだ登録されていなければ配列に push */
@@ -39,11 +40,16 @@ export default class extends Controller {
         obj.qty = qty // すでにあれば更新する
       }
       this._updateRemoveIcon(id, qty)
-      const fs    = el.querySelector("fieldset");
       fs.querySelectorAll(".interactive-lock").forEach(lock => {
         lock.disabled = false
       })
       this.updateHidden()
+    } else {
+      this._updateRemoveIcon(id, 1)
+      this.updateQtyDisplay(id, 0)
+      fs.querySelectorAll(".interactive-lock").forEach(lock => {
+        lock.disabled = true
+      })
     }
   }
 

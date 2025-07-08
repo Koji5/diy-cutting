@@ -7,11 +7,45 @@ class CartsController < ApplicationController
 
   def new
     @cart = Cart.new
-    @recipe = Recipe.find(params[:recipe_id]) if params[:recipe_id].present?
+    if params[:recipe_id].present?
+      @recipe = Recipe.includes(thumbnail_attachment: :blob).find(params[:recipe_id])
+      @recipes = current_user.recipes
+                      .where.not(id: @recipe.id)
+                      .with_attached_thumbnail
+                      .order(updated_at: :desc)
+      @excluded_recipes = [@recipe]
+    else
+      @recipes = current_user.recipes
+                      .with_attached_thumbnail
+                      .order(updated_at: :desc)
+      @excluded_recipes = []
+    end
     @parts = current_user.parts
                      .kept
                      .with_attached_thumbnail
                      .order(:name)
+  end
+
+  def create
+    @cart = current_user.carts.build(cart_params)
+    if (json = params.dig(:cart, :parts_json)).present?
+      JSON.parse(json).each do |h|
+        @cart.cart_parts.build(part_id: h['part_id'], quantity: h['qty'])
+      end
+    end
+    if (json = params.dig(:cart, :recipes_json)).present?
+      JSON.parse(json).each do |h|
+        @cart.cart_recipes.build(recipe_id: h['recipe_id'], quantity: h['qty'])
+      end
+    end
+
+    if @cart.save
+      flash[:notice] = '保存しました'
+      redirect_to new_cart_path
+    else
+      @carts = Cart.order(:name)
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def destroy
@@ -32,4 +66,11 @@ class CartsController < ApplicationController
       end
     end
   end
+
+  private
+
+  def cart_params
+    params.require(:cart).permit(:name).merge(status: :draft)
+  end
+
 end

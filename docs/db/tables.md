@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-07 14:26 JST
+生成日: 2025-07-08 15:00 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -938,6 +938,7 @@
 | recipe_id | bigint | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| quantity | integer | × | 1 |  |
 
 **インデックス**:
 - cart_recipes_pkey (id) [PK]
@@ -4293,3 +4294,4 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END active_storage_variant_records -->
+
