@@ -8,11 +8,12 @@
                 width: 84, height: 84,
                 class: "img-fluid rounded-start")
     else
-      tag.div "No image",
-              class: "img-fluid rounded-start",
+      tag.div(class: "img-fluid rounded-start text-bg-light d-flex justify-content-center align-items-center text-center small",
               style: "width:84px; height:84px;",
               role: "img",
-              aria: { label: "No image" }
+              aria: { label: "No image" }) do
+        safe_join(["No", tag.br, "Image"])
+      end
     end
 %>
 <div class="card item-card mb-2"

@@ -8,7 +8,10 @@ class PartsController < ApplicationController
   # ───────────────────────
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @parts = current_user.parts.kept.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
+    @parts = current_user.parts
+              .kept
+              .includes(:origin_owner, thumbnail_attachment: :blob)
+              .order(updated_at: :desc)
     # affiliate の場合のみ “オリジナル作成者” を表示するため
     @show_owner = current_user.affiliate?
   end

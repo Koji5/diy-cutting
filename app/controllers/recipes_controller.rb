@@ -4,14 +4,16 @@ class RecipesController < ApplicationController
 
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @recipes = current_user.recipes.with_attached_thumbnail.includes(:origin_owner).order(updated_at: :desc)
+    @recipes = current_user.recipes
+                          .includes(:origin_owner, thumbnail_attachment: :blob)
+                          .order(updated_at: :desc)
   end
 
   def new
     @recipe = Recipe.new
     @parts = current_user.parts
                      .kept
-                     .with_attached_thumbnail
+                     .includes(thumbnail_attachment: :blob)
                      .order(:name)
   end
 
@@ -37,9 +39,10 @@ class RecipesController < ApplicationController
   def edit
     @recipe = current_user.recipes.find(params[:id])
     # レシピに含まれているパーツ
-    @recipe_parts = @recipe.recipe_parts.includes(:part)
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
     # レシピに含まれていないパーツ
     @excluded_parts = current_user.parts
+                              .includes(thumbnail_attachment: :blob)
                               .where.not(id: @recipe.recipe_parts.select(:part_id))
   end
 
@@ -68,7 +71,7 @@ class RecipesController < ApplicationController
   def show
     @recipe = current_user.recipes.find(params[:id])
     # レシピに含まれているパーツ
-    @recipe_parts = @recipe.recipe_parts.includes(:part)
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
     @carts = current_user.carts.includes(cart_recipes: :recipe)
   end
 
@@ -152,14 +155,21 @@ class RecipesController < ApplicationController
     # 1. parts_json から再構築
     parts_data = JSON.parse(params[:recipe][:parts_json], symbolize_names: true)
 
-    # 2. recipe_parts を仮想的に復元（保存されていない状態）
+    # 2. 関連する Part をまとめて preload
+    part_ids = parts_data.map { |entry| entry[:part_id] }
+    preloaded_parts = Part.where(id: part_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
+
+    # 3. recipe_parts を仮想的に復元（保存されていない状態）
     @recipe.recipe_parts = parts_data.map do |entry|
-      @recipe.recipe_parts.build(part_id: entry[:part_id], quantity: entry[:qty])
+      part = preloaded_parts[entry[:part_id]]
+      @recipe.recipe_parts.build(part: part, quantity: entry[:qty])
     end
 
-    # 3. 含まれていないパーツを抽出
+    # 4. 含まれていないパーツを抽出
     used_part_ids = parts_data.map { |p| p[:part_id] }
-    @excluded_parts = current_user.parts.where.not(id: used_part_ids)
+    @excluded_parts = current_user.parts
+                              .includes(thumbnail_attachment: :blob)
+                              .where.not(id: used_part_ids)
   end
 
 end

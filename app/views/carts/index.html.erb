@@ -3,7 +3,7 @@
   <% if @carts.any? %>
     <% @carts.each do |cart| %>
       <div id="<%= dom_id(cart) %>" data-controller="remove-card" class="card d-flex flex-row flex-grow-1 align-items-center mb-2 px-2 py-1">
-        <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= cart.name %></div>
+        <div class="flex-grow-1 min-w-0 me-2 text-truncate"><i class="bi bi-cart-fill me-2"></i><%= cart.name %></div>
         <!-- 詳細 -->
         <%= link_to cart_path(cart), data: { turbo_frame: "main" }, class: "btn btn-outline-secondary btn-icon me-2", style: "min-width: 40px;" do %>
           <i class="bi bi-eye"></i>
