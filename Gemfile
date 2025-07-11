@@ -50,7 +50,7 @@ gem "rgeo-geojson",  "~> 2.1"
 gem "ffi-geos",      "~> 2.5"
 gem 'image_processing', '~> 1.12'
 gem "active_storage_validations", "~> 3.0"
-gem 'mini_magick', "~> 4.12"
+gem 'mini_magick', "~> 5.3"
 gem "discard", "~> 1.4"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
