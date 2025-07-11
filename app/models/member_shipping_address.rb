@@ -18,6 +18,8 @@ class MemberShippingAddress < ApplicationRecord
              foreign_key: :city_code,
              primary_key: :code
 
+  has_many :rfqs, foreign_key: :shipping_address_id
+
   # ------------------------------------------------------------
   # Validations
   # ------------------------------------------------------------

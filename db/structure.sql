@@ -1,7 +1,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -499,26 +498,26 @@ ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
 
 
 --
--- Name: cart_items; Type: TABLE; Schema: public; Owner: -
+-- Name: cart_parts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cart_items (
+CREATE TABLE public.cart_parts (
     id bigint NOT NULL,
     cart_id bigint NOT NULL,
     part_id bigint NOT NULL,
     quantity integer DEFAULT 1 NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
     origin_snapshot_id bigint,
-    origin_owner_id bigint
+    origin_owner_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: cart_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: cart_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.cart_items_id_seq
+CREATE SEQUENCE public.cart_parts_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -527,10 +526,43 @@ CREATE SEQUENCE public.cart_items_id_seq
 
 
 --
--- Name: cart_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: cart_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.cart_items_id_seq OWNED BY public.cart_items.id;
+ALTER SEQUENCE public.cart_parts_id_seq OWNED BY public.cart_parts.id;
+
+
+--
+-- Name: cart_recipes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cart_recipes (
+    id bigint NOT NULL,
+    cart_id bigint NOT NULL,
+    recipe_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: cart_recipes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cart_recipes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cart_recipes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cart_recipes_id_seq OWNED BY public.cart_recipes.id;
 
 
 --
@@ -2320,6 +2352,7 @@ CREATE TABLE public.parts (
     updated_by_id bigint,
     origin_snapshot_id bigint,
     origin_owner_id bigint,
+    camera_state jsonb,
     CONSTRAINT chk_parts_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
 );
 
@@ -3374,10 +3407,17 @@ ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.art
 
 
 --
--- Name: cart_items id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: cart_parts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.cart_items ALTER COLUMN id SET DEFAULT nextval('public.cart_items_id_seq'::regclass);
+ALTER TABLE ONLY public.cart_parts ALTER COLUMN id SET DEFAULT nextval('public.cart_parts_id_seq'::regclass);
+
+
+--
+-- Name: cart_recipes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_recipes ALTER COLUMN id SET DEFAULT nextval('public.cart_recipes_id_seq'::regclass);
 
 
 --
@@ -3695,11 +3735,19 @@ ALTER TABLE ONLY public.articles
 
 
 --
--- Name: cart_items cart_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: cart_parts cart_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.cart_items
-    ADD CONSTRAINT cart_items_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.cart_parts
+    ADD CONSTRAINT cart_parts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cart_recipes cart_recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_recipes
+    ADD CONSTRAINT cart_recipes_pkey PRIMARY KEY (id);
 
 
 --
@@ -5645,17 +5693,31 @@ CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views
 
 
 --
--- Name: index_cart_items_on_cart_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_cart_parts_on_cart_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_cart_items_on_cart_id ON public.cart_items USING btree (cart_id);
+CREATE INDEX index_cart_parts_on_cart_id ON public.cart_parts USING btree (cart_id);
 
 
 --
--- Name: index_cart_items_on_part_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_cart_parts_on_part_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_cart_items_on_part_id ON public.cart_items USING btree (part_id);
+CREATE INDEX index_cart_parts_on_part_id ON public.cart_parts USING btree (part_id);
+
+
+--
+-- Name: index_cart_recipes_on_cart_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cart_recipes_on_cart_id ON public.cart_recipes USING btree (cart_id);
+
+
+--
+-- Name: index_cart_recipes_on_recipe_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cart_recipes_on_recipe_id ON public.cart_recipes USING btree (recipe_id);
 
 
 --
@@ -8280,6 +8342,14 @@ ALTER TABLE ONLY public.m_paint_surfaces
 
 
 --
+-- Name: cart_parts fk_rails_2c21490359; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_parts
+    ADD CONSTRAINT fk_rails_2c21490359 FOREIGN KEY (part_id) REFERENCES public.parts(id);
+
+
+--
 -- Name: parts fk_rails_30be2232d9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8365,6 +8435,14 @@ ALTER TABLE ONLY public.affiliate_signups
 
 ALTER TABLE ONLY public.article_likes
     ADD CONSTRAINT fk_rails_3f46dcc174 FOREIGN KEY (article_id) REFERENCES public.articles(id);
+
+
+--
+-- Name: cart_recipes fk_rails_420803c62f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_recipes
+    ADD CONSTRAINT fk_rails_420803c62f FOREIGN KEY (recipe_id) REFERENCES public.recipes(id);
 
 
 --
@@ -8584,14 +8662,6 @@ ALTER TABLE ONLY public.stripe_accounts
 
 
 --
--- Name: cart_items fk_rails_592e298682; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cart_items
-    ADD CONSTRAINT fk_rails_592e298682 FOREIGN KEY (part_id) REFERENCES public.parts(id);
-
-
---
 -- Name: m_materials fk_rails_5e5fc68929; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8696,6 +8766,14 @@ ALTER TABLE ONLY public.m_hole_diameters
 
 
 --
+-- Name: cart_parts fk_rails_68d2a11300; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_parts
+    ADD CONSTRAINT fk_rails_68d2a11300 FOREIGN KEY (cart_id) REFERENCES public.carts(id);
+
+
+--
 -- Name: user_authorities fk_rails_6a8b2647b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8709,14 +8787,6 @@ ALTER TABLE ONLY public.user_authorities
 
 ALTER TABLE ONLY public.vendor_service_areas
     ADD CONSTRAINT fk_rails_6af0406fe8 FOREIGN KEY (vendor_id) REFERENCES public.vendor_details(user_id) ON DELETE CASCADE;
-
-
---
--- Name: cart_items fk_rails_6cdb1f0139; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cart_items
-    ADD CONSTRAINT fk_rails_6cdb1f0139 FOREIGN KEY (cart_id) REFERENCES public.carts(id);
 
 
 --
@@ -9384,6 +9454,14 @@ ALTER TABLE ONLY public.articles
 
 
 --
+-- Name: rfqs fk_rails_d8f358d538; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rfqs
+    ADD CONSTRAINT fk_rails_d8f358d538 FOREIGN KEY (shipping_address_id) REFERENCES public.member_shipping_addresses(id);
+
+
+--
 -- Name: article_comments fk_rails_d931c2be38; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9461,6 +9539,14 @@ ALTER TABLE ONLY public.rfq_parts
 
 ALTER TABLE ONLY public.affiliate_signups
     ADD CONSTRAINT fk_rails_df4fe43808 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: cart_recipes fk_rails_dfe4fd2b4e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_recipes
+    ADD CONSTRAINT fk_rails_dfe4fd2b4e FOREIGN KEY (cart_id) REFERENCES public.carts(id);
 
 
 --
@@ -9686,6 +9772,14 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250711064228'),
+('20250708055739'),
+('20250707052149'),
+('20250707052137'),
+('20250707052123'),
+('20250701084641'),
+('20250701024348'),
+('20250619064335'),
 ('20250609054417'),
 ('20250529070510'),
 ('20250528061247'),
