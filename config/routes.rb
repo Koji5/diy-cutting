@@ -58,4 +58,5 @@ Rails.application.routes.draw do
       get :check_and_add
     end
   end
+  resources :rfqs, only: [:new, :create, :show]
 end

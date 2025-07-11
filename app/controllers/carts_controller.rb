@@ -85,6 +85,14 @@ class CartsController < ApplicationController
     end
   end
 
+  def show
+    @cart = current_user.carts.find(params[:id])
+    # カートに含まれているパーツ
+    @cart_parts = @cart.cart_parts.includes(part: { thumbnail_attachment: :blob })
+    # カートに含まれているレシピ
+    @cart_recipes = @cart.cart_recipes.includes(recipe: { thumbnail_attachment: :blob })
+  end
+
   def destroy
     @cart = Cart.find(params[:id])
     @cart.destroy
