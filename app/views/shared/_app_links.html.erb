@@ -8,7 +8,8 @@
   { path: ->{ parts_path },      icon: "puzzle",       label: "マイパーツ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
   { path: ->{ recipes_path },    icon: "fork-knife",   label: "マイレシピ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
   { path: ->{ carts_path },      icon: "cart4",        label: "カート",     roles: [:member, :vendor, :admin, :affiliate], turbo: true },
-  { path: ->{ admin_root_path }, icon: "shield-lock",  label: "管理",       roles: [:admin], turbo: true }
+  { path: ->{ admin_root_path }, icon: "shield-lock",  label: "管理",       roles: [:admin], turbo: true },
+  { path: ->{ account_path(Current.account) }, icon: "person", label: "プロフィール", roles: [:member, :vendor, :admin, :affiliate], turbo: true }
 ] %>
 
 <% menu.each do |item| %>

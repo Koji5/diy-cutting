@@ -35,19 +35,19 @@ Rails.application.routes.draw do
   # ─────────────────────────────────────────────
   # ロール専用の登録フォームだけを追加する
   # （ログイン／パスワード関連はすべて共通の :user スコープを使う）
-  devise_scope :user do
+  #devise_scope :user do
     ## Vendor
-    get  "vendor/sign_up", to: "vendors/registrations#new",
-                          as: :new_vendor_registration
-    post "vendor",         to: "vendors/registrations#create",
-                          as: :vendor_registration
+  #  get  "vendor/sign_up", to: "vendors/registrations#new",
+  #                        as: :new_vendor_registration
+  #  post "vendor",         to: "vendors/registrations#create",
+  #                        as: :vendor_registration
 
     ## Affiliate
-    get  "affiliate/sign_up", to: "affiliates/registrations#new",
-                              as: :new_affiliate_registration
-    post "affiliate",         to: "affiliates/registrations#create",
-                              as: :affiliate_registration
-  end
+  #  get  "affiliate/sign_up", to: "affiliates/registrations#new",
+  #                            as: :new_affiliate_registration
+  #  post "affiliate",         to: "affiliates/registrations#create",
+  #                            as: :affiliate_registration
+  #end
 
   namespace :vendors do
     resource  :coverage_settings, only: %i[show update]  # 画面１枚
@@ -56,6 +56,8 @@ Rails.application.routes.draw do
     post "coverage_settings/nationwide_bulk",  to: "coverage_settings#nationwide_bulk"
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
+
+  resources :accounts, only: [:show, :edit, :update]
 
   resources :parts do
     member do
