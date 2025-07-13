@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-08 15:00 JST
+生成日: 2025-07-13 16:35 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -13,17 +13,8 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| public_uid | character varying(32) | × |  | 外部公開 ID |
 | email | character varying | × |  | ログイン用メール |
 | encrypted_password | character varying | × |  | ハッシュ |
-| role | smallint | × |  | `0=member` `1=vendor` `2=admin` `3=affiliate` 役割は 1 つ |
-| password_changed_at | timestamp(6) without time zone | × |  | 変更日時 |
-| password_expires_at | timestamp(6) without time zone | ○ |  | 有効期限 |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 | reset_password_token | character varying | ○ |  | devise |
@@ -40,29 +31,99 @@
 
 **インデックス**:
 - users_pkey (id) [PK]
-- index_users_on_created_by_id (created_by_id)
-- index_users_on_deleted_by_id (deleted_by_id)
 - index_users_on_email (email) [UNIQUE]
-- index_users_on_public_uid (public_uid) [UNIQUE]
 - index_users_on_reset_password_token (reset_password_token) [UNIQUE]
 - index_users_on_unlock_token (unlock_token) [UNIQUE]
-- index_users_on_updated_by_id (updated_by_id)
-
-**外部キー**:
-- fk_rails_205180732b (deleted_by_id) → users.id
-- fk_rails_355a7ffe95 (updated_by_id) → users.id
-- fk_rails_45307c95a3 (created_by_id) → users.id
-
-**チェック制約**:
-- users_role_value: role = ANY (ARRAY[0, 1, 2, 3])
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
 ### メモ
-* role の詳細テーブルと**1:1** 参照
+* deviseでのみ使用
 <!-- NOTE END -->
 
 <!-- TABLE_END users -->
+
+<!-- TABLE_BEGIN accounts -->
+## accounts — アカウント
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| user_id | bigint | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| role_flags | integer | × | 0 |  |
+| nickname | character varying(50) | ○ |  |  |
+| legal_type | integer | × |  |  |
+| name | character varying | × |  |  |
+| name_kana | character varying | ○ |  |  |
+| birthday | date | ○ |  |  |
+| gender | character varying(1) | ○ |  |  |
+
+**インデックス**:
+- accounts_pkey (id) [PK]
+- index_accounts_on_user_id (user_id)
+
+**外部キー**:
+- fk_rails_b1e30bebc8 (user_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END accounts -->
+
+<!-- TABLE_BEGIN member_profiles -->
+## member_profiles — お客様プロフィール
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| account_id | bigint | × |  |  |
+| billing_postal_code | character varying(20) | ○ |  |  |
+| billing_prefecture_code | character varying(2) | ○ |  |  |
+| billing_city_code | character varying(5) | × |  |  |
+| billing_address_line | character varying(200) | × |  |  |
+| billing_department | character varying(100) | ○ |  |  |
+| billing_phone_number | character varying(30) | ○ |  |  |
+| stripe_customer_id | character varying | ○ |  |  |
+| registered_affiliate_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| membership_plan | integer | × | 0 |  |
+
+**インデックス**:
+- member_profiles_pkey (id) [PK]
+- index_member_profiles_on_account_id (account_id)
+- index_member_profiles_on_created_by_id (created_by_id)
+- index_member_profiles_on_deleted_by_id (deleted_by_id)
+- index_member_profiles_on_registered_affiliate_id (registered_affiliate_id)
+- index_member_profiles_on_stripe_customer_id (stripe_customer_id)
+- index_member_profiles_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_1b24741643 (registered_affiliate_id) → accounts.id
+- fk_rails_6055409895 (account_id) → accounts.id
+- fk_rails_68d9f25c71 (updated_by_id) → accounts.id
+- fk_rails_7e212a956f (created_by_id) → accounts.id
+- fk_rails_a782c690cb (billing_city_code) → m_cities.code
+- fk_rails_e6d47b65a7 (billing_prefecture_code) → m_prefectures.code
+- fk_rails_ea596ce8ec (deleted_by_id) → accounts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END member_profiles -->
 
 <!-- TABLE_BEGIN user_authorities -->
 ## user_authorities — ユーザー権限
@@ -976,6 +1037,7 @@
 
 **外部キー**:
 - fk_rails_d1a7ab1876 (user_id) → users.id
+- fk_rails_d8f358d538 (shipping_address_id) → member_shipping_addresses.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->

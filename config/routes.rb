@@ -1,4 +1,10 @@
 Rails.application.routes.draw do
+
+  devise_for :users, controllers: {
+    sessions: 'users/sessions',
+    registrations: 'users/registrations'
+  }
+
   get "parts/new"
   get "parts/create"
   get "articles/index"
@@ -7,16 +13,24 @@ Rails.application.routes.draw do
   get  "postal_lookup/:zip",       to: "postals#lookup"      # 郵便番号→候補一覧
   get "vendors/flash_toast", to: "vendors/coverage_settings#flash_toast"
 
-  root "articles#index"            # トップページを articles#index に
+  # トップページ（ルート）の制御
+  authenticated :user do
+    root to: "articles#index", as: :authenticated_root
+  end
+
+  unauthenticated do
+    root to: "welcome#index", as: :unauthenticated_root
+  end
+#  root "articles#index"            # トップページを articles#index に
   resources :articles, only: [:index]
 
   # 共通ログイン・パスワード・会員（member）登録
-  devise_for :users,
-            path: "",                                   # → /login /logout /sign_up
-            path_names: { sign_in: "login",
-                          sign_out: "logout",
-                          sign_up:  "sign_up" },
-            controllers: { registrations: "members/registrations" }
+#  devise_for :users,
+#            path: "",                                   # → /login /logout /sign_up
+#            path_names: { sign_in: "login",
+#                          sign_out: "logout",
+#                          sign_up:  "sign_up" },
+#            controllers: { registrations: "members/registrations" }
 
   # ─────────────────────────────────────────────
   # ロール専用の登録フォームだけを追加する

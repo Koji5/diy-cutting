@@ -3,22 +3,16 @@
        - placement: :side  または :bottom
 --------------------------------------------- %>
 
-<%#
-  ログインしていない場合は guest=9 扱い
-  enum role { member:0, vendor:1, admin:2, affiliate:3 }
-%>
-<% role_int = current_user&.role_before_type_cast || 0 %>
-
 <% menu = [
-  { path:  ->{ root_path },       icon: "house",        label:"ホーム",     roles:[0,1,2,3]               },
-  { path:  ->{ parts_path },      icon: "puzzle",       label:"マイパーツ", roles:[0,1,2,3],  turbo:true  },
-  { path:  ->{ recipes_path },    icon: "fork-knife",   label:"マイレシピ", roles:[0,1,2,3],  turbo:true  },
-  { path:  ->{ carts_path },      icon: "cart4",        label:"カート",     roles:[0,1,2,3],  turbo:true  },
-  { path:  ->{ admin_root_path }, icon: "shield-lock",  label:"管理",       roles:[2],        turbo:true  }
+  { path: ->{ authenticated_root_path },       icon: "house",        label: "ホーム",     roles: [:member, :vendor, :admin, :affiliate] },
+  { path: ->{ parts_path },      icon: "puzzle",       label: "マイパーツ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
+  { path: ->{ recipes_path },    icon: "fork-knife",   label: "マイレシピ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
+  { path: ->{ carts_path },      icon: "cart4",        label: "カート",     roles: [:member, :vendor, :admin, :affiliate], turbo: true },
+  { path: ->{ admin_root_path }, icon: "shield-lock",  label: "管理",       roles: [:admin], turbo: true }
 ] %>
 
 <% menu.each do |item| %>
-  <% next unless item[:roles].include?(role_int) %>  <%# ← ロールチェック %>
+  <% next unless Current.account&.has_role_in?(item[:roles]) %>  <%# ← ロールチェック %>
   <% link_opts = item[:turbo] ? { data:{ turbo_frame:"main"} } : {} %>
 
   <% if placement == :side %>

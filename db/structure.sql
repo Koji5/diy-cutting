@@ -48,6 +48,44 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.accounts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    role_flags integer DEFAULT 0 NOT NULL,
+    nickname character varying(50),
+    legal_type integer NOT NULL,
+    name character varying NOT NULL,
+    name_kana character varying,
+    birthday date,
+    gender character varying(1)
+);
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.accounts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
+
+
+--
 -- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2049,6 +2087,51 @@ CREATE TABLE public.member_details (
 
 
 --
+-- Name: member_profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.member_profiles (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    billing_postal_code character varying(20),
+    billing_prefecture_code character varying(2),
+    billing_city_code character varying(5) NOT NULL,
+    billing_address_line character varying(200) NOT NULL,
+    billing_department character varying(100),
+    billing_phone_number character varying(30),
+    stripe_customer_id character varying,
+    registered_affiliate_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    membership_plan integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: member_profiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.member_profiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: member_profiles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.member_profiles_id_seq OWNED BY public.member_profiles.id;
+
+
+--
 -- Name: member_shipping_addresses; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2833,17 +2916,8 @@ ALTER SEQUENCE public.user_authorities_id_seq OWNED BY public.user_authorities.i
 
 CREATE TABLE public.users (
     id bigint NOT NULL,
-    public_uid character varying(32) NOT NULL,
-    email character varying NOT NULL,
-    encrypted_password character varying NOT NULL,
-    role smallint NOT NULL,
-    password_changed_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    password_expires_at timestamp(6) without time zone,
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
+    email character varying DEFAULT ''::character varying NOT NULL,
+    encrypted_password character varying DEFAULT ''::character varying NOT NULL,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     reset_password_token character varying,
@@ -2856,8 +2930,7 @@ CREATE TABLE public.users (
     last_sign_in_ip character varying,
     failed_attempts integer DEFAULT 0 NOT NULL,
     unlock_token character varying,
-    locked_at timestamp(6) without time zone,
-    CONSTRAINT users_role_value CHECK ((role = ANY (ARRAY[0, 1, 2, 3])))
+    locked_at timestamp(6) without time zone
 );
 
 
@@ -3337,6 +3410,13 @@ ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_web
 
 
 --
+-- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.accounts_id_seq'::regclass);
+
+
+--
 -- Name: active_storage_attachments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3484,6 +3564,13 @@ ALTER TABLE ONLY public.m_postal_codes ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: member_profiles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles ALTER COLUMN id SET DEFAULT nextval('public.member_profiles_id_seq'::regclass);
+
+
+--
 -- Name: member_shipping_addresses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3628,6 +3715,14 @@ ALTER TABLE ONLY public.vendor_offers ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.vendor_service_prefectures ALTER COLUMN id SET DEFAULT nextval('public.vendor_service_prefectures_id_seq'::regclass);
+
+
+--
+-- Name: accounts accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -3884,6 +3979,14 @@ ALTER TABLE ONLY public.m_shapes
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT member_details_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: member_profiles member_profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT member_profiles_pkey PRIMARY KEY (id);
 
 
 --
@@ -5371,6 +5474,13 @@ CREATE UNIQUE INDEX idx_vsp_unique ON public.vendor_service_prefectures USING bt
 
 
 --
+-- Name: index_accounts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_user_id ON public.accounts USING btree (user_id);
+
+
+--
 -- Name: index_active_storage_attachments_on_blob_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6323,6 +6433,48 @@ CREATE INDEX index_member_details_on_updated_by_id ON public.member_details USIN
 
 
 --
+-- Name: index_member_profiles_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_account_id ON public.member_profiles USING btree (account_id);
+
+
+--
+-- Name: index_member_profiles_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_created_by_id ON public.member_profiles USING btree (created_by_id);
+
+
+--
+-- Name: index_member_profiles_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_deleted_by_id ON public.member_profiles USING btree (deleted_by_id);
+
+
+--
+-- Name: index_member_profiles_on_registered_affiliate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_registered_affiliate_id ON public.member_profiles USING btree (registered_affiliate_id);
+
+
+--
+-- Name: index_member_profiles_on_stripe_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_stripe_customer_id ON public.member_profiles USING btree (stripe_customer_id);
+
+
+--
+-- Name: index_member_profiles_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_member_profiles_on_updated_by_id ON public.member_profiles USING btree (updated_by_id);
+
+
+--
 -- Name: index_member_shipping_addresses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6862,31 +7014,10 @@ CREATE UNIQUE INDEX index_user_authorities_on_user_id_and_authority_code ON publ
 
 
 --
--- Name: index_users_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_created_by_id ON public.users USING btree (created_by_id);
-
-
---
--- Name: index_users_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_deleted_by_id ON public.users USING btree (deleted_by_id);
-
-
---
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
-
-
---
--- Name: index_users_on_public_uid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_public_uid ON public.users USING btree (public_uid);
 
 
 --
@@ -6901,13 +7032,6 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 --
 
 CREATE UNIQUE INDEX index_users_on_unlock_token ON public.users USING btree (unlock_token);
-
-
---
--- Name: index_users_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_updated_by_id ON public.users USING btree (updated_by_id);
 
 
 --
@@ -8246,19 +8370,19 @@ ALTER TABLE ONLY public.order_reviews
 
 
 --
+-- Name: member_profiles fk_rails_1b24741643; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_1b24741643 FOREIGN KEY (registered_affiliate_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: notifications fk_rails_1b74717c67; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
     ADD CONSTRAINT fk_rails_1b74717c67 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
--- Name: users fk_rails_205180732b; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_205180732b FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8363,14 +8487,6 @@ ALTER TABLE ONLY public.parts
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_rails_32761ffe09 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
-
-
---
--- Name: users fk_rails_355a7ffe95; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_355a7ffe95 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8507,14 +8623,6 @@ ALTER TABLE ONLY public.m_authorities
 
 ALTER TABLE ONLY public.m_categories
     ADD CONSTRAINT fk_rails_451e72c106 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
--- Name: users fk_rails_45307c95a3; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_45307c95a3 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8670,6 +8778,14 @@ ALTER TABLE ONLY public.m_materials
 
 
 --
+-- Name: member_profiles fk_rails_6055409895; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_6055409895 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_edge_processes fk_rails_608bdc2fe1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8771,6 +8887,14 @@ ALTER TABLE ONLY public.m_hole_diameters
 
 ALTER TABLE ONLY public.cart_parts
     ADD CONSTRAINT fk_rails_68d2a11300 FOREIGN KEY (cart_id) REFERENCES public.carts(id);
+
+
+--
+-- Name: member_profiles fk_rails_68d9f25c71; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_68d9f25c71 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8907,6 +9031,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 ALTER TABLE ONLY public.stripe_payments
     ADD CONSTRAINT fk_rails_7d60b0916f FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- Name: member_profiles fk_rails_7e212a956f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_7e212a956f FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9222,6 +9354,14 @@ ALTER TABLE ONLY public.parts
 
 
 --
+-- Name: member_profiles fk_rails_a782c690cb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_a782c690cb FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
 -- Name: member_shipping_addresses fk_rails_aad71f9b0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9243,6 +9383,14 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.parts
     ADD CONSTRAINT fk_rails_b13d63e301 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
+
+
+--
+-- Name: accounts fk_rails_b1e30bebc8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT fk_rails_b1e30bebc8 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -9558,6 +9706,14 @@ ALTER TABLE ONLY public.vendor_details
 
 
 --
+-- Name: member_profiles fk_rails_e6d47b65a7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_e6d47b65a7 FOREIGN KEY (billing_prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: m_paint_types fk_rails_e8d8c7b2a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9571,6 +9727,14 @@ ALTER TABLE ONLY public.m_paint_types
 
 ALTER TABLE ONLY public.m_authorities
     ADD CONSTRAINT fk_rails_e964d916b9 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: member_profiles fk_rails_ea596ce8ec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.member_profiles
+    ADD CONSTRAINT fk_rails_ea596ce8ec FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9772,6 +9936,17 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250713070801'),
+('20250713070153'),
+('20250713062713'),
+('20250713054404'),
+('20250713053424'),
+('20250711093029'),
+('20250711092940'),
+('20250711092304'),
+('20250711080955'),
+('20250711080127'),
+('20250711074909'),
 ('20250711064228'),
 ('20250708055739'),
 ('20250707052149'),

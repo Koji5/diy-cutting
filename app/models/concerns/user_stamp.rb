@@ -1,4 +1,4 @@
-# app/models/concerns/user_stamp.rb
+# app/models/concerns/account_stamp.rb
 module UserStamp
   extend ActiveSupport::Concern
 
@@ -11,20 +11,20 @@ module UserStamp
 
   # 作成時
   def stamp_creator
-    return unless Current.user
+    return unless Current.account
     if respond_to?(:created_by_id=)   # 列があるモデルだけ
-      self.created_by_id ||= Current.user.id
+      self.created_by_id ||= Current.account.id
     end
     if respond_to?(:updated_by_id=)
-      self.updated_by_id ||= Current.user.id
+      self.updated_by_id ||= Current.account.id
     end
   end
 
   # 更新時
   def stamp_updater
-    return unless Current.user
+    return unless Current.account
     if respond_to?(:updated_by_id=) && changed?
-      self.updated_by_id = Current.user.id
+      self.updated_by_id = Current.account.id
     end
   end
 end

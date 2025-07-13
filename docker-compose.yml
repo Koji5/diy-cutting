@@ -19,6 +19,8 @@ services:
       - .:/app
       - storage_volume:/app/storage 
     # ★ AL2023 上でも env はそのまま
+    env_file:
+      - .env
     environment:
       RAILS_ENV: development
       SECRET_KEY_BASE: changeme
@@ -34,7 +36,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   # ───────────────────────────────────
   # PostgreSQL 16
   # ───────────────────────────────────
