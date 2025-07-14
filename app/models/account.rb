@@ -1,5 +1,6 @@
 class Account < ApplicationRecord
   belongs_to :user
+  accepts_nested_attributes_for :user
 
   ROLE_BITS = {
     member:    1 << 0, # 0001 → 1

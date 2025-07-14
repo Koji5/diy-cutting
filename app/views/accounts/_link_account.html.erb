@@ -1,0 +1,46 @@
+<% menu = [
+  {
+    path:  -> { edit_account_path(@account) if @account },
+    match: -> { controller_name == "accounts" && action_name == "edit" },
+    icon:  "pencil",
+    label: "編集",
+    link:  false                # 編集画面ではリンクを出さない
+  },
+  {
+    path:  -> { account_path(@account) if @account },
+    match: -> { controller_name == "accounts" && action_name == "show" },
+    icon:  "list-ul",
+    label: "基本情報",
+    link:  true
+  }#,
+#  {
+#    path:  -> { new_part_path },
+#    match: -> { current_page?(new_part_path) },
+#    icon:  "plus-lg",
+#    label: "新規作成",
+#    link:  true
+#  }
+] %>
+<% title_tag = "" %> 
+<% menu.each do |item| %>
+  <% title_tag = item[:label] if item[:match].call %>
+<% end %>
+
+<header class="MainHeader d-flex flex-row align-items-center">
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-person me-2"></i>
+    アカウント － <%= title_tag %>
+  </h3>
+  <div class="flex-grow-1 min-w-0">
+    <div class="input-group px-3">
+      <% menu.each do |item| %>
+        <% next if item[:match].call || !item[:link] %>
+        <%= link_to item[:path].call,
+          data:  { turbo_frame: "main" },
+          class: "btn btn-outline-secondary form-control" do %>
+          <i class="<%= "bi bi-#{item[:icon]}" %>"></i>&nbsp;<%= item[:label] %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</header>

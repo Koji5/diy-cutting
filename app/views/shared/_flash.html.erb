@@ -1,0 +1,5 @@
+<% bs = { "success" => "success", "danger" => "danger", "info" => "info" }[type] || "info" %>
+<div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
+  <%= message %>
+  <button class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
+</div>

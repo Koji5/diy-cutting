@@ -1,4 +1,4 @@
-pin "application"                       # ← to: 省略
+pin "application", to: "application.js", preload: true
 #pin "@popperjs/core", to: "popperjs-core/popper.js",skip_precompile: true
 #pin_all_from "popperjs-core", under: "@popperjs/core",skip_precompile: true
 pin "@popperjs/core", to: "/esm/popperjs-core/popper.js"
@@ -8,6 +8,7 @@ pin "bootstrap",      to: "/esm/bootstrap/bootstrap.esm.js"
 pin "@hotwired/stimulus",        to: "stimulus.min.js"
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin "@hotwired/turbo-rails",      to: "turbo.min.js", preload: true
+pin "@hotwired/turbo", to: "turbo.min.js", preload: true
 
 pin "controllers",                to: "controllers/index.js"
 pin_all_from "app/javascript/controllers", under: "controllers"

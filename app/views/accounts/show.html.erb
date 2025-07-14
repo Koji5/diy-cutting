@@ -1,1 +1,6 @@
-<%= button_to "ログアウト", destroy_user_session_path, method: :delete %>
+<turbo-frame id="main">
+  <%= render "accounts/link_account" %>
+
+  <%= link_to "基本情報編集", edit_account_path(@account), data: { turbo_frame: "main" }, class: "btn btn-primary" %><br><br>
+  <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
+</turbo-frame>

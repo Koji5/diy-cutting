@@ -9,5 +9,5 @@ class User < ApplicationRecord
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy
 
-  accepts_nested_attributes_for :account
+  #accepts_nested_attributes_for :account
 end

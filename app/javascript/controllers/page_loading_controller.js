@@ -30,6 +30,10 @@ export default class extends Controller {
       requestAnimationFrame(() => { if (this.pending.size === 0) this.hide() })
     })
 
+    addEventListener("page-render:done", () => {
+      this.hide() // ← loading オーバーレイを消すなど
+    })
+
     /* NEW — hide after *any* frame or full load completes */
     addEventListener("turbo:frame-load", () => this.hide())
     addEventListener("turbo:load",       () => this.hide())

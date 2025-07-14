@@ -44,7 +44,7 @@
         <%# ===== メインコンテンツ ===== %>
         <main class="Main">
           <%# ===== フラッシュメッセージ ===== %>
-          <div class="container-fluid">
+          <div class="container-fluid" id="flash-messages">
             <% flash.each do |type, message| %>
               <% bs = { "notice" => "success", "alert" => "danger" }[type] || "info" %>
               <div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
@@ -53,7 +53,9 @@
               </div>
             <% end %>
           </div>
-          <%= yield %>
+          <turbo-frame id="main">
+            <%= yield %>
+          </turbo-frame>
         </main>
         <%# ===== RIGHT PLACEHOLDER RAIL ===== %>
         <aside class="RightRail d-none d-xl-flex flex-column border-start bg-white align-items-center justify-content-center text-secondary">
