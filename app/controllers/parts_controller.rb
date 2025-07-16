@@ -1,6 +1,5 @@
 class PartsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_member_or_affiliate
   before_action :set_part, only: %i[edit update]
 
   # ───────────────────────
@@ -8,15 +7,20 @@ class PartsController < ApplicationController
   # ───────────────────────
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @parts = current_user.parts
+    @parts = Current.account.parts
               .kept
               .includes(:origin_owner, thumbnail_attachment: :blob)
               .order(updated_at: :desc)
     # affiliate の場合のみ “オリジナル作成者” を表示するため
-    @show_owner = current_user.affiliate?
+    @show_owner = Current.account&.has_role?(:affiliate)
   end
 
   def show
+    load_masters
+    @part = Part.find(params[:id])
+  end
+
+  def show_modal
     load_masters
     @part = Part.find(params[:id])
     render layout: (turbo_frame_request? ? false : "application")
@@ -29,17 +33,26 @@ class PartsController < ApplicationController
   end
 
   def create
-    @part = current_user.parts.build(basic_part_params)   # 基本カラム
+    @part = Current.account.parts.build(basic_part_params)   # 基本カラム
     @part.material_category_code ||= "WOOD"
     #   ↑ フォームで送られていなければ強制的に WOOD をセット
     #   （将来カテゴリ選択式にしたときはこの行を削除 or 条件分岐）
 
     if @part.save
-      redirect_to parts_path, notice: "部品を登録しました"
+      render_flash_and_replace_main(
+        template: "parts/show",
+        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
+        message: "部品を登録しました。",
+        type: "success"
+      )
+      #redirect_to parts_path, notice: "部品を登録しました"
     else
-      load_masters
-      load_rules
-      render :new, status: :unprocessable_entity
+      render_flash_and_replace_main(
+        template: "parts/new",
+        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
+        message: "エラーが発生しました。",
+        type: "danger"
+      )
     end
   end
 
@@ -53,11 +66,20 @@ class PartsController < ApplicationController
     #   ↑ フォームで送られていなければ強制的に WOOD をセット
     #   （将来カテゴリ選択式にしたときはこの行を削除 or 条件分岐）
     if @part.update(basic_part_params)
-      redirect_to parts_path, notice: "部品を更新しました"
+      render_flash_and_replace_main(
+        template: "parts/show",
+        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
+        message: "部品を更新しました。",
+        type: "success"
+      )
+      #redirect_to parts_path, notice: "部品を更新しました"
     else
-      load_masters
-      load_rules
-      render :edit, status: :unprocessable_entity
+      render_flash_and_replace_main(
+        template: "parts/edit",
+        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
+        message: "エラーが発生しました。",
+        type: "danger"
+      )
     end
   end
 
@@ -65,19 +87,19 @@ class PartsController < ApplicationController
     @part = Part.kept.find(params[:id])
     @part.discard!
 
-    respond_to do |format|
-      # Turbo Drive (通常のリンク) → 行を DOM から外す
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.remove(helpers.dom_id(@part))
-      end
+    flash_html = render_to_string(
+      partial: "shared/flash",
+      locals: {
+        message: "部品「#{@part.name}」を削除しました。",
+        type: "success"
+      }
+    )
 
-      # 非 Turbo (従来のブラウザ遷移) → 一覧へリダイレクト
-      format.html do
-        redirect_to parts_path,
-                    status: :see_other,
-                    notice: "部品「#{@part.name}」を削除しました。"
-      end
-    end
+    # Turbo Drive (通常のリンク) → 行を DOM から外す
+      render turbo_stream: [
+        turbo_stream.remove(helpers.dom_id(@part)),
+        turbo_stream.update("flash-messages", flash_html)
+      ]
   end
 
   def inline_detail
@@ -87,14 +109,6 @@ class PartsController < ApplicationController
   end
 
   private
-
-  # ロールチェック（member or affiliate）
-  def require_member_or_affiliate
-    return if current_user.member? || current_user.affiliate?
-
-    render file: Rails.root.join("public/403.html"),
-           status: :forbidden, layout: false
-  end
 
   # ───────────────────────
   # 各種マスタ一括ロード
@@ -176,8 +190,41 @@ class PartsController < ApplicationController
     )
   end
 
+  def load_masters_hash
+    {
+      material_categories: MCategory.order(:code),
+      materials:           MMaterial.order(:code),
+      shapes:              MShape.order(:code),
+      edge_processes:      MEdgeProcess.order(:code),
+      corner_processes:    MCornerProcess.order(:code),
+      hole_diameters:      MHoleDiameter.order(:hole_mm),
+      paint_types:         MPaintType.order(:code),
+      paint_surfaces:      MPaintSurface.order(:code),
+      paint_colors:        MPaintColor.order(:code),
+      grain_finishes:      MGrainFinish.order(:code),
+      glosses:             MGloss.order(:code)
+    }
+  end
+
+  def load_rules_hash
+    shapes = MShape.order(:code).index_by(&:code)
+    corner_processes = MCornerProcess.order(:code).index_by(&:code)
+    paint_types = MPaintType.order(:code).index_by(&:code)
+
+    {
+      global_dim_rule: GLOBAL_DIM_RULE,
+      shape_rules: {
+        shape:  shapes.transform_values(&:allow_shape_json),
+        corner: shapes.transform_values(&:allow_corner_json),
+        edge:   shapes.transform_values(&:allow_edge_json)
+      }.to_json,
+      corner_proc_rules: corner_processes.transform_values(&:allow_corner_proc_json).to_json,
+      paint_type_rules:  paint_types.transform_values(&:allow_paint_json).to_json
+    }
+  end
+
   def set_part
-    @part = current_user.parts.kept.find(params[:id])
+    @part = Current.account.parts.kept.find(params[:id])
   end
 
 end

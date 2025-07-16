@@ -2,32 +2,32 @@ class CartsController < ApplicationController
 
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @carts = current_user.carts.order(updated_at: :desc)
+    @carts = Current.account.carts.order(updated_at: :desc)
   end
 
   def new
     @cart = Cart.new
     if params[:recipe_id].present?
       @recipe = Recipe.includes(thumbnail_attachment: :blob).find(params[:recipe_id])
-      @recipes = current_user.recipes
+      @recipes = Current.account.recipes
                       .where.not(id: @recipe.id)
                       .includes(thumbnail_attachment: :blob)
                       .order(updated_at: :desc)
       @excluded_recipes = [@recipe]
     else
-      @recipes = current_user.recipes
+      @recipes = Current.account.recipes
                       .includes(thumbnail_attachment: :blob)
                       .order(updated_at: :desc)
       @excluded_recipes = []
     end
-    @parts = current_user.parts
+    @parts = Current.account.parts
                      .kept
                      .includes(thumbnail_attachment: :blob)
                      .order(:name)
   end
 
   def create
-    @cart = current_user.carts.build(cart_params)
+    @cart = Current.account.carts.build(cart_params)
     if (json = params.dig(:cart, :parts_json)).present?
       JSON.parse(json).each do |h|
         @cart.cart_parts.build(part_id: h['part_id'], quantity: h['qty'])
@@ -49,23 +49,23 @@ class CartsController < ApplicationController
   end
 
   def edit
-    @cart = current_user.carts.find(params[:id])
+    @cart = Current.account.carts.find(params[:id])
     # カートに含まれているパーツ
     @cart_parts = @cart.cart_parts.includes(part: { thumbnail_attachment: :blob })
     # カートに含まれていないパーツ
-    @excluded_parts = current_user.parts
+    @excluded_parts = Current.account.parts
                                   .includes(thumbnail_attachment: :blob)
                                   .where.not(id: @cart.cart_parts.select(:part_id))
     # カートに含まれているレシピ
     @cart_recipes = @cart.cart_recipes.includes(recipe: { thumbnail_attachment: :blob })
     # カートに含まれていないレシピ
-    @excluded_recipes = current_user.recipes
+    @excluded_recipes = Current.account.recipes
                                     .includes(thumbnail_attachment: :blob)
                                     .where.not(id: @cart.cart_recipes.select(:recipe_id))
   end
 
   def update
-    @cart = current_user.carts.find(params[:id])
+    @cart = Current.account.carts.find(params[:id])
 
     begin
       ActiveRecord::Base.transaction do
@@ -86,7 +86,7 @@ class CartsController < ApplicationController
   end
 
   def show
-    @cart = current_user.carts.find(params[:id])
+    @cart = Current.account.carts.find(params[:id])
     # カートに含まれているパーツ
     @cart_parts = @cart.cart_parts.includes(part: { thumbnail_attachment: :blob })
     # カートに含まれているレシピ
@@ -190,7 +190,7 @@ class CartsController < ApplicationController
 
     # 4. 含まれていないパーツを抽出
     used_part_ids = parts_data.map { |p| p[:part_id] }
-    @excluded_parts = current_user.parts
+    @excluded_parts = Current.account.parts
                               .includes(thumbnail_attachment: :blob)
                               .where.not(id: used_part_ids)
 
@@ -209,7 +209,7 @@ class CartsController < ApplicationController
 
     # 4. 含まれていないパーツを抽出
     used_recipe_ids = recipes_data.map { |p| p[:recipe_id] }
-    @excluded_recipes = current_user.recipes
+    @excluded_recipes = Current.account.recipes
                               .includes(thumbnail_attachment: :blob)
                               .where.not(id: used_recipe_ids)
   end

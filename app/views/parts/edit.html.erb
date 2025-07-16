@@ -1,27 +1,30 @@
-<!-- app/views/parts/edit.html.erb -->
-<%= render "parts/link_part" %>
-<%= form_with model: @part,
-              data: {
-                controller: "dims thumb-capture",
-                dims_rules_value:     GLOBAL_DIM_RULE.to_json,
-                dims_hole_diameters_value: @hole_diameters.index_by(&:code)
-                                            .transform_values(&:hole_mm).to_json,
-                turbo_frame: "main" } do |f| %>
-<%= render "form_fields", f: f %>
+<turbo-frame id="main">
+  <%= render "parts/link_part" %>
 
-      <%= f.submit "更新する", class: "btn btn-primary" %>
-    </div>
-
+  <section class="hero Part3DPreview" data-controller="hero-reveal">
     <!-- ───────── 3D プレビュータブ ───────── -->
-    <div class="tab-pane fade col-12 col-lg-6 ps-lg-2 pe-lg-0" id="preview-pane" role="tabpanel">
+    <div class="d-flex flex-grow-1 " id="preview-pane">
       <div class="ratio ratio-1x1 bg-light" 
           data-controller="part3d" 
           data-part3d-shader-url-value="<%= asset_path('wood_shader.json') %>">
           <canvas data-part3d-target="canvas" class="w-100 h-100"></canvas>
       </div>
     </div>
-  </div>
-<% end %>
+  </section>
+  <section class="px-3 content">
+    <%= form_with model: @part,
+                  data: {
+                    controller: "dims thumb-capture",
+                    dims_rules_value:     GLOBAL_DIM_RULE.to_json,
+                    dims_hole_diameters_value: @hole_diameters.index_by(&:code)
+                                                .transform_values(&:hole_mm).to_json,
+                    turbo_frame: "main" } do |f| %>
+      <%= render "form_fields", f: f %>
 
-<!-- ───────── モーダル群（説明プレースホルダ）───────── -->
-<%= render "help_modal_fields" %>
+          <%= f.submit "更新する", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </section>
+  <!-- ───────── モーダル群（説明プレースホルダ）───────── -->
+  <%= render "help_modal_fields" %>
+</turbo-frame>

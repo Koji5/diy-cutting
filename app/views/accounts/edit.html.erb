@@ -48,7 +48,7 @@
       <fieldset>
         <legend>ログイン情報</legend>
 
-        <%= f.fields_for :user do |u| %>
+        <%= f.fields_for :user, @account.user do |u| %>
           <div>
             <%= u.label :email, "メールアドレス" %>
             <%= u.email_field :email %>

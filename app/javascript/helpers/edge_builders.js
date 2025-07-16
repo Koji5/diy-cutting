@@ -20,12 +20,20 @@ export function buildEdgeCutters(ctx) {
     const steps = edgePath.curves.reduce(
       (sum, c) => sum + stepsForCurve(c), 0
     );
-    const cutterGeo = new THREE.ExtrudeGeometry(profile, {
-      extrudePath  : edgePath,
-      steps        : steps,
-      bevelEnabled : false
-    });
-    cutters.push(cutterGeo);
+    try {
+      const cutterGeo = new THREE.ExtrudeGeometry(profile, {
+        extrudePath  : edgePath,
+        steps        : steps,
+        bevelEnabled : false
+      });
+      if (cutterGeo && cutterGeo.attributes?.position) {
+        cutters.push(cutterGeo);
+      } else {
+        console.warn("無効な cutterGeo が生成されました:", key);
+      }
+    } catch (e) {
+      console.warn("ExtrudeGeometry 生成中にエラー:", key, e);
+    }
   });
   return cutters;
 }

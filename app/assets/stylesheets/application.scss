@@ -41,7 +41,10 @@ html,body{ height:auto; }                 /* body スクロール */
   width:100%; max-width:var(--main-fixed);   /* 〜600px */
   margin-inline:auto;                        /* 行中で中央 */
 }
-
+.Part3DPreview {
+  width:calc(var(--main-fixed) * 0.8);
+  aspect-ratio: 1 / 1;
+}
 /*================ BottomBar ベース ===========*/
 .BottomBar{
   display:none;
@@ -62,6 +65,10 @@ html,body{ height:auto; }                 /* body スクロール */
 @media (max-width:575.98px){
   .SideRail{ display:none; }
   .Main{ max-width:100%; padding-bottom:var(--footer-h)}
+  .Part3DPreview {
+    width:100%;
+    aspect-ratio: 1 / 1;
+  }
   .BottomBar{ display:flex; }
 }
 @media (min-width:576px){
@@ -73,6 +80,10 @@ html,body{ height:auto; }                 /* body スクロール */
   .SideRail{ width:var(--rail-left-narrow); }
   .Main{
     max-width:clamp(480px, 60vw, var(--main-fixed));
+  }
+  .Part3DPreview {
+    width:clamp(480px, 60vw, calc(var(--main-fixed) * 0.8));
+    aspect-ratio: 1 / 1;
   }
 }
 

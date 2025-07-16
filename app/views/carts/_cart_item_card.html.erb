@@ -62,7 +62,7 @@
                       data-action="click->cart-builder#increase">＋</button>
             </fieldset>
             <% if target == "part" %>
-              <%= link_to part_path(item),
+              <%= link_to show_modal_part_path(item),
                       data: { turbo_frame: "part_modal" },
                       class: "btn btn-outline-secondary btn-icon eye-area",
                       style: "min-width: 40px;" do %>

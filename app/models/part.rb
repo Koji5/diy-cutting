@@ -4,7 +4,7 @@ class Part < ApplicationRecord
   # ─────────────────────────────
   # 関連
   # ─────────────────────────────
-  belongs_to :user
+  belongs_to :account
 
   belongs_to :material_category,
              class_name:  'MCategory',

@@ -2409,8 +2409,7 @@ ALTER SEQUENCE public.part_snapshots_id_seq OWNED BY public.part_snapshots.id;
 
 CREATE TABLE public.parts (
     id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    name character varying(50) NOT NULL,
+    account_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     material_category_code character varying(10) NOT NULL,
@@ -2436,6 +2435,7 @@ CREATE TABLE public.parts (
     origin_snapshot_id bigint,
     origin_owner_id bigint,
     camera_state jsonb,
+    name character varying(50) NOT NULL,
     CONSTRAINT chk_parts_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
 );
 
@@ -6685,6 +6685,13 @@ CREATE INDEX index_part_snapshots_on_updated_by_id ON public.part_snapshots USIN
 
 
 --
+-- Name: index_parts_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_parts_on_account_id ON public.parts USING btree (account_id);
+
+
+--
 -- Name: index_parts_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6731,13 +6738,6 @@ CREATE INDEX index_parts_on_sqhole_json ON public.parts USING gin (sqhole_json);
 --
 
 CREATE INDEX index_parts_on_updated_by_id ON public.parts USING btree (updated_by_id);
-
-
---
--- Name: index_parts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_parts_on_user_id ON public.parts USING btree (user_id);
 
 
 --
@@ -8190,7 +8190,7 @@ ALTER TABLE ONLY public.member_shipping_addresses
 --
 
 ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_001c6f3575 FOREIGN KEY (origin_owner_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_001c6f3575 FOREIGN KEY (origin_owner_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8478,7 +8478,7 @@ ALTER TABLE ONLY public.cart_parts
 --
 
 ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_30be2232d9 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_30be2232d9 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9082,6 +9082,14 @@ ALTER TABLE ONLY public.vendor_offer_items
 
 
 --
+-- Name: parts fk_rails_86b8db80ec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_86b8db80ec FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: article_comments fk_rails_86c76f9c76; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9446,7 +9454,7 @@ ALTER TABLE ONLY public.vendor_offers
 --
 
 ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_b8a090e626 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_b8a090e626 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9622,7 +9630,7 @@ ALTER TABLE ONLY public.article_comments
 --
 
 ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_d9a2b8fbeb FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_d9a2b8fbeb FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9818,14 +9826,6 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: parts fk_rails_f85f1811f0; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_f85f1811f0 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: orders fk_rails_f868b47f6a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9936,6 +9936,9 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250716040053'),
+('20250716034751'),
+('20250716034108'),
 ('20250713070801'),
 ('20250713070153'),
 ('20250713062713'),

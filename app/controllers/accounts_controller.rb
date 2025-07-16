@@ -6,10 +6,10 @@ class AccountsController < ApplicationController
   end
 
   def edit
+    @account.user ||= User.find_by(id: @account.user_id)
   end
 
   def update
-    user_params = account_params[:user_attributes]
     if user_params[:password].present?
       # パスワード変更を希望している
       unless @account.user.valid_password?(params[:current_password])
@@ -24,14 +24,18 @@ class AccountsController < ApplicationController
       # password_confirmation はモデル側のバリデーションに任せてOK
     end
 
-    if @account.update(account_params)
+    begin
+      ActiveRecord::Base.transaction do
+        @account.update!(account_params)
+        @account.user.update!(user_params) if user_params.present?
+      end
       render_flash_and_replace_main(
         template: "accounts/show",
         assigns: { account: @account },
         message: "アカウント基本情報を更新しました。",
         type: "success"
       )
-    else
+    rescue ActiveRecord::RecordInvalid
       render_flash_and_replace_main(
         template: "accounts/edit",
         assigns: { account: @account },
@@ -49,8 +53,21 @@ class AccountsController < ApplicationController
 
   def account_params
     params.require(:account).permit(
-      :nickname, :legal_type, :name, :name_kana, :birthday, :gender,
-      user_attributes: [:id, :email, :password, :password_confirmation]
+      :nickname, :legal_type, :name, :name_kana, :birthday, :gender#,
+      #user_attributes: [:id, :email, :password, :password_confirmation]
     )
+  end
+
+  def user_params
+    return {} unless params[:account][:user]
+
+    permitted = params.require(:account).require(:user).permit(:id, :email, :password, :password_confirmation)
+
+    # パスワード未入力なら password 関連を除外（メールだけ更新する）
+    if permitted[:password].blank?
+      permitted.except(:password, :password_confirmation)
+    end
+
+    permitted
   end
 end

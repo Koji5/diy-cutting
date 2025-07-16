@@ -9,7 +9,7 @@ module Discardable
     # まだカラムがあるモデルだけ実行（respond_to? で安全に）
     before_discard do
       if respond_to?(:deleted_by_id=)
-        self.deleted_by_id = Current.user&.id # <- Current.user パターン
+        self.deleted_by_id = Current.account.id
       end
       if respond_to?(:deleted_flag=)
         self.deleted_flag = true

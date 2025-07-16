@@ -4,21 +4,21 @@ class RecipesController < ApplicationController
 
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
-    @recipes = current_user.recipes
+    @recipes = Current.account.recipes
                           .includes(:origin_owner, thumbnail_attachment: :blob)
                           .order(updated_at: :desc)
   end
 
   def new
     @recipe = Recipe.new
-    @parts = current_user.parts
+    @parts = Current.account.parts
                      .kept
                      .includes(thumbnail_attachment: :blob)
                      .order(:name)
   end
 
   def create
-    @recipe = current_user.recipes.build(recipe_params)
+    @recipe = Current.account.recipes.build(recipe_params)
 
     # parts_json から recipe_parts を組み立てる
     if (json = params.dig(:recipe, :parts_json)).present?
@@ -37,17 +37,17 @@ class RecipesController < ApplicationController
   end
 
   def edit
-    @recipe = current_user.recipes.find(params[:id])
+    @recipe = Current.account.recipes.find(params[:id])
     # レシピに含まれているパーツ
     @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
     # レシピに含まれていないパーツ
-    @excluded_parts = current_user.parts
+    @excluded_parts = Current.account.parts
                               .includes(thumbnail_attachment: :blob)
                               .where.not(id: @recipe.recipe_parts.select(:part_id))
   end
 
   def update
-    @recipe = current_user.recipes.find(params[:id])
+    @recipe = Current.account.recipes.find(params[:id])
 
     begin
       ActiveRecord::Base.transaction do
@@ -69,16 +69,16 @@ class RecipesController < ApplicationController
   end
 
   def show
-    @recipe = current_user.recipes.find(params[:id])
+    @recipe = Current.account.recipes.find(params[:id])
     # レシピに含まれているパーツ
     @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
-    @carts = current_user.carts.includes(cart_recipes: :recipe)
+    @carts = Current.account.carts.includes(cart_recipes: :recipe)
   end
 
   def show_modal
-    @recipe = current_user.recipes.find(params[:id])
+    @recipe = Current.account.recipes.find(params[:id])
     # レシピに含まれているパーツ
-    @recipe_parts = @recipe.recipe_parts.includes(:part)
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
     render layout: (turbo_frame_request? ? false : "application")
   end
 
@@ -167,7 +167,7 @@ class RecipesController < ApplicationController
 
     # 4. 含まれていないパーツを抽出
     used_part_ids = parts_data.map { |p| p[:part_id] }
-    @excluded_parts = current_user.parts
+    @excluded_parts = Current.account.parts
                               .includes(thumbnail_attachment: :blob)
                               .where.not(id: used_part_ids)
   end

@@ -9,5 +9,12 @@ class User < ApplicationRecord
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy
 
-  #accepts_nested_attributes_for :account
+  accepts_nested_attributes_for :account
+
+  private
+
+  def password_required?
+    # 新規作成時またはパスワードが明示的に変更されているときのみ true
+    new_record? || password.present? || password_confirmation.present?
+  end
 end

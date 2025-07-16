@@ -1,0 +1,287 @@
+<turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open">
+  <%= form_with model: @part, id: "part-detail",
+      data: {
+        controller: "part-show",
+        part_show_shader_url_value: asset_path("wood_shader.json"),
+        dims_hole_diameters_value: @hole_diameters.index_by(&:code)
+                                    .transform_values(&:hole_mm).to_json
+      } do |f| %>
+   <!-- === 3Dプレビュー ============================ -->
+    <div class="ratio ratio-1x1 bg-light">
+        <canvas data-part-show-target="canvas" class="w-100 h-100"></canvas>
+    </div>
+    <!-- === 部品名称 ============================ -->
+    <div class="mb-2">
+      <%= f.label :name, "部品名：", class: "form-label small" %>
+      <%= f.text_field :name, class: "border-0 pe-none",
+                              readonly: true %>
+    </div>
+    <!-- === 樹種 ============================ -->
+    <div class="mb-2" data-readonly-section="material_code">
+      <%= f.label :material_code, "樹種：", class: "form-label small" %>
+      <%= f.collection_select :material_code, @materials, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "material_code"
+                              } %>
+    </div>
+     <!-- === 平面形状 ============================ -->
+    <div class="mb-2" data-readonly-section="shape_code">
+      <%= f.label :shape_code, "平面形状：", class: "form-label small" %>
+      <%= f.collection_select :shape_code, @shapes, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "shape_code"
+                              } %>
+    </div>
+    <!-- === 厚み ============================ -->
+    <div class="mb-2">
+      <%= f.label :thickness_mm, "厚み [mm]：", class: "form-label small" %>
+      <%= f.number_field  :thickness_mm,
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+    </div>
+    <!-- === 巾1 ============================ -->
+    <div class="mb-2">
+      <%= f.label :width1_mm, "巾1 [mm]：", class: "form-label small" %>
+      <%= f.number_field  :width1_mm,
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+    </div>
+    <!-- === 巾2（ニッチ型のみ） ============================ -->
+    <div class="mb-2" data-readonly-section="width2_mm">
+      <%= f.label :width2_mm, "巾2 [mm]：", class: "form-label small" %>
+      <%= f.number_field  :width2_mm,
+                          readonly: true,
+                          class: "border-0 pe-none",
+                          data: {
+                            part_show_target: "number",
+                            readonly_section_param: "width2_mm"
+                          } %>
+    </div>
+    <!-- === 長さ ============================ -->
+    <div class="mb-2">
+      <%= f.label :length_mm, "長さ [mm]：", class: "form-label small" %>
+      <%= f.number_field   :length_mm,
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+    </div>
+    <!-- === 加工設定グループ ============================ -->
+    <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
+    <div class="mb-2">▼形状加工</div>
+    <% corners.each do |key, label| %>
+      <div class="mb-2" data-readonly-section="<%= "shape_#{key}_r" %>">
+        <%= f.label "shape_#{key}_r", "#{label}半径 [mm]：", class: "form-label small" %>
+        <%= f.number_field  "shape_#{key}_r",
+                            readonly: true,
+                            class: "border-0 pe-none",
+                            data: {
+                              part_show_target: "number",
+                              readonly_section_param: "shape_#{key}_r"
+                            } %>
+      </div>
+    <% end %>
+    <!-- === コーナー加工設定グループ ============================ -->
+    <div class="mb-2">▼コーナー加工</div>
+    <% corners.each do |key, label| %>
+      <div class="input-group mb-2" data-readonly-section="<%= "corner_#{key}_code" %>">
+        <span class="input-group-text">
+          <%= f.label "corner_#{key}_code", "#{label}：", class: "small" %>
+          <%= f.collection_select "corner_#{key}_code", @corner_processes, :code, :name_ja,
+                                  { prompt: "" },
+                                  class: "form-select-plaintext form-control",
+                                  data: {
+                                    part_show_target: "select",
+                                    readonly_hide_code: "NONE",
+                                    readonly_section_param: "corner_#{key}_code"
+                                  } %>
+        </span>
+        <span class="input-group-text" data-readonly-section="<%= "corner_#{key}_r" %>">
+          <%= f.label "corner_#{key}_r", "半径：", class: "small" %>
+          <%= f.number_field  "corner_#{key}_r",
+                            value: @part.public_send("corner_#{key}_r").to_i,
+                            class: "form-number-plaintext form-control",
+                            data: {
+                              part_show_target: "number",
+                              readonly_section_param: "corner_#{key}_r"
+                            } %>
+          <span>mm</span>
+        </span>
+        <% value = @part.public_send("corner_#{key}_dx") %>
+        <span class="<%= value.present? ? 'input-group-text' : 'ig-hidden' %>">
+          <%= f.label "corner_#{key}_dx", "縦：", class: "small" %>
+          <%= f.number_field  "corner_#{key}_dx",
+                            value: @part.public_send("corner_#{key}_dx").to_i,
+                            class: "form-number-plaintext form-control" %>
+          <span>mm</span>
+        </span>
+        <% value = @part.public_send("corner_#{key}_dy") %>
+        <span class="<%= value.present? ? 'input-group-text' : 'ig-hidden' %>">
+          <%= f.label "corner_#{key}_dy", "横：", class: "small" %>
+          <%= f.number_field  "corner_#{key}_dy",
+                            value: @part.public_send("corner_#{key}_dy").to_i,
+                            class: "form-number-plaintext form-control" %>
+          <span>mm</span>
+        </span>
+      </div>
+    <% end %>
+    <%# ==== 丸穴加工 ================================= %>
+    <div class="mb-2">▼丸穴加工</div>
+    <% corners.each do |key, label| %>
+      <div class="mb-2" data-readonly-section="<%= "hole_#{key}_flag" %>">
+        <%= f.check_box "hole_#{key}_flag",
+                  class: "visually-hidden",
+                  data:  { part_show_target: "flag",
+                            readonly_section_param: "hole_#{key}_flag" } %>
+        <%= f.label "hole_#{key}_dia_code", "#{label}直径 [mm]：", class: "form-label small" %>
+        <%= f.collection_select "hole_#{key}_dia_code", @hole_diameters, :code, :name_ja,
+                                { prompt: "" },
+                                class: "form-select-plaintext",
+                                data: {
+                                  part_show_target: "select",
+                                  readonly_hide_code: "",
+                                  readonly_section_param: "hole_#{key}_dia_code"
+                                } %>
+        <div class="d-inline-block" data-readonly-section="<%= "hole_#{key}_dia_mm" %>">
+          <%= f.label "hole_#{key}_dia_mm", "[mm] ：", class: "form-label small" %>
+          <%= f.number_field  "hole_#{key}_dia_mm",
+                            readonly: true,
+                            class: "border-0 pe-none",
+                            data: {
+                              part_show_target: "number",
+                              readonly_section_param: "hole_#{key}_dia_mm"
+                            } %>
+        </div>
+        <%= f.label "hole_#{key}_dy", "#{label}からの縦距離[mm]：", class: "form-label small" %>
+        <%= f.number_field  "hole_#{key}_dy",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+        <%= f.label "hole_#{key}_dx", "横距離[mm]：", class: "form-label small" %>
+        <%= f.number_field  "hole_#{key}_dx",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+      </div>
+    <% end %>
+    <%# ==== 四角穴加工 ================================= %>
+  <div class="mb-2">▼四角加工</div>
+    <% corners.each do |key, label| %>
+      <div class="mb-2" data-readonly-section="<%= "sqhole_#{key}_flag" %>">
+        <%= f.check_box "sqhole_#{key}_flag",
+                  class: "visually-hidden",
+                  data:  { part_show_target: "flag",
+                            readonly_section_param: "sqhole_#{key}_flag" } %>
+        <%= f.label "sqhole_#{key}_h", "#{label}縦[mm]：", class: "form-label small" %>
+        <%= f.number_field  "sqhole_#{key}_h",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+        <%= f.label "sqhole_#{key}_w", "#{label}横[mm]：", class: "form-label small" %>
+        <%= f.number_field  "sqhole_#{key}_w",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+        <%= f.label "sqhole_#{key}_dy", "#{label}からの縦距離[mm]：", class: "form-label small" %>
+        <%= f.number_field  "sqhole_#{key}_dy",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+        <%= f.label "sqhole_#{key}_dx", "#{label}からの横距離[mm]：", class: "form-label small" %>
+        <%= f.number_field  "sqhole_#{key}_dx",
+                          readonly: true,
+                          class: "border-0 pe-none" %>
+      </div>
+    <% end %>
+    <%# ==== 断面加工 =================================== %>
+    <% dirs = {
+      tl:"左上",  t:"上面",  tr:"右上",
+      l:"左面",           r:"右面",
+      bl:"左下",  b:"下面", br:"右下"
+    } %>
+    <div class="mb-2">▼断面加工</div>
+    <% dirs.each do |key, label| %>
+      <div class="mb-2" data-readonly-section="<%= "edge_#{key}_code" %>">
+        <%= f.label "edge_#{key}_code", "#{label}加工：", class: "form-label small" %>
+        <%= f.collection_select "edge_#{key}_code", @edge_processes, :code, :name_ja,
+                                { prompt: "" },
+                                class: "form-select-plaintext",
+                                data: {
+                                  part_show_target: "select",
+                                  readonly_hide_code: "NONE",
+                                  readonly_section_param: "edge_#{key}_code"
+                                } %>
+      </div>
+    <% end %>
+    <%# ==== 塗装 ======================================= %>
+    <div class="mb-2">▼塗装</div>
+    <div class="mb-2" data-readonly-section="paint_type_code">
+      <%= f.label :paint_type_code, "塗装種類：", class: "form-label small" %>
+      <%= f.collection_select :paint_type_code, @paint_types, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "NONE",
+                                readonly_section_param: "paint_type_code"
+                              } %>
+    </div>
+    <div class="mb-2" data-readonly-section="paint_surface_code">
+      <%= f.label :paint_surface_code, "塗装面：", class: "form-label small" %>
+      <%= f.collection_select :paint_surface_code, @paint_surfaces, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "paint_surface_code"
+                              } %>
+    </div>
+    <div class="mb-2" data-readonly-section="paint_color_code">
+      <%= f.label :paint_color_code, "塗装色：", class: "form-label small" %>
+      <%= f.collection_select :paint_color_code, @paint_colors, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "paint_color_code"
+                              } %>
+    </div>
+    <div class="mb-2" data-readonly-section="grain_finish_code">
+      <%= f.label :grain_finish_code, "木目・導管の見え方：", class: "form-label small" %>
+      <%= f.collection_select :grain_finish_code, @grain_finishes, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "grain_finish_code"
+                              } %>
+    </div>
+    <div class="mb-2" data-readonly-section="gloss_code">
+      <%= f.label :gloss_code, "ツヤ：", class: "form-label small" %>
+      <%= f.collection_select :gloss_code, @glosses, :code, :name_ja,
+                              { prompt: "" },
+                              class: "form-select-plaintext",
+                              data: {
+                                part_show_target: "select",
+                                readonly_hide_code: "",
+                                readonly_section_param: "gloss_code"
+                              } %>
+    </div>
+    <%# ==== 備考・メモ ================================================ %>
+    <div class="mb-2">▼備考・メモ</div>
+    <div class="mb-2" data-readonly-section="note">
+      <%= f.text_area :note,
+            rows: 4,
+            class: "form-control",
+            readonly: true,
+            data: {
+              part_show_target: "number",
+              readonly_section_param: "note"
+            } %>
+    </div>
+  <% end %>
+</turbo-frame>

@@ -1,8 +1,6 @@
 :root{ --hero-h: 30vh; --fade-s: .5s; } 
 .hero{
   position: fixed;
-  height:var(--hero-h);
-  background:url(hero.jpg) center/cover no-repeat;
   color:#fff; padding:2rem;
   font-size:2rem;
   z-index: 100;
