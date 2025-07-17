@@ -1,95 +1,97 @@
-<%= render "recipes/link_recipe" %>
-<section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
-  <!-- ✅ 上部：固定のレシピ情報欄 -->
-  <div class="d-flex flex-row flex-grow-1 mb-3 recipe-modal" style="min-height: 80px;">
-    <div class="d-flex thumb-box me-3">
-      <% if @recipe.thumbnail.attached? %>
-        <%= image_tag @recipe.thumbnail.variant(resize_to_limit: [200, 200]), 
-                      loading: "lazy", decoding: "async", alt: "サムネイル" %>
-      <% else %>
-        <div class="text-muted d-flex align-items-center justify-content-center flex-grow-1">No image</div>
+<turbo-frame id="main">
+  <%= render "recipes/link_recipe" %>
+  <section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
+    <!-- ✅ 上部：固定のレシピ情報欄 -->
+    <div class="d-flex flex-row flex-grow-1 mb-3 recipe-modal" style="min-height: 80px;">
+      <div class="d-flex thumb-box me-3">
+        <% if @recipe.thumbnail.attached? %>
+          <%= image_tag @recipe.thumbnail.variant(resize_to_limit: [200, 200]), 
+                        loading: "lazy", decoding: "async", alt: "サムネイル" %>
+        <% else %>
+          <div class="text-muted d-flex align-items-center justify-content-center flex-grow-1">No image</div>
+        <% end %>
+      </div>
+      <div class=" flex-grow-1">
+        <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @recipe.name %></h5>
+        <p class="mb-0 text-muted small">
+          作成日：<%= l(@recipe.created_at.to_date) %> / 作成者：<%= @recipe.account.id %>
+        </p>
+        <div class=" flex-grow-1">
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              カートに追加
+            </button>
+            <ul class="dropdown-menu" data-controller="cart-add">
+              <li>
+                <%= link_to "新規作成して追加", new_cart_path(recipe_id: @recipe.id), class: "dropdown-item" %>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <!-- % Current.account.carts.each do |cart| % -->
+                <li>
+                  <!-- %= link_to cart.name, "#",
+                        class: "dropdown-item",
+                        data: {
+                          action: "click->cart-add#select",
+                          "cart-id": cart.id,
+                          "recipe-id": @recipe.id
+                        } % -->
+                </li>
+              <!-- % end % -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <% @recipe_parts.each do |recipe_part| %>
+        <% part = recipe_part.part %>
+        <% thumb_tag =
+            if part.thumbnail.attached?
+              image_tag(part.thumbnail
+                            .variant(resize_to_fill: [40, 40]),
+                        loading: "lazy",
+                        decoding: "async",
+                        width: 40, height: 40,
+                        class: "rounded me-3 flex-shrink-0")
+            else
+              tag.div "No image",
+                      class: "border rounded d-flex align-items-center justify-content-center text-muted me-3 flex-shrink-0",
+                      style: "width:40px; height:40px;",
+                      role: "img",
+                      aria: { label: "No image" }
+            end
+        %>
+        <div class="mb-2">
+          <div class="card toggle-card rounded" 
+                data-controller="part-list-toggle"
+                data-part-list-toggle-part-id-value="<%= part.id %>">
+            <div class="card-header d-flex align-items-center"
+                data-action="click->part-list-toggle#toggle"
+                data-part-list-toggle-target="header"
+                data-part-list-toggle-part-id-value="<%= part.id %>">
+              <!-- ✅ サムネイル -->
+              <%= thumb_tag %>
+              <!-- ✅ パーツ名（省略） -->
+              <div class="flex-grow-1 min-w-0 me-2 text-truncate">
+                <%= part.name %>
+              </div>
+              <!-- ✅ 数量表示 -->
+              <div class="me-3 text-nowrap text-muted small flex-shrink-0">
+                [ 数量：<%= recipe_part.quantity %> ]
+              </div>
+              <!-- ✅ トグルアイコン -->
+              <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+            </div>
+            <div class="collapse card-body border-top rounded-bottom"
+                id="part-detail-<%= part.id %>"
+                data-part-list-toggle-target="body">
+              <div data-part-list-toggle-target="container" class=" flex-grow-1 loading-placeholder">
+                <img src="<%= asset_path('loading.gif') %>" alt="Loading…" width="48" height="48">
+              </div>
+            </div>
+          </div>
+        </div>
       <% end %>
     </div>
-    <div class=" flex-grow-1">
-      <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @recipe.name %></h5>
-      <p class="mb-0 text-muted small">
-        作成日：<%= l(@recipe.created_at.to_date) %> / 作成者：<%= @recipe.user.id %>
-      </p>
-      <div class=" flex-grow-1">
-        <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            カートに追加
-          </button>
-          <ul class="dropdown-menu" data-controller="cart-add">
-            <li>
-              <%= link_to "新規作成して追加", new_cart_path(recipe_id: @recipe.id), class: "dropdown-item" %>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <% current_user.carts.each do |cart| %>
-              <li>
-                <%= link_to cart.name, "#",
-                      class: "dropdown-item",
-                      data: {
-                        action: "click->cart-add#select",
-                        "cart-id": cart.id,
-                        "recipe-id": @recipe.id
-                      } %>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div>
-    <% @recipe_parts.each do |recipe_part| %>
-      <% part = recipe_part.part %>
-      <% thumb_tag =
-          if part.thumbnail.attached?
-            image_tag(part.thumbnail
-                          .variant(resize_to_fill: [40, 40]),
-                      loading: "lazy",
-                      decoding: "async",
-                      width: 40, height: 40,
-                      class: "rounded me-3 flex-shrink-0")
-          else
-            tag.div "No image",
-                    class: "border rounded d-flex align-items-center justify-content-center text-muted me-3 flex-shrink-0",
-                    style: "width:40px; height:40px;",
-                    role: "img",
-                    aria: { label: "No image" }
-          end
-      %>
-      <div class="mb-2">
-        <div class="card toggle-card rounded" 
-              data-controller="part-list-toggle"
-              data-part-list-toggle-part-id-value="<%= part.id %>">
-          <div class="card-header d-flex align-items-center"
-              data-action="click->part-list-toggle#toggle"
-              data-part-list-toggle-target="header"
-              data-part-list-toggle-part-id-value="<%= part.id %>">
-            <!-- ✅ サムネイル -->
-            <%= thumb_tag %>
-            <!-- ✅ パーツ名（省略） -->
-            <div class="flex-grow-1 min-w-0 me-2 text-truncate">
-              <%= part.name %>
-            </div>
-            <!-- ✅ 数量表示 -->
-            <div class="me-3 text-nowrap text-muted small flex-shrink-0">
-              [ 数量：<%= recipe_part.quantity %> ]
-            </div>
-            <!-- ✅ トグルアイコン -->
-            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
-          </div>
-          <div class="collapse card-body border-top rounded-bottom"
-              id="part-detail-<%= part.id %>"
-              data-part-list-toggle-target="body">
-            <div data-part-list-toggle-target="container" class=" flex-grow-1 loading-placeholder">
-              <img src="<%= asset_path('loading.gif') %>" alt="Loading…" width="48" height="48">
-            </div>
-          </div>
-        </div>
-      </div>
-    <% end %>
-  </div>
-</section>
+  </section>
+</turbo-frame>

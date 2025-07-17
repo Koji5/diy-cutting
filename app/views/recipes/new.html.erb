@@ -1,69 +1,83 @@
-<%= render "recipes/link_recipe" %>
-<section class="px-3">
-  <%= form_with model: @recipe, data: { controller: "thumbnail-upload" } do |f| %>
+<turbo-frame id="main">
+  <%= render "recipes/link_recipe" %>
+  <section class="px-3">
+    <%= form_with model: @recipe,
+                  data: {
+                      controller: "thumbnail-upload form-validation",
+                      "form-validation-context-value": "recipe-new"
+                  },
+                  html: { class: "needs-validation", novalidate: true } do |f| %>
 
-    <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
-      <!-- プレビュー枠 -->
-      <%= render "thumbnail_edit", f: f %>
-      <!-- レシピ名 -->
-      <div class="flex-grow-1 align-self-end">
-        <div class="input-group">
-          <span class="input-group-text"><%= f.label :name, 'レシピ名', class: 'form-label' %></span>
-          <%= f.text_field :name, class: 'form-control', autofocus: true %>
+      <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
+        <!-- プレビュー枠 -->
+        <%= render "thumbnail_edit", f: f %>
+        <!-- レシピ名 -->
+        <div class="flex-grow-1 align-self-end">
+          <div class="input-group">
+            <span class="input-group-text"><%= f.label :name, 'レシピ名', class: 'form-label' %></span>
+            <%= f.text_field :name, class: 'form-control',
+              autofocus: true,
+              required: true,
+              maxlength: 60 %>
+            <div class="invalid-feedback">レシピ名は必須です（60文字以内）</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="d-flex flex-column"
-        data-controller="recipe-builder"
-        style="min-height:520px;">
-      <!-- ドロップゾーン -->
-      <div class="form-floating mb-3 flex-grow-1">
-        <main data-recipe-builder-target="dropZone" id="floatingInput"
-              class="overflow-auto form-control"
-              style="min-height: 256px;">
-        </main>
-        <label for="floatingInput">ここにドロップしてください</label>
-      </div>
-      <!-- アイコン -->
-      <div class="d-flex justify-content-center mb-3">
-        <i class="bi bi-arrows-vertical"></i>
-      </div>
-      <div class="form-floating flex-grow-1">
-        <!-- 部品一覧 -->
-        <div data-recipe-builder-target="partsList"
-              class="overflow-auto form-control"
-              style="min-height:256px;"
-              id="floatingPartsList">
-          <% @parts.each do |part| %>
-            <%= render "recipe_item_card", part: part %>
-          <% end %>
+      <div class="d-flex flex-column"
+          data-controller="recipe-builder"
+          style="min-height:520px;">
+        <!-- ドロップゾーン -->
+        <div class="form-floating mb-3 flex-grow-1">
+          <main data-recipe-builder-target="dropZone" id="floatingInput"
+                class="overflow-auto form-control"
+                style="min-height: 256px;">
+          </main>
+          <div class="invalid-feedback d-none">
+            少なくとも一つのパーツを選択してください
+          </div>
+          <label for="floatingInput">ここにドロップしてください</label>
         </div>
-        <label for="floatingPartsList">選択可能部品一覧</label>
+        <!-- アイコン -->
+        <div class="d-flex justify-content-center mb-3">
+          <i class="bi bi-arrows-vertical"></i>
+        </div>
+        <div class="form-floating flex-grow-1">
+          <!-- 部品一覧 -->
+          <div data-recipe-builder-target="partsList"
+                class="overflow-auto form-control"
+                style="min-height:256px;"
+                id="floatingPartsList">
+            <% @parts.each do |part| %>
+              <%= render "recipe_item_card", part: part %>
+            <% end %>
+          </div>
+          <label for="floatingPartsList">選択可能部品一覧</label>
+        </div>
+        <!-- hidden JSON -->
+        <%= hidden_field_tag 'recipe[parts_json]', '', id: 'recipe_parts_json',
+              data: { recipe_builder_target: 'hidden' } %>
       </div>
-      <!-- hidden JSON -->
-      <%= hidden_field_tag 'recipe[parts_json]', '', id: 'recipe_parts_json',
-            data: { recipe_builder_target: 'hidden' } %>
-    </div>
 
-    <!-- 登録ボタン -->
-    <%= f.submit '登録', class: 'btn btn-primary w-100 mt-3' %>
+      <!-- 登録ボタン -->
+      <%= f.submit '登録', class: 'btn btn-primary w-100 mt-3' %>
 
-  <% end %>
-</section>
-<!-- Bootstrap トースト -->
-<!-- %= render 'shared/toast' % -->
-<!-- --- 部品詳細モーダル骨格 -------------------- -->
-<div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
-  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">部品詳細</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
-        </div>
+    <% end %>
+  </section>
+  <!-- Bootstrap トースト -->
+  <!-- %= render 'shared/toast' % -->
+  <!-- --- 部品詳細モーダル骨格 -------------------- -->
+  <div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">部品詳細</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
+          </div>
+      </div>
     </div>
   </div>
-</div>
+</turbo-frame>

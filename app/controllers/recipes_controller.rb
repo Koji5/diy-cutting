@@ -9,6 +9,20 @@ class RecipesController < ApplicationController
                           .order(updated_at: :desc)
   end
 
+  def show
+    @recipe = Current.account.recipes.find(params[:id])
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
+    @carts = Current.account.carts.includes(cart_recipes: :recipe)
+  end
+
+  def show_modal
+    @recipe = Current.account.recipes.find(params[:id])
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
+    render layout: (turbo_frame_request? ? false : "application")
+  end
+
   def new
     @recipe = Recipe.new
     @parts = Current.account.parts
@@ -27,12 +41,37 @@ class RecipesController < ApplicationController
       end
     end
 
+    # レシピに含まれているパーツ
+    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
+    @carts = Current.account.carts.includes(cart_recipes: :recipe)
+
     if @recipe.save
-      flash[:notice] = '保存しました'
-      redirect_to new_recipe_path
+      render_flash_and_replace_main(
+        template: "recipes/show",
+        assigns: {
+          recipe: @recipe,
+          recipe_parts: @recipe_parts,
+          carts: @carts
+        },
+        message: "レシピを登録しました。",
+        type: "success"
+      )
     else
-      @parts = Part.order(:name)
-      render :new, status: :unprocessable_entity
+      @recipe = Recipe.new
+      @parts = Current.account.parts
+                      .kept
+                      .includes(thumbnail_attachment: :blob)
+                      .order(:name)
+
+      render_flash_and_replace_main(
+        template: "recipes/new",
+        assigns: {
+          recipe: @recipe,
+          parts: @parts
+        },
+        message: "レシピの登録に失敗しました。",
+        type: "danger"
+      )
     end
   end
 
@@ -59,27 +98,30 @@ class RecipesController < ApplicationController
         sync_recipe_parts(parts_data)  # ← 失敗したらここで例外
       end
 
-      redirect_to @recipe, notice: "レシピを更新しました"
+      render_flash_and_replace_main(
+        template: "recipes/show",
+        assigns: {
+          recipe: @recipe,
+          recipe_parts: @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob }),
+          carts: Current.account.carts.includes(cart_recipes: :recipe)
+        },
+        message: "レシピを更新しました",
+        type: "success"
+      )
 
     rescue => e
       load_recipe_edit_data
-      flash.now[:alert] = "更新に失敗しました: #{e.message}"
-      render :edit, status: :unprocessable_entity
+      render_flash_and_replace_main(
+        template: "recipes/edit",
+        assigns: {
+          recipe: @recipe,
+          recipe_parts: @recipe.recipe_parts,
+          excluded_parts: @excluded_parts
+        },
+        message: "レシピの更新に失敗しました: #{e.message}",
+        type: "danger"
+      )
     end
-  end
-
-  def show
-    @recipe = Current.account.recipes.find(params[:id])
-    # レシピに含まれているパーツ
-    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
-    @carts = Current.account.carts.includes(cart_recipes: :recipe)
-  end
-
-  def show_modal
-    @recipe = Current.account.recipes.find(params[:id])
-    # レシピに含まれているパーツ
-    @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
-    render layout: (turbo_frame_request? ? false : "application")
   end
 
   def destroy

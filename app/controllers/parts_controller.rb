@@ -41,7 +41,7 @@ class PartsController < ApplicationController
     if @part.save
       render_flash_and_replace_main(
         template: "parts/show",
-        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
+        assigns: load_masters_hash.merge(part: @part),
         message: "部品を登録しました。",
         type: "success"
       )
@@ -50,7 +50,7 @@ class PartsController < ApplicationController
       render_flash_and_replace_main(
         template: "parts/new",
         assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
-        message: "エラーが発生しました。",
+        message: "部品の登録に失敗しました。",
         type: "danger"
       )
     end
@@ -77,7 +77,7 @@ class PartsController < ApplicationController
       render_flash_and_replace_main(
         template: "parts/edit",
         assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
-        message: "エラーが発生しました。",
+        message: "部品の更新に失敗しました。",
         type: "danger"
       )
     end

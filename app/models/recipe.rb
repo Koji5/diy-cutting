@@ -1,6 +1,6 @@
 class Recipe < ApplicationRecord
   ## 関連
-  belongs_to :user
+  belongs_to :account
   has_many   :recipe_parts,  dependent: :destroy
   has_many   :parts,         through: :recipe_parts
   has_many   :cart_recipes,  dependent: :destroy

@@ -15,6 +15,28 @@
   background-color: rgba($primary, 0.1);
 }
 
+.was-validated .form-control:valid,
+.form-control.is-valid,
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+  padding-right: 0.75rem !important;
+  background-image: none !important;
+  background-position: initial !important;
+  background-size: initial !important;
+}
+
+/* Chrome, Safari, Edge */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 @import "application";
 @import "custom";
 @import "hero_reveal";

@@ -2614,7 +2614,7 @@ ALTER SEQUENCE public.recipe_snapshots_id_seq OWNED BY public.recipe_snapshots.i
 
 CREATE TABLE public.recipes (
     id bigint NOT NULL,
-    user_id bigint NOT NULL,
+    account_id bigint NOT NULL,
     name character varying(60) NOT NULL,
     status integer DEFAULT 0 NOT NULL,
     latest_snapshot_id bigint,
@@ -6811,17 +6811,17 @@ CREATE INDEX index_recipe_snapshots_on_recipe_id ON public.recipe_snapshots USIN
 
 
 --
+-- Name: index_recipes_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recipes_on_account_id ON public.recipes USING btree (account_id);
+
+
+--
 -- Name: index_recipes_on_latest_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_recipes_on_latest_snapshot_id ON public.recipes USING btree (latest_snapshot_id);
-
-
---
--- Name: index_recipes_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_recipes_on_user_id ON public.recipes USING btree (user_id);
 
 
 --
@@ -9194,14 +9194,6 @@ ALTER TABLE ONLY public.m_postal_codes
 
 
 --
--- Name: recipes fk_rails_9606fce865; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT fk_rails_9606fce865 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: parts fk_rails_9790700793; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9706,6 +9698,14 @@ ALTER TABLE ONLY public.cart_recipes
 
 
 --
+-- Name: recipes fk_rails_e279359460; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT fk_rails_e279359460 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_details fk_rails_e57cb87d98; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9936,6 +9936,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250717011200'),
 ('20250716040053'),
 ('20250716034751'),
 ('20250716034108'),

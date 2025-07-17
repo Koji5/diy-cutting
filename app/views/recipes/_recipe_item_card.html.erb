@@ -50,13 +50,14 @@
                       value="0"
                     <% end %>
                     class="form-control text-center interactive-lock"
-                    data-action="change->recipe-builder#onChangeQty">
+                    data-action="change->recipe-builder#onChangeQty"
+                    type="number" step="1" required>
               <button type="button"
                       class="btn btn-outline-secondary"
                       data-turbo="false"
                       data-action="click->recipe-builder#increase">＋</button>
             </fieldset>
-            <%= link_to part_path(part),
+            <%= link_to show_modal_part_path(part),
                     data: { turbo_frame: "part_modal" },
                     class: "btn btn-outline-secondary btn-icon eye-area",
                     style: "min-width: 40px;" do %>

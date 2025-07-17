@@ -122,12 +122,25 @@ export default class extends Controller {
 
   /* 数量 */
   onChangeQty(event){
+    const input = event.target
     const id  = this.partId(event)
     const obj = this.recipeParts.find(p => p.part_id === id)
-    obj.qty = parseInt(event.target.value, 10)
-    if (obj.qty <= 0) {
+    const raw = input.value
+    const qty = parseInt(raw, 10)
+
+    // ❌ 無効な入力だった場合
+    if (isNaN(qty) || raw.trim() === "") {
+      input.classList.add("is-invalid")
+      return
+    } else {
+      input.classList.remove("is-invalid")
+    }
+
+    // ✅ 数値として妥当な場合
+    obj.qty = qty
+    if (qty <= 0) {
       obj.qty = 0;
-      this.updateQtyDisplay(id, obj.qty)
+      this.updateQtyDisplay(id, 0)
       this.removeCard(id, event)
     } else {
       this._updateRemoveIcon(id, obj.qty)
@@ -147,7 +160,9 @@ export default class extends Controller {
   partId(e) { return Number(e.currentTarget.parentElement.dataset.partId) }
 
   updateQtyDisplay(id, qty) {
-    this.element.querySelector(`[data-quantity-for="${id}"]`).value = qty
+    const target = this.element.querySelector(`[data-quantity-for="${id}"]`)
+    target.value = qty
+    target.classList.remove("is-invalid")
   }
 
   updateHidden() {
