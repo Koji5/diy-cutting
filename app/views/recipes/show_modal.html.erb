@@ -12,7 +12,7 @@
     <div class=" flex-grow-1">
       <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @recipe.name %></h5>
       <p class="mb-0 text-muted small">
-        作成日：<%= l(@recipe.created_at.to_date) %> / 作成者：<%= @recipe.user.id %>
+        作成日：<%= l(@recipe.created_at.to_date) %> / 作成者：<%= @recipe.account.name %>
       </p>
     </div>
   </div>

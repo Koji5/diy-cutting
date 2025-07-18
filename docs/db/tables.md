@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-13 16:35 JST
+生成日: 2025-07-18 09:27 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -50,16 +50,16 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
+| user_id | bigint | × |  | ログイン用ユーザーID |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
-| role_flags | integer | × | 0 |  |
-| nickname | character varying(50) | ○ |  |  |
-| legal_type | integer | × |  |  |
-| name | character varying | × |  |  |
-| name_kana | character varying | ○ |  |  |
-| birthday | date | ○ |  |  |
-| gender | character varying(1) | ○ |  |  |
+| role_flags | integer | × | 0 | ロール |
+| nickname | character varying(50) | ○ |  | ニックネーム |
+| legal_type | integer | × |  | 課金状態 |
+| name | character varying | × |  | 氏名または法人名 |
+| name_kana | character varying | ○ |  | 氏名または法人名かな |
+| birthday | date | ○ |  | 生年月日 |
+| gender | character varying(1) | ○ |  | 性別 |
 
 **インデックス**:
 - accounts_pkey (id) [PK]
@@ -70,7 +70,15 @@
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+### メモ
+
+* **role_flags**は以下のようにBITS表示
+  | 種別 | ROLE_BITS |
+  | ---- | --------- |
+  | member | 0001 → 1 |
+  | vendor | 0010 → 2 |
+  | admin | 0100 → 4 |
+  | affiliate | 1000 → 8 |
 <!-- NOTE END -->
 
 <!-- TABLE_END accounts -->
@@ -82,15 +90,15 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| account_id | bigint | × |  |  |
-| billing_postal_code | character varying(20) | ○ |  |  |
-| billing_prefecture_code | character varying(2) | ○ |  |  |
-| billing_city_code | character varying(5) | × |  |  |
-| billing_address_line | character varying(200) | × |  |  |
-| billing_department | character varying(100) | ○ |  |  |
-| billing_phone_number | character varying(30) | ○ |  |  |
-| stripe_customer_id | character varying | ○ |  |  |
-| registered_affiliate_id | bigint | ○ |  |  |
+| account_id | bigint | × |  | 対象アカウント |
+| billing_postal_code | character varying(20) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
+| billing_prefecture_code | character varying(2) | ○ |  | 請求先 都道府県コード |
+| billing_city_code | character varying(5) | × |  | 請求先 市区町村コード |
+| billing_address_line | character varying(200) | × |  | 請求先 番地・建物名ほか |
+| billing_department | character varying(100) | ○ |  | 請求先 部署 |
+| billing_phone_number | character varying(30) | ○ |  | 請求先 電話番号 |
+| stripe_customer_id | character varying | ○ |  | PaymentIntent で `customer` を渡すための顧客 ID。カードを保存する場合にも必須<br>初めて決済を行う際に作成される |
+| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合につく、登録元**アフィリエイト**のアカウントID  |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_by_id | bigint | ○ |  |  |
@@ -98,7 +106,7 @@
 | deleted_at | timestamp(6) without time zone | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
-| membership_plan | integer | × | 0 |  |
+| membership_plan | integer | × | 0 | 課金状態（当面無料のみ） |
 
 **インデックス**:
 - member_profiles_pkey (id) [PK]
@@ -120,7 +128,12 @@
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
-<!-- 任意のメモを書いてください -->
+### メモ
+
+* アフィリエイト連携判定は `registered_affiliate_id IS NOT NULL`  
+   *この列は「発番時のアフィリエイト」を永続的に保持し、注文時は orders が参照します。*  
+* **顧客 ID (`stripe_customer_id`) はすべて Stripe が自動生成**（`cus_` プレフィクス）。
+
 <!-- NOTE END -->
 
 <!-- TABLE_END member_profiles -->
@@ -162,97 +175,6 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END user_authorities -->
-
-<!-- TABLE_BEGIN member_details -->
-## member_details — 会員ユーザー詳細
-
-<!-- AUTO BEGIN -->
-| 列名 | 型 | NULL | デフォルト | 説明 |
-|------|----|------|-----------|------|
-| user_id | bigint | × |  |  |
-| nickname | character varying(50) | ○ |  | ニックネーム |
-| icon_url | character varying | ○ |  | プロフィールアイコン URL |
-| legal_type | smallint | × |  | 個人／法人 |
-| legal_name | character varying | × |  | 氏名 or 法人名 |
-| legal_name_kana | character varying | ○ |  | フリガナ／法人名カナ |
-| birthday | date | ○ |  | 生年月日 |
-| gender | character varying(1) | ○ |  | 性別 |
-| billing_postal_code | character varying(20) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
-| billing_prefecture_code | character varying(2) | ○ |  | 請求先 都道府県コード |
-| billing_city_code | character varying(5) | × |  | 請求先 市区町村コード |
-| billing_address_line | character varying(200) | × |  | 請求先 番地・建物名ほか |
-| billing_department | character varying(100) | ○ |  | 請求先 部署 |
-| billing_phone_number | character varying(30) | ○ |  | 請求先 電話番号 |
-| primary_shipping_id | bigint | ○ |  | デフォルトの発送先<br>*TODO:**これは必要か？*** |
-| stripe_customer_id | character varying | ○ |  | PaymentIntent で `customer` を渡すための顧客 ID。カードを保存する場合にも必須<br>初めて決済を行う際に作成される |
-| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合の登録元**アフィリエイト** |
-| created_by_id | bigint | ○ |  |  |
-| updated_by_id | bigint | ○ |  |  |
-| deleted_flag | boolean | × | false |  |
-| deleted_at | timestamp(6) without time zone | ○ |  |  |
-| deleted_by_id | bigint | ○ |  |  |
-| created_at | timestamp(6) without time zone | × |  |  |
-| updated_at | timestamp(6) without time zone | × |  |  |
-| membership_plan | integer | × | 0 | 課金状態（当面無料のみ） |
-
-**インデックス**:
-- member_details_pkey (user_id) [PK]
-- index_member_details_on_created_by_id (created_by_id)
-- index_member_details_on_deleted_by_id (deleted_by_id)
-- index_member_details_on_registered_affiliate_id (registered_affiliate_id)
-- index_member_details_on_stripe_customer_id (stripe_customer_id)
-- index_member_details_on_updated_by_id (updated_by_id)
-
-**外部キー**:
-- fk_member_details_billing_city_code (billing_city_code) → m_cities.code
-- fk_rails_08851c9c2d (primary_shipping_id) → member_shipping_addresses.id
-- fk_rails_0e90e2812a (user_id) → users.id
-- fk_rails_55b88e8f8b (registered_affiliate_id) → users.id
-- fk_rails_64afa3893c (updated_by_id) → users.id
-- fk_rails_6cfc776564 (deleted_by_id) → users.id
-- fk_rails_aeb287d4a2 (billing_city_code) → m_cities.code
-- fk_rails_c2cdeb6f7c (billing_prefecture_code) → m_prefectures.code
-- fk_rails_f1af1cd707 (created_by_id) → users.id
-<!-- AUTO END -->
-
-<!-- NOTE BEGIN -->
-### メモ
-
-* アフィリエイト連携判定は `registered_affiliate_id IS NOT NULL`  
-   *この列は「発番時のアフィリエイト」を永続的に保持し、注文時は orders が参照します。*  
-* **顧客 ID (`stripe_customer_id`) はすべて Stripe が自動生成**（`cus_` プレフィクス）。
-* **実装ポイント（参考）**
-  1. 外部キー制約  
-     ```sql
-     ALTER TABLE member_details
-       ADD CONSTRAINT fk_affiliate_user
-         FOREIGN KEY (affiliate_user_id)
-         REFERENCES users(id);
-     ```
-  1. 役割整合性（PostgreSQL CHECK 例）  
-     ```sql
-     ALTER TABLE member_details
-     ADD CONSTRAINT chk_affiliate_role
-       CHECK (
-         affiliate_user_id IS NULL
-         OR EXISTS (
-             SELECT 1 FROM users
-              WHERE id = affiliate_user_id
-                AND role = 3  -- 3 = affiliate
-         )
-       );
-     ```
-  1. Rails Associations
-     ```ruby
-     class MemberDetail < ApplicationRecord
-       belongs_to :user           # 会員本人
-       belongs_to :affiliate_user, -> { where(role: :affiliate) },
-                  class_name: "User", optional: true
-     end
-     ```
-<!-- NOTE END -->
-
-<!-- TABLE_END member_details -->
 
 <!-- TABLE_BEGIN member_shipping_addresses -->
 ## member_shipping_addresses — 会員ユーザーの送付先アドレス
@@ -597,8 +519,7 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| user_id | bigint | × |  | パーツを所有するユーザー（設計者） |
-| name | character varying(50) | × |  | パーツ名称（ユーザー入力） |
+| account_id | bigint | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 | material_category_code | character varying(10) | × |  | 材質カテゴリコード（WOOD / METAL など） |
@@ -624,9 +545,11 @@
 | origin_snapshot_id | bigint | ○ |  |  |
 | origin_owner_id | bigint | ○ |  |  |
 | camera_state | jsonb | ○ |  |  |
+| name | character varying(50) | × |  | パーツ名称（ユーザー入力） |
 
 **インデックス**:
 - parts_pkey (id) [PK]
+- index_parts_on_account_id (account_id)
 - index_parts_on_corner_proc_json (corner_proc_json)
 - index_parts_on_created_by_id (created_by_id)
 - index_parts_on_deleted_by_id (deleted_by_id)
@@ -634,18 +557,17 @@
 - index_parts_on_origin_snapshot_id (origin_snapshot_id)
 - index_parts_on_sqhole_json (sqhole_json)
 - index_parts_on_updated_by_id (updated_by_id)
-- index_parts_on_user_id (user_id)
 
 **外部キー**:
-- fk_rails_001c6f3575 (origin_owner_id) → users.id
-- fk_rails_30be2232d9 (deleted_by_id) → users.id
+- fk_rails_001c6f3575 (origin_owner_id) → accounts.id
+- fk_rails_30be2232d9 (deleted_by_id) → accounts.id
+- fk_rails_86b8db80ec (account_id) → accounts.id
 - fk_rails_9790700793 (material_category_code) → m_categories.code
 - fk_rails_a63b0793fa (material_code) → m_materials.code
 - fk_rails_b13d63e301 (shape_code) → m_shapes.code
-- fk_rails_b8a090e626 (updated_by_id) → users.id
-- fk_rails_d9a2b8fbeb (created_by_id) → users.id
+- fk_rails_b8a090e626 (updated_by_id) → accounts.id
+- fk_rails_d9a2b8fbeb (created_by_id) → accounts.id
 - fk_rails_da03c13c19 (paint_type_code) → m_paint_types.code
-- fk_rails_f85f1811f0 (user_id) → users.id
 
 **チェック制約**:
 - chk_parts_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
@@ -722,7 +644,7 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
+| account_id | bigint | × |  |  |
 | name | character varying(60) | × |  |  |
 | status | integer | × | 0 |  |
 | latest_snapshot_id | bigint | ○ |  |  |
@@ -731,11 +653,11 @@
 
 **インデックス**:
 - recipes_pkey (id) [PK]
+- index_recipes_on_account_id (account_id)
 - index_recipes_on_latest_snapshot_id (latest_snapshot_id)
-- index_recipes_on_user_id (user_id)
 
 **外部キー**:
-- fk_rails_9606fce865 (user_id) → users.id
+- fk_rails_e279359460 (account_id) → accounts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->

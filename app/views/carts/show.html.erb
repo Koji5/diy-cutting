@@ -1,73 +1,75 @@
-<%= render "carts/link_cart" %>
-<section class="d-flex flex-column px-3 mt-3 ">
-  <!-- ✅ 上部：固定のカート情報欄 -->
-  <div class="d-flex flex-row flex-grow-1 mb-3" style="min-height: 80px;">
-    <div class="d-flex me-3">
-      <i class="bi bi-cart-fill me-2 fs-1"></i>
+<turbo-frame id="main">
+  <%= render "carts/link_cart" %>
+  <section class="d-flex flex-column px-3 mt-3 ">
+    <!-- ✅ 上部：固定のカート情報欄 -->
+    <div class="d-flex flex-row flex-grow-1 mb-3" style="min-height: 80px;">
+      <div class="d-flex me-3">
+        <i class="bi bi-cart-fill me-2 fs-1"></i>
+      </div>
+      <div class=" flex-grow-1">
+        <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @cart.name %></h5>
+        <p class="mb-0 text-muted small">
+          作成日：<%= l(@cart.created_at.to_date) %> / 作成者：<%= @cart.account.name %>
+        </p>
+        <div class=" flex-grow-1 d-flex justify-content-end">
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rfqConfirmModal">
+            見積依頼に進む
+          </button>
+        </div>
+      </div>
     </div>
-    <div class=" flex-grow-1">
-      <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @cart.name %></h5>
-      <p class="mb-0 text-muted small">
-        作成日：<%= l(@cart.created_at.to_date) %> / 作成者：<%= @cart.user.id %>
-      </p>
-      <div class=" flex-grow-1 d-flex justify-content-end">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rfqConfirmModal">
-          見積依頼に進む
-        </button>
+    <% @cart_parts.each do |cart_part| %>
+      <%= render "cart_item_card", item: cart_part.part, target: "part", quantity: cart_part.quantity %>
+    <% end %>
+    <% @cart_recipes.each do |cart_recipe| %>
+      <%= render "cart_item_card", item: cart_recipe.recipe, target: "recipe", quantity: cart_recipe.quantity %>
+    <% end %>
+  </section>
+  <!-- --- 部品詳細モーダル骨格 -------------------- -->
+  <div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">部品詳細</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
+          </div>
       </div>
     </div>
   </div>
-  <% @cart_parts.each do |cart_part| %>
-    <%= render "cart_item_card", item: cart_part.part, target: "part", quantity: cart_part.quantity %>
-  <% end %>
-  <% @cart_recipes.each do |cart_recipe| %>
-    <%= render "cart_item_card", item: cart_recipe.recipe, target: "recipe", quantity: cart_recipe.quantity %>
-  <% end %>
-</section>
-<!-- --- 部品詳細モーダル骨格 -------------------- -->
-<div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
-  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">部品詳細</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
+  <!-- レシピ詳細モーダル骨格 -->
+  <div class="modal fade" id="recipeModal" tabindex="-1" data-controller="recipe-show-modal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">レシピ詳細</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <turbo-frame id="recipe_modal" data-action="turbo:frame-load->recipe-show-modal#open"></turbo-frame>
+          </div>
+      </div>
+    </div>
+  </div>
+  <!-- 見積依頼に進むモーダル定義 -->
+  <div class="modal fade" id="rfqConfirmModal" tabindex="-1" aria-labelledby="rfqConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header text-bg-warning">
+          <h5 class="modal-title" id="rfqConfirmModalLabel"><i class="bi bi-info-circle me-1"></i>見積依頼に進む前に</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
         </div>
         <div class="modal-body">
-          <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
+          レシピに含まれるパーツは自動で展開され、<br>
+          同じパーツがあれば数量が合算されます。
         </div>
-    </div>
-  </div>
-</div>
-<!-- レシピ詳細モーダル骨格 -->
-<div class="modal fade" id="recipeModal" tabindex="-1" data-controller="recipe-show-modal">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">レシピ詳細</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          <a href="<%= new_rfq_path(cart_id: @cart.id) %>" class="btn btn-primary">進む</a>
         </div>
-        <div class="modal-body">
-          <turbo-frame id="recipe_modal" data-action="turbo:frame-load->recipe-show-modal#open"></turbo-frame>
-        </div>
-    </div>
-  </div>
-</div>
-<!-- 見積依頼に進むモーダル定義 -->
-<div class="modal fade" id="rfqConfirmModal" tabindex="-1" aria-labelledby="rfqConfirmModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header text-bg-warning">
-        <h5 class="modal-title" id="rfqConfirmModalLabel"><i class="bi bi-info-circle me-1"></i>見積依頼に進む前に</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
-      </div>
-      <div class="modal-body">
-        レシピに含まれるパーツは自動で展開され、<br>
-        同じパーツがあれば数量が合算されます。
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-        <a href="<%= new_rfq_path(cart_id: @cart.id) %>" class="btn btn-primary">進む</a>
       </div>
     </div>
   </div>
-</div>
+</turbo-frame>

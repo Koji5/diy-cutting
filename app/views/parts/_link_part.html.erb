@@ -7,6 +7,13 @@
     link:  false                # 編集画面ではリンクを出さない
   },
   {
+    path:  -> { part_path(@part) if @part },
+    match: -> { controller_name == "parts" && action_name == "show" },
+    icon:  "eye",
+    label: "詳細",
+    link:  false                # 詳細画面へのリンクは出さない
+  },
+  {
     path:  -> { parts_path },
     match: -> { current_page?(parts_path) },
     icon:  "list-ul",

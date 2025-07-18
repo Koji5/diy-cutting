@@ -57,7 +57,9 @@ Rails.application.routes.draw do
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
 
-  resources :accounts, only: [:show, :edit, :update]
+  resources :accounts, only: [:show, :edit, :update] do
+    post :toggle_role, on: :collection
+  end
 
   resources :parts do
     member do
@@ -76,4 +78,5 @@ Rails.application.routes.draw do
     end
   end
   resources :rfqs, only: [:new, :create, :show]
+  resources :member_profiles, only: [:new, :create, :edit, :update]
 end

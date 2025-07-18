@@ -6,24 +6,7 @@ class CartsController < ApplicationController
   end
 
   def new
-    @cart = Cart.new
-    if params[:recipe_id].present?
-      @recipe = Recipe.includes(thumbnail_attachment: :blob).find(params[:recipe_id])
-      @recipes = Current.account.recipes
-                      .where.not(id: @recipe.id)
-                      .includes(thumbnail_attachment: :blob)
-                      .order(updated_at: :desc)
-      @excluded_recipes = [@recipe]
-    else
-      @recipes = Current.account.recipes
-                      .includes(thumbnail_attachment: :blob)
-                      .order(updated_at: :desc)
-      @excluded_recipes = []
-    end
-    @parts = Current.account.parts
-                     .kept
-                     .includes(thumbnail_attachment: :blob)
-                     .order(:name)
+    prepare_cart_form_data
   end
 
   def create
@@ -40,11 +23,39 @@ class CartsController < ApplicationController
     end
 
     if @cart.save
-      flash[:notice] = '保存しました'
-      redirect_to new_cart_path
+      # カートに含まれているパーツ
+      @cart_parts = @cart.cart_parts.includes(part: { thumbnail_attachment: :blob })
+      # カートに含まれているレシピ
+      @cart_recipes = @cart.cart_recipes.includes(recipe: { thumbnail_attachment: :blob })
+
+      render_flash_and_replace_main(
+        template: "carts/show",
+        assigns: {
+          cart: @cart,
+          cart_parts: @cart_parts,
+          cart_recipes: @cart_recipes
+        },
+        message: "レシピを登録しました。",
+        type: "success"
+      )
+      #flash[:notice] = '保存しました'
+      #redirect_to new_cart_path
     else
-      @carts = Cart.order(:name)
-      render :new, status: :unprocessable_entity
+  logger.debug @cart.errors.full_messages
+  logger.debug @cart.cart_parts.map { |cp| cp.errors.full_messages }
+  logger.debug @cart.cart_recipes.map { |cr| cr.errors.full_messages }
+      prepare_cart_form_data
+      render_flash_and_replace_main(
+        template: "carts/new",
+        assigns: {
+          cart: @cart,
+          recipes: @recipes,
+          excluded_recipes: @excluded_recipes,
+          parts: @parts
+        },
+        message: "カートの登録に失敗しました。",
+        type: "danger"
+      )
     end
   end
 
@@ -113,6 +124,27 @@ class CartsController < ApplicationController
   end
 
   private
+
+  def prepare_cart_form_data
+    @cart = Cart.new
+    if params[:recipe_id].present?
+      @recipe = Recipe.includes(thumbnail_attachment: :blob).find(params[:recipe_id])
+      @recipes = Current.account.recipes
+                      .where.not(id: @recipe.id)
+                      .includes(thumbnail_attachment: :blob)
+                      .order(updated_at: :desc)
+      @excluded_recipes = [@recipe]
+    else
+      @recipes = Current.account.recipes
+                      .includes(thumbnail_attachment: :blob)
+                      .order(updated_at: :desc)
+      @excluded_recipes = []
+    end
+    @parts = Current.account.parts
+                     .kept
+                     .includes(thumbnail_attachment: :blob)
+                     .order(:name)
+  end
 
   def cart_params
     params.require(:cart).permit(:name).merge(status: :draft)

@@ -1,6 +1,57 @@
 <turbo-frame id="main">
   <%= render "accounts/link_account" %>
+  <section class="d-flex flex-column px-3 mt-3 ">
 
-  <%= link_to "基本情報編集", edit_account_path(@account), data: { turbo_frame: "main" }, class: "btn btn-primary" %><br><br>
-  <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
+    <%= link_to "基本情報編集", edit_account_path(@account), data: { turbo_frame: "main" }, class: "btn btn-primary" %><br><br>
+
+    <div class="form-check form-switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="toggle-member"
+        <%= "checked" if @account.has_role?(:member) %>
+        data-controller="role-toggle"
+        data-action="change->role-toggle#toggle"
+        data-role-toggle-role-value="member"
+      >
+      <label class="form-check-label" for="toggle-member">お客様機能</label>
+    </div>
+    <div id="member-actions">
+      <%= render "accounts/member_actions", account: @account %>
+    </div>
+
+    <div class="form-check form-switch mt-3">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="toggle-vendor"
+        <%= "checked" if @account.has_role?(:vendor) %>
+        data-controller="role-toggle"
+        data-action="change->role-toggle#toggle"
+        data-role-toggle-role-value="vendor"
+      >
+      <label class="form-check-label" for="toggle-vendor">業者様機能</label>
+    </div>
+    <div id="vendor-actions">
+      <%= render "accounts/vendor_actions", account: @account %>
+    </div>
+
+    <div class="form-check form-switch mt-3">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="toggle-affiliate"
+        <%= "checked" if @account.has_role?(:affiliate) %>
+        data-controller="role-toggle"
+        data-action="change->role-toggle#toggle"
+        data-role-toggle-role-value="affiliate"
+      >
+      <label class="form-check-label" for="toggle-affiliate">アフィリエイト機能</label>
+    </div>
+    <div id="affiliate-actions">
+      <%= render "accounts/affiliate_actions", account: @account %>
+    </div>
+
+    <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
+  </section>
 </turbo-frame>

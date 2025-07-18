@@ -1,0 +1,7 @@
+<% if account.has_role?(:member) %>
+  <% if account.member_profile.present? %>
+    <%= link_to "お客様プロフィールを編集する", edit_member_profile_path(account.member_profile), class: "btn btn-primary" %>
+  <% else %>
+    <%= link_to "お客様プロフィールを作成する", new_member_profile_path, class: "btn btn-primary" %>
+  <% end %>
+<% end %>

@@ -1,5 +1,5 @@
 class Cart < ApplicationRecord
-  belongs_to :user
+  belongs_to :account
 
   has_many :cart_parts,   dependent: :destroy
   has_many :parts,      through: :cart_parts

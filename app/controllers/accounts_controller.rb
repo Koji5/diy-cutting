@@ -3,6 +3,27 @@ class AccountsController < ApplicationController
   before_action :set_account
 
   def show
+    @account = Current.account
+    @member_profile = @account.member_profile
+
+    # フラッシュメッセージの条件分岐
+    if @account.has_role?(:member) && @member_profile.nil?
+      message = "お客様プロフィールが未登録です。作成してください。"
+      type = "warning"
+    else
+      message = nil
+      type = nil
+    end
+
+    render_flash_and_replace_main(
+      template: "accounts/show",
+      assigns: {
+        account: @account,
+        member_profile: @member_profile
+      },
+      message: message,
+      type: type
+    )
   end
 
   def edit
@@ -43,6 +64,26 @@ class AccountsController < ApplicationController
         type: "danger"
       )
     end
+  end
+
+  def toggle_role
+    account = Current.account
+    role = params[:role].to_sym
+    enabled = ActiveModel::Type::Boolean.new.cast(params[:enabled])
+
+    if enabled
+      account.add_role(role)
+    else
+      account.remove_role(role)
+    end
+    account.save!
+
+    # id属性を指定して Turbo Stream 用に動的に描画先を切り替える
+    render turbo_stream: turbo_stream.update(
+      "#{role}-actions",
+      partial: "accounts/#{role}_actions",
+      locals: { account: account }
+    )
   end
 
   private

@@ -1,29 +1,31 @@
-<%= render "carts/link_cart" %>
-<section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
-  <% if @carts.any? %>
-    <% @carts.each do |cart| %>
-      <div id="<%= dom_id(cart) %>" data-controller="remove-card" class="card d-flex flex-row flex-grow-1 align-items-center mb-2 px-2 py-1">
-        <div class="flex-grow-1 min-w-0 me-2 text-truncate"><i class="bi bi-cart-fill me-2"></i><%= cart.name %></div>
-        <!-- 詳細 -->
-        <%= link_to cart_path(cart), data: { turbo_frame: "main" }, class: "btn btn-outline-secondary btn-icon me-2", style: "min-width: 40px;" do %>
-          <i class="bi bi-eye"></i>
-        <% end %>
-        <!-- 編集 -->
-        <%= link_to edit_cart_path(cart), data: { turbo_frame: "main" }, class: "btn btn-outline-primary btn-icon me-2" do %>
-          <i class="bi bi-pencil"></i>
-        <% end %>
-        <!-- 削除 (フォーム方式で確実に DELETE) -->
-        <%= button_to cart_path(cart),
-                      method: :delete,
-                      form: { data: { turbo_confirm: "このカートを削除しますか?"}, class: "d-inline" },
-                      class: "btn btn-outline-danger btn-icon" do %>
-          <i class="bi bi-trash"></i>
-        <% end %>
+<turbo-frame id="main">
+  <%= render "carts/link_cart" %>
+  <section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
+    <% if @carts.any? %>
+      <% @carts.each do |cart| %>
+        <div id="<%= dom_id(cart) %>" data-controller="remove-card" class="card d-flex flex-row flex-grow-1 align-items-center mb-2 px-2 py-1">
+          <div class="flex-grow-1 min-w-0 me-2 text-truncate"><i class="bi bi-cart-fill me-2"></i><%= cart.name %></div>
+          <!-- 詳細 -->
+          <%= link_to cart_path(cart), data: { turbo_frame: "main" }, class: "btn btn-outline-secondary btn-icon me-2", style: "min-width: 40px;" do %>
+            <i class="bi bi-eye"></i>
+          <% end %>
+          <!-- 編集 -->
+          <%= link_to edit_cart_path(cart), data: { turbo_frame: "main" }, class: "btn btn-outline-primary btn-icon me-2" do %>
+            <i class="bi bi-pencil"></i>
+          <% end %>
+          <!-- 削除 (フォーム方式で確実に DELETE) -->
+          <%= button_to cart_path(cart),
+                        method: :delete,
+                        form: { data: { turbo_confirm: "このカートを削除しますか?"}, class: "d-inline" },
+                        class: "btn btn-outline-danger btn-icon" do %>
+            <i class="bi bi-trash"></i>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="alert alert-info">
+        まだカートは作成されていません。
       </div>
     <% end %>
-  <% else %>
-    <div class="alert alert-info">
-      まだカートは作成されていません。
-    </div>
-  <% end %>
-</section>
+  </section>
+</turbo-frame>

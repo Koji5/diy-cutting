@@ -609,10 +609,9 @@ ALTER SEQUENCE public.cart_recipes_id_seq OWNED BY public.cart_recipes.id;
 
 CREATE TABLE public.carts (
     id bigint NOT NULL,
-    user_id bigint NOT NULL,
+    account_id bigint NOT NULL,
     name character varying(50) NOT NULL,
     status integer DEFAULT 0 NOT NULL,
-    shipping_address_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -2093,7 +2092,7 @@ CREATE TABLE public.member_details (
 CREATE TABLE public.member_profiles (
     id bigint NOT NULL,
     account_id bigint NOT NULL,
-    billing_postal_code character varying(20),
+    billing_postal_code character varying(7),
     billing_prefecture_code character varying(2),
     billing_city_code character varying(5) NOT NULL,
     billing_address_line character varying(200) NOT NULL,
@@ -5831,17 +5830,10 @@ CREATE INDEX index_cart_recipes_on_recipe_id ON public.cart_recipes USING btree 
 
 
 --
--- Name: index_carts_on_shipping_address_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_carts_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_carts_on_shipping_address_id ON public.carts USING btree (shipping_address_id);
-
-
---
--- Name: index_carts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_carts_on_user_id ON public.carts USING btree (user_id);
+CREATE INDEX index_carts_on_account_id ON public.carts USING btree (account_id);
 
 
 --
@@ -9746,14 +9738,6 @@ ALTER TABLE ONLY public.member_profiles
 
 
 --
--- Name: carts fk_rails_ea59a35211; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.carts
-    ADD CONSTRAINT fk_rails_ea59a35211 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: stripe_payouts fk_rails_ec98cdcaa7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9815,6 +9799,14 @@ ALTER TABLE ONLY public.article_comments
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_f1af1cd707 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: carts fk_rails_f37446ef7b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT fk_rails_f37446ef7b FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9936,6 +9928,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250718041606'),
+('20250718024212'),
 ('20250717011200'),
 ('20250716040053'),
 ('20250716034751'),
