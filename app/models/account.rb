@@ -4,6 +4,7 @@ class Account < ApplicationRecord
   has_many :parts, dependent: :destroy
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy
+  has_many :addresses, dependent: :destroy
   #accepts_nested_attributes_for :user ← Account モデル側ではネストしない
 
   ROLE_BITS = {

@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-18 09:27 JST
+生成日: 2025-07-18 16:45 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -83,6 +83,42 @@
 
 <!-- TABLE_END accounts -->
 
+<!-- TABLE_BEGIN addresses -->
+## addresses — アドレス帳
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| account_id | bigint | × |  |  |
+| postal_code | character varying(7) | ○ |  | 郵便番号 |
+| prefecture_code | character varying(2) | ○ |  | 都道府県コード |
+| city_code | character varying(5) | ○ |  | 市区町村コード |
+| address_line | character varying(200) | ○ |  | 番地・建物名ほか |
+| recipient_name | character varying(100) | ○ |  | 氏名／法人名 |
+| phone_number | character varying(30) | ○ |  | 電話番号 |
+| label | character varying(50) | ○ |  | 宛名ラベル（例 `自宅` `会社`） |
+| default_flag | boolean | × | false | デフォルトで使用するアドレスかどうか |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- addresses_pkey (id) [PK]
+- index_addresses_on_account_id (account_id)
+- uq_account_default_address (account_id) WHERE (default_flag = true) [UNIQUE]
+
+**外部キー**:
+- fk_rails_455cd49740 (prefecture_code) → m_prefectures.code
+- fk_rails_ecb8c3ff41 (account_id) → accounts.id
+- fk_rails_f680cf9e38 (city_code) → m_cities.code
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END addresses -->
+
 <!-- TABLE_BEGIN member_profiles -->
 ## member_profiles — お客様プロフィール
 
@@ -91,14 +127,14 @@
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
 | account_id | bigint | × |  | 対象アカウント |
-| billing_postal_code | character varying(20) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
+| billing_postal_code | character varying(7) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
 | billing_prefecture_code | character varying(2) | ○ |  | 請求先 都道府県コード |
 | billing_city_code | character varying(5) | × |  | 請求先 市区町村コード |
 | billing_address_line | character varying(200) | × |  | 請求先 番地・建物名ほか |
 | billing_department | character varying(100) | ○ |  | 請求先 部署 |
 | billing_phone_number | character varying(30) | ○ |  | 請求先 電話番号 |
 | stripe_customer_id | character varying | ○ |  | PaymentIntent で `customer` を渡すための顧客 ID。カードを保存する場合にも必須<br>初めて決済を行う際に作成される |
-| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合につく、登録元**アフィリエイト**のアカウントID  |
+| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合につく、登録元**アフィリエイト**のアカウントID |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_by_id | bigint | ○ |  |  |
@@ -857,20 +893,18 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| user_id | bigint | × |  |  |
+| account_id | bigint | × |  |  |
 | name | character varying(50) | × |  |  |
 | status | integer | × | 0 |  |
-| shipping_address_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 
 **インデックス**:
 - carts_pkey (id) [PK]
-- index_carts_on_shipping_address_id (shipping_address_id)
-- index_carts_on_user_id (user_id)
+- index_carts_on_account_id (account_id)
 
 **外部キー**:
-- fk_rails_ea59a35211 (user_id) → users.id
+- fk_rails_f37446ef7b (account_id) → accounts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -4278,4 +4312,62 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END active_storage_variant_records -->
+
+<!-- TABLE_BEGIN member_details -->
+## member_details
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| user_id | bigint | × |  |  |
+| nickname | character varying(50) | ○ |  |  |
+| icon_url | character varying | ○ |  |  |
+| legal_type | smallint | × |  |  |
+| legal_name | character varying | × |  |  |
+| legal_name_kana | character varying | ○ |  |  |
+| birthday | date | ○ |  |  |
+| gender | character varying(1) | ○ |  |  |
+| billing_postal_code | character varying(20) | ○ |  |  |
+| billing_prefecture_code | character varying(2) | ○ |  |  |
+| billing_city_code | character varying(5) | × |  |  |
+| billing_address_line | character varying(200) | × |  |  |
+| billing_department | character varying(100) | ○ |  |  |
+| billing_phone_number | character varying(30) | ○ |  |  |
+| primary_shipping_id | bigint | ○ |  |  |
+| stripe_customer_id | character varying | ○ |  |  |
+| registered_affiliate_id | bigint | ○ |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+| membership_plan | integer | × | 0 |  |
+
+**インデックス**:
+- member_details_pkey (user_id) [PK]
+- index_member_details_on_created_by_id (created_by_id)
+- index_member_details_on_deleted_by_id (deleted_by_id)
+- index_member_details_on_registered_affiliate_id (registered_affiliate_id)
+- index_member_details_on_stripe_customer_id (stripe_customer_id)
+- index_member_details_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_member_details_billing_city_code (billing_city_code) → m_cities.code
+- fk_rails_08851c9c2d (primary_shipping_id) → member_shipping_addresses.id
+- fk_rails_0e90e2812a (user_id) → users.id
+- fk_rails_55b88e8f8b (registered_affiliate_id) → users.id
+- fk_rails_64afa3893c (updated_by_id) → users.id
+- fk_rails_6cfc776564 (deleted_by_id) → users.id
+- fk_rails_aeb287d4a2 (billing_city_code) → m_cities.code
+- fk_rails_c2cdeb6f7c (billing_prefecture_code) → m_prefectures.code
+- fk_rails_f1af1cd707 (created_by_id) → users.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END member_details -->
 

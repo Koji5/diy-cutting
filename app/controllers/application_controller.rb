@@ -20,28 +20,30 @@ class ApplicationController < ActionController::Base
   end
 
   def render_flash_and_replace_main(template:, assigns: {}, message: nil, type: nil)
-    streams = []
-
-    if message.present?
-      flash_html = ApplicationController.render(
-        partial: "shared/flash",
-        locals: { message: message, type: type }
-      )
-      streams << turbo_stream.update("flash-messages", flash_html)
-    end
-
-    streams << turbo_stream.update("main", render_to_string(template: template, assigns: assigns))
-
     hide_script = <<~SCRIPT
       <script>
-        const loader = window.Stimulus?.getControllerForElementAndIdentifier(document.body, "page-loading");
-        loader?.hide();
+        (() => {
+          const loader = window.Stimulus?.getControllerForElementAndIdentifier(document.body, "page-loading");
+          loader?.hide();
+        })();
       </script>
     SCRIPT
 
-    streams << turbo_stream.append("main", hide_script)
+    render turbo_stream: [
+      # message が present? なときのみ flash-messages を更新
+      *(message.present? ? [
+        turbo_stream.update(
+          "flash-messages",
+          ApplicationController.render(
+            partial: "shared/flash",
+            locals: { message: message, type: type }
+          )
+        )
+      ] : []),
 
-    render turbo_stream: streams
+      turbo_stream.update("main", render_to_string(template: template, assigns: assigns)),
+      turbo_stream.append("main", hide_script)
+    ]
   end
 
   #トーストの場合は以下を使う

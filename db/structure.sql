@@ -185,6 +185,45 @@ ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.acti
 
 
 --
+-- Name: addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.addresses (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    postal_code character varying(7),
+    prefecture_code character varying(2),
+    city_code character varying(5),
+    address_line character varying(200),
+    recipient_name character varying(100),
+    phone_number character varying(30),
+    label character varying(50),
+    default_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.addresses_id_seq OWNED BY public.addresses.id;
+
+
+--
 -- Name: admin_details; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3437,6 +3476,13 @@ ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addresses ALTER COLUMN id SET DEFAULT nextval('public.addresses_id_seq'::regclass);
+
+
+--
 -- Name: affiliate_commissions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3746,6 +3792,14 @@ ALTER TABLE ONLY public.active_storage_blobs
 
 ALTER TABLE ONLY public.active_storage_variant_records
     ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addresses
+    ADD CONSTRAINT addresses_pkey PRIMARY KEY (id);
 
 
 --
@@ -5508,6 +5562,13 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
+-- Name: index_addresses_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_addresses_on_account_id ON public.addresses USING btree (account_id);
+
+
+--
 -- Name: index_admin_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7216,6 +7277,13 @@ CREATE UNIQUE INDEX uniq_vendor_offer_per_rfq ON public.vendor_offers USING btre
 
 
 --
+-- Name: uq_account_default_address; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_account_default_address ON public.addresses USING btree (account_id) WHERE (default_flag = true);
+
+
+--
 -- Name: uq_aff_comm_order; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8618,6 +8686,14 @@ ALTER TABLE ONLY public.m_categories
 
 
 --
+-- Name: addresses fk_rails_455cd49740; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addresses
+    ADD CONSTRAINT fk_rails_455cd49740 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: admin_details fk_rails_45d29e92b6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9746,6 +9822,14 @@ ALTER TABLE ONLY public.stripe_payouts
 
 
 --
+-- Name: addresses fk_rails_ecb8c3ff41; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addresses
+    ADD CONSTRAINT fk_rails_ecb8c3ff41 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_details fk_rails_ecf03c70f6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9807,6 +9891,14 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.carts
     ADD CONSTRAINT fk_rails_f37446ef7b FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: addresses fk_rails_f680cf9e38; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addresses
+    ADD CONSTRAINT fk_rails_f680cf9e38 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
 
 
 --
@@ -9928,6 +10020,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250718074457'),
+('20250718063739'),
 ('20250718041606'),
 ('20250718024212'),
 ('20250717011200'),

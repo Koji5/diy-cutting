@@ -51,7 +51,12 @@
     <div id="affiliate-actions">
       <%= render "accounts/affiliate_actions", account: @account %>
     </div>
-
+    <div class="mt-4">
+      <h6>その他の設定</h6>
+      <%= link_to addresses_path, data: { turbo_frame: "main" }, class: "btn btn-outline-secondary" do %>
+        <i class="bi bi-journal-bookmark me-1"></i> アドレス帳を管理する
+      <% end %>
+    </div>
     <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
   </section>
 </turbo-frame>

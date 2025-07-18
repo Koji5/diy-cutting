@@ -79,4 +79,5 @@ Rails.application.routes.draw do
   end
   resources :rfqs, only: [:new, :create, :show]
   resources :member_profiles, only: [:new, :create, :edit, :update]
+  resources :addresses, only: [:index, :new, :create, :edit, :update, :destroy]
 end
