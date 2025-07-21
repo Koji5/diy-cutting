@@ -5,6 +5,7 @@ class AccountsController < ApplicationController
   def show
     @account = Current.account
     @member_profile = @account.member_profile
+    @addresses = @account.addresses.includes(:prefecture, :city)
 
     # フラッシュメッセージの条件分岐
     if @account.has_role?(:member) && @member_profile.nil?
@@ -19,7 +20,8 @@ class AccountsController < ApplicationController
       template: "accounts/show",
       assigns: {
         account: @account,
-        member_profile: @member_profile
+        member_profile: @member_profile,
+        addresses: @addresses
       },
       message: message,
       type: type

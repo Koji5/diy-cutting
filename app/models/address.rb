@@ -1,7 +1,7 @@
 class Address < ApplicationRecord
   belongs_to :account
-  belongs_to :prefecture, class_name: "MPrefecture", foreign_key: :prefecture_code, optional: true
-  belongs_to :city, class_name: "MCity", foreign_key: :city_code, optional: true
+  belongs_to :prefecture, class_name: "MPrefecture", foreign_key: "prefecture_code", primary_key: "code", optional: true
+  belongs_to :city, class_name: "MCity", foreign_key: "city_code", primary_key: "code", optional: true
 
   validate :only_one_default_per_account, if: :default_flag?
 

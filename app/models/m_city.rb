@@ -1,5 +1,5 @@
 class MCity < ApplicationRecord
-  self.primary_key = :code
+  self.primary_key = "code"
 
   # ─── 関連 ───
   belongs_to :prefecture,
@@ -10,6 +10,7 @@ class MCity < ApplicationRecord
   belongs_to :created_by, class_name: "User", optional: true
   belongs_to :updated_by, class_name: "User", optional: true
   belongs_to :deleted_by, class_name: "User", optional: true
+  has_many :addresses, foreign_key: "city_code"
 
   # ─── バリデーション ───
   validates :code,            presence: true, length: { is: 5 }

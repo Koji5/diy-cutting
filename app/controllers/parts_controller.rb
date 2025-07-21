@@ -13,6 +13,7 @@ class PartsController < ApplicationController
               .order(updated_at: :desc)
     # affiliate の場合のみ “オリジナル作成者” を表示するため
     @show_owner = Current.account&.has_role?(:affiliate)
+    render layout: "application"
   end
 
   def show

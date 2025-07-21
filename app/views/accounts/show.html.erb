@@ -1,4 +1,4 @@
-<turbo-frame id="main">
+<!--turbo-frame id="main"-->
   <%= render "accounts/link_account" %>
   <section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0"">
     <div class="d-flex flex-row flex-grow-1 mb-3 thumb-show" style="min-height: 80px;">
@@ -32,9 +32,54 @@
         <div class="card toggle-card rounded" 
                 data-controller="account-toggle">
           <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle"
-                data-account-toggle-target="header"
-                data-account-toggle-role-value="member">
+                data-action="click->account-toggle#toggle">
+            <div class="min-w-0 me-2 text-truncate flex-grow-1">
+                アドレス帳を管理する
+            </div>
+            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+          </div>
+          <div class="collapse card-body border-top rounded-bottom"
+                data-account-toggle-target="body">
+            <div class="d-flex flex-grow-1 min-w-0 me-2">
+              <%= link_to new_address_path, class: "btn btn-outline-secondary d-block mb-3" do %>
+                <i class="bi bi-plus-lg"></i> 住所を追加する
+              <% end %>
+            </div>
+            <div class="d-flex flex-row">
+              <% @addresses.each do |address| %>
+                <div class="card d-flex flex-row flex-grow-1 align-items-center mb-1 px-3 py-1">
+                  <div class="d-flex flex-column flex-grow-1 me-2">
+                    <div class="flex-grow-1 min-w-0 me-2 small text-truncate"><%= "[ ##{address.label} ] #{address.recipient_name} ☎ #{address.phone_number}" %></div>
+                    <div class="flex-grow-1 min-w-0 me-2 small text-truncate">
+                      <%= "〒#{address.postal_code.to_s.insert(3, '-')}" %>
+                      <%= address.prefecture&.name_ja || "" %>
+                      <%= address.city&.name_ja %>
+                      <%= address.address_line %>
+                    </div>
+                  </div>
+                  <!-- 編集 -->
+                  <%= link_to edit_address_path(address), data: { turbo_frame: "main" }, class: "btn btn-outline-primary btn-icon me-2" do %>
+                    <i class="bi bi-pencil"></i>
+                  <% end %>
+                  <!-- 削除 (フォーム方式で確実に DELETE) -->
+                  <%= button_to address_path(address),
+                                method: :delete,
+                                form: { data: { turbo_confirm: "この住所を削除しますか?"}, class: "d-inline" },
+                                class: "btn btn-outline-danger btn-icon" do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <div class="card toggle-card rounded" 
+                data-controller="account-toggle">
+          <div class="card-header d-flex align-items-center"
+                data-action="click->account-toggle#toggle">
             <div class="min-w-0 me-2 text-truncate flex-grow-1">
                 お客様機能設定
             </div>
@@ -42,7 +87,6 @@
             <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
           </div>
           <div class="collapse card-body border-top rounded-bottom"
-                id="member-body"
                 data-account-toggle-target="body">
             <div class="d-flex flex-row">
               <label class="form-check-label" for="toggle-member">お客様機能の有効／無効を切替えます。</label>
@@ -69,9 +113,7 @@
         <div class="card toggle-card rounded" 
                 data-controller="account-toggle">
           <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle"
-                data-account-toggle-target="header"
-                data-account-toggle-role-value="vendor">
+                data-action="click->account-toggle#toggle">
             <div class="min-w-0 me-2 text-truncate flex-grow-1">
                 業者様機能設定
             </div>
@@ -79,7 +121,6 @@
             <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
           </div>
           <div class="collapse card-body border-top rounded-bottom"
-                id="vendor-body"
                 data-account-toggle-target="body">
             <div class="d-flex flex-row">
               <label class="form-check-label" for="toggle-vendor">業者様機能の有効／無効を切替えます。</label>
@@ -106,9 +147,7 @@
         <div class="card toggle-card rounded" 
                 data-controller="account-toggle">
           <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle"
-                data-account-toggle-target="header"
-                data-account-toggle-role-value="affiliate">
+                data-action="click->account-toggle#toggle">
             <div class="min-w-0 me-2 text-truncate flex-grow-1">
                 アフィリエイト機能設定
             </div>
@@ -116,7 +155,6 @@
             <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
           </div>
           <div class="collapse card-body border-top rounded-bottom"
-                id="affiliate-body"
                 data-account-toggle-target="body">
             <div class="d-flex flex-row">
               <label class="form-check-label" for="toggle-affiliate">アフィリエイト機能の有効／無効を切替えます。</label>
@@ -139,11 +177,7 @@
         </div>
       </div>
 
-
-      <%= link_to addresses_path, data: { turbo_frame: "main" }, class: "btn btn-outline-secondary" do %>
-        <i class="bi bi-journal-bookmark me-1"></i> アドレス帳を管理する
-      <% end %>
     </div>
     <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
   </section>
-</turbo-frame>
+<!--/turbo-frame-->
