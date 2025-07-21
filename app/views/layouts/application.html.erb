@@ -28,6 +28,7 @@
   <body class="d-flex flex-column min-vh-100" data-controller="page-loading">
     <%# ===== Now Loading GIF ===== %>
     <div
+      id="nowloading"
       data-page-loading-target="overlay"
       class="loading-overlay position-fixed top-0 start-0 w-100 h-100
             bg-white bg-opacity-75 d-flex align-items-center justify-content-center"
@@ -38,7 +39,7 @@
     <div class="AppWrap">
       <div class="LayoutRow">
         <%# ===== 左サイドバーレール ===== %>
-        <nav class="SideRail d-none d-sm-flex flex-column pt-3 border-end bg-white">
+        <nav id="sidebar" class="SideRail d-none d-sm-flex flex-column pt-3 border-end bg-white">
           <%= render "shared/app_links", placement: :side %>
         </nav>
         <%# ===== メインコンテンツ ===== %>

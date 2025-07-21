@@ -76,14 +76,61 @@ class AccountsController < ApplicationController
     else
       account.remove_role(role)
     end
-    account.save!
 
-    # id属性を指定して Turbo Stream 用に動的に描画先を切り替える
-    render turbo_stream: turbo_stream.update(
-      "#{role}-actions",
-      partial: "accounts/#{role}_actions",
-      locals: { account: account }
-    )
+    if account.save
+      role_label = {
+        member: "お客様機能",
+        vendor: "業者様機能",
+        admin: "管理機能",
+        affiliate: "アフィリエイト機能"
+      }[role]
+
+      action_label = enabled ? "有効にしました" : "無効にしました"
+      message = "#{role_label}を#{action_label}。"
+      flash_stream = turbo_stream.update(
+        "flash-messages",
+        ApplicationController.render(
+          partial: "shared/flash",
+          formats: [:html],
+          locals: {
+            type: "success",
+            message: message
+          }
+        )
+      )
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.update(
+              "#{role}-actions",
+              partial: "accounts/#{role}_actions",
+              formats: [:html],
+              locals: { account: account }
+            ),
+            turbo_stream.update(
+              "sidebar",
+              partial: "shared/app_links",
+              formats: [:html],
+              locals: { placement: :side }
+            ),
+            flash_stream
+          ]
+        end
+      end
+    else
+      # ゲスト化（role_flags = 0）は禁止
+      render turbo_stream: turbo_stream.update(
+        "flash-messages",
+        ApplicationController.render(
+          partial: "shared/flash",
+          locals: {
+            type: "danger",
+            message: account.errors.full_messages.to_sentence.presence || "更新に失敗しました"
+          }
+        )
+      ), status: :unprocessable_entity
+    end
+
   end
 
   private

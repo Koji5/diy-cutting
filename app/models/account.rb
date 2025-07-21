@@ -5,9 +5,11 @@ class Account < ApplicationRecord
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy
   has_many :addresses, dependent: :destroy
+  has_one_attached :thumbnail
   #accepts_nested_attributes_for :user ← Account モデル側ではネストしない
 
   ROLE_BITS = {
+    guest:     0, 
     member:    1 << 0, # 0001 → 1
     vendor:    1 << 1, # 0010 → 2
     admin:     1 << 2, # 0100 → 4
@@ -17,7 +19,8 @@ class Account < ApplicationRecord
   enum :legal_type, { individual: 0, corporation: 1 }
 
   def has_role?(role)
-    (role_flags & ROLE_BITS[role]) != 0
+    return role_flags.to_i == 0 if role == :guest
+    (role_flags.to_i & ROLE_BITS[role]) != 0
   end
 
   def has_role_in?(roles)
@@ -38,5 +41,15 @@ class Account < ApplicationRecord
 
   def role_names
     ROLE_BITS.keys.select { |r| has_role?(r) }
+  end
+
+  validate :must_have_at_least_one_role
+
+  private
+
+  def must_have_at_least_one_role
+    if role_flags.to_i == 0
+      errors.add(:base, "少なくとも1つ以上のロールを設定してください")
+    end
   end
 end

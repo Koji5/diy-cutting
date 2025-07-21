@@ -1,19 +1,20 @@
 <%# --------------------------------------------
      必須 local:
        - placement: :side  または :bottom
+誰でも見せたい項目は roles: nil にする
 --------------------------------------------- %>
 
 <% menu = [
-  { path: ->{ authenticated_root_path },       icon: "house",        label: "ホーム",     roles: [:member, :vendor, :admin, :affiliate] },
-  { path: ->{ parts_path },      icon: "puzzle",       label: "マイパーツ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
+  { path: ->{ authenticated_root_path },       icon: "house",        label: "ホーム",     roles: nil },
+  { path: ->{ parts_path },      icon: "puzzle",       label: "マイパーツ", roles: [:vendor, :admin, :affiliate], turbo: true },
   { path: ->{ recipes_path },    icon: "fork-knife",   label: "マイレシピ", roles: [:member, :vendor, :admin, :affiliate], turbo: true },
   { path: ->{ carts_path },      icon: "cart4",        label: "カート",     roles: [:member, :vendor, :admin, :affiliate], turbo: true },
   { path: ->{ admin_root_path }, icon: "shield-lock",  label: "管理",       roles: [:admin], turbo: true },
-  { path: ->{ account_path(Current.account) }, icon: "person", label: "アカウント", roles: [:member, :vendor, :admin, :affiliate], turbo: true }
+  { path: ->{ account_path(Current.account) }, icon: "person", label: "アカウント", roles: [:guest, :member, :vendor, :admin, :affiliate], turbo: true }
 ] %>
 
 <% menu.each do |item| %>
-  <% next unless Current.account&.has_role_in?(item[:roles]) %>  <%# ← ロールチェック %>
+  <% next unless item[:roles].nil? || Current.account&.has_role_in?(item[:roles]) %>  <%# ← ロールチェック %>
   <% link_opts = item[:turbo] ? { data:{ turbo_frame:"main"} } : {} %>
 
   <% if placement == :side %>

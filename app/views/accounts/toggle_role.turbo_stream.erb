@@ -1,0 +1,17 @@
+<turbo-stream target="<%= "#{params[:role]}-actions" %>" action="update">
+  <template>
+    <%= render partial: "accounts/#{params[:role]}_actions", formats: [:html], locals: { account: Current.account } %>
+  </template>
+</turbo-stream>
+
+<turbo-stream target="sidebar" action="update">
+  <template>
+    <%= render partial: "shared/app_links", formats: [:html], locals: { placement: :side } %>
+  </template>
+</turbo-stream>
+
+<turbo-stream target="flash-messages" action="update">
+  <template>
+    <%= render partial: "shared/flash", formats: [:html], locals: { type: "success", message: "ロールを更新しました" } %>
+  </template>
+</turbo-stream>

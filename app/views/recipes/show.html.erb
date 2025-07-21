@@ -2,7 +2,7 @@
   <%= render "recipes/link_recipe" %>
   <section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
     <!-- ✅ 上部：固定のレシピ情報欄 -->
-    <div class="d-flex flex-row flex-grow-1 mb-3 recipe-modal" style="min-height: 80px;">
+    <div class="d-flex flex-row flex-grow-1 mb-3 thumb-show" style="min-height: 80px;">
       <div class="d-flex thumb-box me-3">
         <% if @recipe.thumbnail.attached? %>
           <%= image_tag @recipe.thumbnail.variant(resize_to_limit: [200, 200]), 
