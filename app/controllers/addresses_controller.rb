@@ -5,8 +5,13 @@ class AddressesController < ApplicationController
     @addresses = Current.account.addresses
   end
 
-  def new
+  #def new
+  #  @address = Current.account.addresses.build
+  #end
+
+  def new_modal
     @address = Current.account.addresses.build
+    render layout: (turbo_frame_request? ? false : "application")
   end
 
   def create

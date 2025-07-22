@@ -41,7 +41,12 @@
           <div class="collapse card-body border-top rounded-bottom"
                 data-account-toggle-target="body">
             <div class="d-flex flex-grow-1 min-w-0 me-2">
-              <%= link_to new_address_path, class: "btn btn-outline-secondary d-block mb-3" do %>
+              <%= link_to new_modal_addresses_path,
+                      data: {
+                        turbo_frame: "modalTurboFrame",
+                        modal_title: "アドレス帳に住所を追加"
+                      },
+                      class: "btn btn-outline-secondary d-block mb-3" do %>
                 <i class="bi bi-plus-lg"></i> 住所を追加する
               <% end %>
             </div>

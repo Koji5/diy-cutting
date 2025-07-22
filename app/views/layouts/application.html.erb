@@ -70,5 +70,23 @@
     </div>
     <%# ===== トーストエリア ===== %>
     <turbo-frame id="toast-frame" target="_top"></turbo-frame>
+    <%# ===== モーダルエリア ===== %>
+    <div class="modal fade" id="modalFrame" tabindex="-1" data-controller="modal">
+      <div id="modalDialog" class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle"></h5>
+            <button class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+          </div>
+          <div class="modal-body" id="modalBody">
+            <turbo-frame
+                  id="modalTurboFrame"
+                  data-action="turbo:frame-load->modal#open turbo:submit-end->modal#autoClose">
+            </turbo-frame>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </body>
 </html>
