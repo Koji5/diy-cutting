@@ -29,7 +29,7 @@ export default class extends Controller {
 
     const cityCode = this.element.dataset.cityCode
     if (this.prefTarget.value && cityCode) {
-      this.loadCities(cityCode)                       // city を選択してロード
+      this.loadCities(cityCode)
     }
   }
 
@@ -44,17 +44,22 @@ export default class extends Controller {
       return
     }
 
+    const loader = document.getElementById("nowloading")
+    loader?.classList.add("is-active")
+
     const res  = await fetch(`/postal_lookup/${zip}`)
     const list = await res.json()
 
     if (list.length === 0) {
+      loader?.classList.remove("is-active")
       alert("該当する住所が見つかりません")
     } else if (list.length === 1) {
-      this.applyAddress(list[0])
+      await this.applyAddress(list[0])
     } else {
       this.renderModal(list)
       this.bsModal.show()
     }
+    loader?.classList.remove("is-active")
   }
 
   // --------------------------------------------------
@@ -62,6 +67,8 @@ export default class extends Controller {
   // cityCode が渡された場合はロード後に選択
   // --------------------------------------------------
   async loadCities(eventOrCity = null) {
+    const loading = this.application.getControllerForElementAndIdentifier(document.body, "page-loading")
+    loading?.disableHide()  // hideブロック開始
     // --------------------------------------------------
     // 1. 引数を判定
     //    - UI の change イベントから呼ばれた場合 → event が渡る
@@ -80,9 +87,13 @@ export default class extends Controller {
     // 2. 都道府県コードを取得して Ajax で市区町村リストを取得
     // --------------------------------------------------
     const prefCode = this.prefTarget.value
-    if (!prefCode) return
-
-    const res  = await fetch(`/prefectures/${prefCode}/cities`)
+    if (!prefCode) {
+      loading?.enableHide()
+      loading?.hide()
+      return
+    }
+    const promise = fetch(`/prefectures/${prefCode}/cities`)
+    const res  = await promise
     const list = await res.json()
 
     // --------------------------------------------------
@@ -108,16 +119,19 @@ export default class extends Controller {
       this.cityTarget.dispatchEvent(new Event("change", { bubbles: true }))
       delete this.element.dataset.cityCode        // 使い終わったら削除
     }
+
+    loading?.enableHide()
+    loading?.hide()
   }
 
   // --------------------------------------------------
   // private helpers
   // --------------------------------------------------
   /** 住所フォームへ反映 */
-  applyAddress (row) {
+  async applyAddress (row) {
     // --- 都道府県 & 市区町村 ---------------------------------
     this.prefTarget.value = row.city_code.slice(0, 2)  // 先頭 2 桁
-    this.loadCities(row.city_code)
+    await this.loadCities(row.city_code)
 
     // --- 町域以降 --------------------------------------------
     this.addr1Target.value = row.town_area_name_kanji || ""

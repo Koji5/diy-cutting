@@ -79,9 +79,12 @@ Rails.application.routes.draw do
   end
   resources :rfqs, only: [:new, :create, :show]
   resources :member_profiles, only: [:new, :create, :edit, :update]
-  resources :addresses do
+  resources :addresses, only: [:index, :create, :update, :destroy] do
     collection do
       get :new_modal
+    end
+    member do
+      get :edit_modal
     end
   end
 end

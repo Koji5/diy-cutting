@@ -18,7 +18,11 @@
 .was-validated .form-control:valid,
 .form-control.is-valid,
 .was-validated .form-control:invalid,
-.form-control.is-invalid {
+.form-control.is-invalid,
+.was-validated .form-select:valid,
+.form-select.is-valid,
+.was-validated .form-select:invalid,
+.form-select.is-invalid {
   padding-right: 0.75rem !important;
   background-image: none !important;
   background-position: initial !important;

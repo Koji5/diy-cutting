@@ -1,13 +1,9 @@
 class AddressesController < ApplicationController
-  before_action :set_address, only: [:edit, :update, :destroy]
+  before_action :set_address, only: [:edit_modal, :update, :destroy]
 
   def index
     @addresses = Current.account.addresses
   end
-
-  #def new
-  #  @address = Current.account.addresses.build
-  #end
 
   def new_modal
     @address = Current.account.addresses.build
@@ -15,27 +11,30 @@ class AddressesController < ApplicationController
   end
 
   def create
-    @address = Current.account.addresses.build(address_params)
-    if @address.save
-      redirect_to addresses_path, notice: "住所を登録しました"
-    else
-      render :new, status: :unprocessable_entity
-    end
+    save_address(:create)
   end
 
-  def edit; end
+  def edit_modal
+    render layout: (turbo_frame_request? ? false : "application")
+  end
 
   def update
-    if @address.update(address_params)
-      redirect_to addresses_path, notice: "住所を更新しました"
-    else
-      render :edit, status: :unprocessable_entity
-    end
+    save_address(:update)
   end
 
   def destroy
     @address.destroy
-    redirect_to addresses_path, notice: "住所を削除しました"
+    @account = Current.account
+    @addresses = @account.addresses.includes(:prefecture, :city)
+    render_flash_and_replace(
+      target_id: "address_list",
+      partial: "addresses/address_list",
+      locals: {
+        addresses: @addresses
+      },
+      message: "住所を削除しました。",
+      type: "success"
+    )
   end
 
   private
@@ -49,5 +48,42 @@ class AddressesController < ApplicationController
       :postal_code, :prefecture_code, :city_code, :address_line,
       :recipient_name, :phone_number, :label, :default_flag
     )
+  end
+
+  def save_address(action)
+    case action
+    when :create
+      @address = Current.account.addresses.build(address_params)
+      success = @address.save
+    when :update
+      @address = Current.account.addresses.find(params[:id])
+      success = @address.update(address_params)
+    else
+      raise ArgumentError, "不正なアクション: #{action}"
+    end
+
+    verb = case action
+          when :create then "登録"
+          when :update then "更新"
+          else "保存"
+          end
+
+    if success
+      @account = Current.account
+      @addresses = @account.addresses.includes(:prefecture, :city)
+
+      render_flash_and_replace(
+        target_id: "address_list",
+        partial: "addresses/address_list",
+        locals: { addresses: @addresses },
+        message: "住所を#{verb}しました。",
+        type: "success"
+      )
+    else
+      render_flash_and_replace(
+        message: "住所の#{verb}に失敗しました。",
+        type: "danger"
+      )
+    end
   end
 end

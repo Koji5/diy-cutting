@@ -1,0 +1,36 @@
+<% addresses.each do |address| %>
+  <div class="card d-flex flex-column flex-grow-1 mb-1 px-2 py-1">
+    <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= "#{address.recipient_name}" %></div>
+    <div class="flex-grow-1 min-w-0 me-2  text-truncate"><%= "〒#{address.postal_code.to_s.insert(3, '-')}" %>&nbsp;<%= address.prefecture&.name_ja || "" %><%= address.city&.name_ja %></div>
+    <div class="flex-grow-1 min-w-0 me-2  text-truncate"><%= address.address_line %></div>
+    <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= "☎ #{address.phone_number}" %></div>
+    <div class="d-flex flex-row">
+      <div class="d-flex flex-grow-1 align-items-center">
+        <% if address.default_flag? %>
+          <span class="badge rounded-pill text-bg-primary">デフォルト</span>
+        <% end %>
+        <span class="badge rounded-pill text-bg-info">
+          <%= address.label %>
+        </span>
+      </div>
+      <div class="d-flex flex-row">
+        <!-- 編集 -->
+        <%= link_to edit_modal_address_path(address),
+                      data: {
+                        turbo_frame: "modalTurboFrame",
+                        modal_title: "住所を編集"
+                       },
+                       class: "btn btn-outline-primary btn-icon me-2" do %>
+          <i class="bi bi-pencil"></i>
+        <% end %>
+        <!-- 削除 (フォーム方式で確実に DELETE) -->
+        <%= button_to address_path(address),
+                      method: :delete,
+                      form: { data: { turbo_confirm: "この住所を削除しますか?"}, class: "d-inline" },
+                      class: "btn btn-outline-danger btn-icon" do %>
+          <i class="bi bi-trash"></i>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

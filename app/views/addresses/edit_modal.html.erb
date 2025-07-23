@@ -3,7 +3,6 @@
       data-action="turbo:frame-load->modal#open turbo:submit-end->modal#autoClose">
   <div>
     <%= form_with model: @address,
-                  url: addresses_path,
                   data: {
                     controller: "form-validation",
                     "form-validation-context-value": "address-new"
@@ -49,7 +48,7 @@
       </div>
 
       <div class="d-flex justify-content-end">
-        <%= f.submit "登録する", class: "btn btn-primary" %>
+        <%= f.submit "更新する", class: "btn btn-primary" %>
       </div>
     <% end %>
 

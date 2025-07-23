@@ -15,8 +15,11 @@
 
   <!-- 郵便番号 & 検索ボタン -->
   <div class="input-group mb-3">
+    <span class="input-group-text">郵便番号</span>
     <%= form.text_field zip_col,
+          minlength: 7,
           maxlength: 7,
+          required: true,
           class: "form-control",
           data: { address_target: "zip" } %>
     <button type="button" class="btn btn-outline-secondary"
@@ -24,32 +27,55 @@
             data-action="click->address#searchZip">
       住所を検索
     </button>
+    <div class="invalid-feedback">
+      ハイフンなしの７桁の半角数字で入力してください 
+    </div>
   </div>
 
   <!-- 都道府県 -->
-  <div class="mb-3">
+  <div class="input-group mb-3">
+    <span class="input-group-text">都道府県</span>
     <%= form.select pref_col,
           options_from_collection_for_select(MPrefecture.all, :code, :name_ja, form.object.send(pref_col)),
           { include_blank: "-- 都道府県 --" },
-          class: "form-select",
-          data: { address_target: "pref",
-                  action: "change->address#loadCities" } %>
+          { class: "form-select",
+            required: true,
+            data: { address_target: "pref",
+                    action: "change->address#loadCities" }
+          } %>
+    <div class="invalid-feedback">
+      都道府県は必須です
+    </div>
   </div>
 
   <!-- 市区町村 -->
-  <div class="mb-3">
+  <div class="input-group mb-3">
+    <span class="input-group-text">市区町村</span>
     <%= form.select city_col,
-          [], {}, class: "form-select",
-          data: { address_target: "city" },
-          wrapper: { data: { city_code: form.object.send(city_col) } } %>
+          [], {}, 
+          {
+            class: "form-select",
+            required: true,
+            data: { address_target: "city" },
+            wrapper: { data: { city_code: form.object.send(city_col) } }
+          } %>
+    <div class="invalid-feedback">
+      市区町村は必須です
+    </div>
   </div>
 
   <!-- 町域・番地など自由入力 -->
-  <div class="mb-3">
+  <div class="input-group mb-3">
+    <span class="input-group-text">以降の住所</span>
     <%= form.text_field line_col,
           class: "form-control",
+          maxlength: 200,
+          required: true,
           placeholder: "町域・番地など",
           data: { address_target: "addr1" } %>
+    <div class="invalid-feedback">
+      以降の住所は必須です（200文字以内） 
+    </div>
   </div>
 
   <!-- 候補モーダル -->

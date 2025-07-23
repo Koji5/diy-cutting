@@ -3,7 +3,7 @@ class Address < ApplicationRecord
   belongs_to :prefecture, class_name: "MPrefecture", foreign_key: "prefecture_code", primary_key: "code", optional: true
   belongs_to :city, class_name: "MCity", foreign_key: "city_code", primary_key: "code", optional: true
 
-  validate :only_one_default_per_account, if: :default_flag?
+  before_save :unset_existing_default, if: :default_flag?
 
   private
 
@@ -19,4 +19,11 @@ class Address < ApplicationRecord
       errors.add(:default_flag, "は1つのアカウントにつき1件までです")
     end
   end
+
+  def unset_existing_default
+    self.class.where(account_id: account_id, default_flag: true)
+              .where.not(id: id)
+              .update_all(default_flag: false)
+  end
+
 end
