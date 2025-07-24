@@ -26,11 +26,6 @@ export default class extends Controller {
   connect () {
     // Bootstrap モーダルを初期化
     this.bsModal = new bootstrap.Modal(this.modalTarget)
-
-    const cityCode = this.element.dataset.cityCode
-    if (this.prefTarget.value && cityCode) {
-      this.loadCities(cityCode)
-    }
   }
 
   // --------------------------------------------------
@@ -48,15 +43,17 @@ export default class extends Controller {
     loader?.classList.add("is-active")
 
     const res  = await fetch(`/postal_lookup/${zip}`)
-    const list = await res.json()
+    const data = await res.json()
 
-    if (list.length === 0) {
+    this.populateCityOptions(data.cities)
+
+    if (data.addresses.length === 0) {
       loader?.classList.remove("is-active")
       alert("該当する住所が見つかりません")
-    } else if (list.length === 1) {
-      await this.applyAddress(list[0])
+    } else if (data.addresses.length === 1) {
+      this.applyAddress(data.addresses[0])
     } else {
-      this.renderModal(list)
+      this.renderModal(data.addresses)
       this.bsModal.show()
     }
     loader?.classList.remove("is-active")
@@ -64,75 +61,34 @@ export default class extends Controller {
 
   // --------------------------------------------------
   // 都道府県変更 → 市区町村を Ajax でロード
-  // cityCode が渡された場合はロード後に選択
   // --------------------------------------------------
   async loadCities(eventOrCity = null) {
-    const loading = this.application.getControllerForElementAndIdentifier(document.body, "page-loading")
-    loading?.disableHide()  // hideブロック開始
-    // --------------------------------------------------
-    // 1. 引数を判定
-    //    - UI の change イベントから呼ばれた場合 → event が渡る
-    //    - copy-address から直接呼ばれた場合  → cityCode 文字列が渡る
-    // --------------------------------------------------
-    let cityCode = null
-    if (eventOrCity instanceof Event) {
-      // フォームの <select> change で呼ばれた
-      cityCode = null
-    } else {
-      // 直接指定された city_code
-      cityCode = eventOrCity
-    }
-
-    // --------------------------------------------------
-    // 2. 都道府県コードを取得して Ajax で市区町村リストを取得
-    // --------------------------------------------------
     const prefCode = this.prefTarget.value
     if (!prefCode) {
-      loading?.enableHide()
-      loading?.hide()
+      this.populateCityOptions([])
+      this.cityTarget.value = ""
       return
     }
-    const promise = fetch(`/prefectures/${prefCode}/cities`)
-    const res  = await promise
+    const loader = document.getElementById("nowloading")
+    loader?.classList.add("is-active")
+
+    const res  = await fetch(`/prefectures/${prefCode}/cities`)
     const list = await res.json()
 
-    // --------------------------------------------------
-    // 3. <select> 書き換え
-    // --------------------------------------------------
-    this.cityTarget.innerHTML =
-      '<option value=\"\">-- 市区町村 --</option>' +
-      list.map(c =>
-        `<option value=\"${c.code}\">${c.name_ja}</option>`
-      ).join("")
+    this.populateCityOptions(list)
+    this.cityTarget.value = ""
 
-    // --------------------------------------------------
-    // 4. cityCode が渡されていれば自動選択
-    // --------------------------------------------------
-    if (cityCode) {
-      this.cityTarget.value = cityCode
-      // change イベントを発火して他の JS と整合
-      this.cityTarget.dispatchEvent(new Event("change", { bubbles: true }))
-    }
-
-    if (this.cityTarget.options.length && this.element.dataset.cityCode) {
-      this.cityTarget.value = this.element.dataset.cityCode
-      this.cityTarget.dispatchEvent(new Event("change", { bubbles: true }))
-      delete this.element.dataset.cityCode        // 使い終わったら削除
-    }
-
-    loading?.enableHide()
-    loading?.hide()
+    loader?.classList.remove("is-active")
   }
 
   // --------------------------------------------------
   // private helpers
   // --------------------------------------------------
   /** 住所フォームへ反映 */
-  async applyAddress (row) {
+  applyAddress (row) {
     // --- 都道府県 & 市区町村 ---------------------------------
     this.prefTarget.value = row.city_code.slice(0, 2)  // 先頭 2 桁
-    await this.loadCities(row.city_code)
-
+    this.cityTarget.value = row.city_code
     // --- 町域以降 --------------------------------------------
     this.addr1Target.value = row.town_area_name_kanji || ""
   }
@@ -162,5 +118,13 @@ export default class extends Controller {
     const row = JSON.parse(event.currentTarget.dataset.addressRow)
     this.applyAddress(row)
     this.bsModal.hide()
+  }
+
+  populateCityOptions(cities) {
+    this.cityTarget.innerHTML =
+      '<option value=\"\">-- 市区町村 --</option>' +
+      cities.map(c =>
+        `<option value=\"${c.code}\">${c.name_ja}</option>`
+      ).join("")
   }
 }

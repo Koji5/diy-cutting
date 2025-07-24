@@ -7,6 +7,7 @@ class AddressesController < ApplicationController
 
   def new_modal
     @address = Current.account.addresses.build
+    @prefectures = MPrefecture.all.order(:code)
     render layout: (turbo_frame_request? ? false : "application")
   end
 
@@ -15,6 +16,8 @@ class AddressesController < ApplicationController
   end
 
   def edit_modal
+    @prefectures = MPrefecture.all.order(:code)
+    @cities = MCity.where(prefecture_code: @address.prefecture_code).order(:code, :name_ja)
     render layout: (turbo_frame_request? ? false : "application")
   end
 

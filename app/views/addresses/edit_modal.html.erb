@@ -39,7 +39,10 @@
       </div>
 
       <!-- 住所フィールド（共通パーシャル） -->
-      <%= render "shared/address_fields", form: f %>
+      <%= render "shared/address_fields",
+           form: f,
+           prefectures: @prefectures,
+           cities: @cities %>
 
       <!-- デフォルト指定 -->
       <div class="form-check mb-4">

@@ -10,6 +10,8 @@
 <% pref_col = local_assigns.fetch(:pref_col, :prefecture_code)  %>
 <% city_col = local_assigns.fetch(:city_col, :city_code)        %>
 <% line_col = local_assigns.fetch(:line_col, :address_line)     %>
+<% prefectures = local_assigns.fetch(:prefectures, []) %>
+<% cities      = local_assigns.fetch(:cities, []) %>
 
 <div data-controller="address" data-city-code="<%= form.object.send(city_col) %>" data-turbo-permanent data-action="address#logConnect">
 
@@ -36,7 +38,7 @@
   <div class="input-group mb-3">
     <span class="input-group-text">都道府県</span>
     <%= form.select pref_col,
-          options_from_collection_for_select(MPrefecture.all, :code, :name_ja, form.object.send(pref_col)),
+          options_from_collection_for_select(prefectures, :code, :name_ja, form.object.send(pref_col)),
           { include_blank: "-- 都道府県 --" },
           { class: "form-select",
             required: true,
@@ -52,12 +54,12 @@
   <div class="input-group mb-3">
     <span class="input-group-text">市区町村</span>
     <%= form.select city_col,
-          [], {}, 
+          options_from_collection_for_select(cities, :code, :name_ja, form.object.send(city_col)),
+          { include_blank: "-- 市区町村 --" },
           {
             class: "form-select",
             required: true,
-            data: { address_target: "city" },
-            wrapper: { data: { city_code: form.object.send(city_col) } }
+            data: { address_target: "city" }
           } %>
     <div class="invalid-feedback">
       市区町村は必須です
