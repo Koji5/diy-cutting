@@ -62,7 +62,8 @@ CREATE TABLE public.accounts (
     name character varying NOT NULL,
     name_kana character varying,
     birthday date,
-    gender character varying(1)
+    gender character varying(1),
+    registered_affiliate_id bigint
 );
 
 
@@ -195,12 +196,14 @@ CREATE TABLE public.addresses (
     prefecture_code character varying(2),
     city_code character varying(5),
     address_line character varying(200),
-    recipient_name character varying(100),
+    name character varying(100),
     phone_number character varying(30),
     label character varying(50),
     default_flag boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    name_kana character varying(100),
+    department character varying(100)
 );
 
 
@@ -2138,7 +2141,6 @@ CREATE TABLE public.member_profiles (
     billing_department character varying(100),
     billing_phone_number character varying(30),
     stripe_customer_id character varying,
-    registered_affiliate_id bigint,
     created_by_id bigint,
     updated_by_id bigint,
     deleted_by_id bigint,
@@ -2146,7 +2148,9 @@ CREATE TABLE public.member_profiles (
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    membership_plan integer DEFAULT 0 NOT NULL
+    membership_plan integer DEFAULT 0 NOT NULL,
+    billing_name character varying(100),
+    billing_name_kana character varying(100)
 );
 
 
@@ -5527,6 +5531,13 @@ CREATE UNIQUE INDEX idx_vsp_unique ON public.vendor_service_prefectures USING bt
 
 
 --
+-- Name: index_accounts_on_registered_affiliate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_registered_affiliate_id ON public.accounts USING btree (registered_affiliate_id);
+
+
+--
 -- Name: index_accounts_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6504,13 +6515,6 @@ CREATE INDEX index_member_profiles_on_created_by_id ON public.member_profiles US
 --
 
 CREATE INDEX index_member_profiles_on_deleted_by_id ON public.member_profiles USING btree (deleted_by_id);
-
-
---
--- Name: index_member_profiles_on_registered_affiliate_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_member_profiles_on_registered_affiliate_id ON public.member_profiles USING btree (registered_affiliate_id);
 
 
 --
@@ -8430,14 +8434,6 @@ ALTER TABLE ONLY public.order_reviews
 
 
 --
--- Name: member_profiles fk_rails_1b24741643; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.member_profiles
-    ADD CONSTRAINT fk_rails_1b24741643 FOREIGN KEY (registered_affiliate_id) REFERENCES public.accounts(id);
-
-
---
 -- Name: notifications fk_rails_1b74717c67; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9622,6 +9618,14 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: accounts fk_rails_d084a5d9a1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT fk_rails_d084a5d9a1 FOREIGN KEY (registered_affiliate_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_details fk_rails_d0ad37f00a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10020,6 +10024,9 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250724072719'),
+('20250724060538'),
+('20250724033700'),
 ('20250718074457'),
 ('20250718063739'),
 ('20250718041606'),

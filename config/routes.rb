@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   get  "prefectures/:code/cities", to: "postals#cities"      # 都道府県→市区町村
   get  "postal_lookup/:zip",       to: "postals#lookup"      # 郵便番号→候補一覧
+  get  "copy_address",       to: "postals#copy_address"      # アドレス帳→
   get "vendors/flash_toast", to: "vendors/coverage_settings#flash_toast"
 
   # トップページ（ルート）の制御
@@ -78,7 +79,7 @@ Rails.application.routes.draw do
     end
   end
   resources :rfqs, only: [:new, :create, :show]
-  resources :member_profiles, only: [:new, :create, :edit, :update]
+  resource :member_profile, only: [:new, :create, :edit, :update]
   resources :addresses, only: [:index, :create, :update, :destroy] do
     collection do
       get :new_modal

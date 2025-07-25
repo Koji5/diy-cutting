@@ -1,6 +1,6 @@
 <% addresses.each do |address| %>
   <div class="card d-flex flex-column flex-grow-1 mb-1 px-2 py-1">
-    <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= "#{address.recipient_name}" %></div>
+    <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= "#{address.name}" %>&nbsp;(<%= "#{address.name_kana}" %>)&nbsp;<%= "#{address.department}" %></div>
     <div class="flex-grow-1 min-w-0 me-2  text-truncate"><%= "〒#{address.postal_code.to_s.insert(3, '-')}" %>&nbsp;<%= address.prefecture&.name_ja || "" %><%= address.city&.name_ja %></div>
     <div class="flex-grow-1 min-w-0 me-2  text-truncate"><%= address.address_line %></div>
     <div class="flex-grow-1 min-w-0 me-2 text-truncate"><%= "☎ #{address.phone_number}" %></div>

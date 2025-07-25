@@ -1,6 +1,12 @@
 // app/javascript/controllers/address_controller.js
 import { Controller } from "@hotwired/stimulus"
 
+function formatPostalCode(code) {
+  return typeof code === "string" && /^\d{7}$/.test(code)
+    ? code.replace(/^(\d{3})(\d{4})$/, "$1-$2")
+    : code || ""
+}
+
 /*
   Targets
   -------
@@ -17,15 +23,40 @@ export default class extends Controller {
     "zip", "zipBtn",
     "pref", "city",
     "addr1",
-    "modal", "modalBody"
+    "modal", "modalBody",
+    "copy", "copyBody"
   ]
 
   // --------------------------------------------------
   // ライフサイクル
   // --------------------------------------------------
   connect () {
-    // Bootstrap モーダルを初期化
-    this.bsModal = new bootstrap.Modal(this.modalTarget)
+    // モーダル初期化
+    if (this.hasModalTarget) {
+      this.bsModal = new bootstrap.Modal(this.modalTarget)
+    }
+
+    if (this.hasCopyTarget) {
+      console.log("Bootstrap モーダルを初期化")
+      this.copyModal = new bootstrap.Modal(this.copyTarget)
+    }
+
+    const copyBtn = document.getElementById("copyBtn")
+    if (copyBtn) {
+      this._handleCopyClick = () => {
+        const el = document.getElementById("addressContainer")
+        const controller = Stimulus.getControllerForElementAndIdentifier(el, "address")
+        controller?.copyAddress()
+      }
+      copyBtn.addEventListener("click", this._handleCopyClick)
+    }
+  }
+
+  disconnect () {
+    const copyBtn = document.getElementById("copyBtn")
+    if (copyBtn && this._handleCopyClick) {
+      copyBtn.removeEventListener("click", this._handleCopyClick)
+    }
   }
 
   // --------------------------------------------------
@@ -126,5 +157,73 @@ export default class extends Controller {
       cities.map(c =>
         `<option value=\"${c.code}\">${c.name_ja}</option>`
       ).join("")
+  }
+
+  /** アドレス帳からコピー */
+  async copyAddress(event) {
+    const loader = document.getElementById("nowloading")
+    loader?.classList.add("is-active")
+    const res  = await fetch(`/copy_address`)
+    const data = await res.json()
+    if (data.length === 0) {
+      loader?.classList.remove("is-active")
+      alert("アドレス帳に登録アドレスがありません")
+    } else {
+      this.renderCopyModal(data)
+      this.copyModal.show()
+    }
+    loader?.classList.remove("is-active")
+  }
+
+  /** アドレス帳リストをモーダルに描画（クリック即確定方式） */
+  renderCopyModal (list) {
+    const html = list.map(r => `
+      <button type="button"
+              class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+              data-action="click->address#copyChoose"
+              data-address-row='${JSON.stringify(r)}'>
+        <span class="badge bg-info rounded-pill">${r.label}</span>
+        <span>〒${formatPostalCode(r.postal_code)}&nbsp;
+              ☎${r.phone_number}<br>
+                ${r.prefecture_name_ja}&nbsp;
+                ${r.city_name_ja}&nbsp;
+                ${r.address_line}<br>
+                ${r.department}&nbsp;
+                ${r.name}
+        </span>
+      </button>
+    `).join("")
+
+    this.copyBodyTarget.innerHTML = `
+      <div class="list-group">${html}</div>
+      <p class="text-muted small mt-2 mb-0">
+        クリックすると住所に反映されます
+      </p>
+    `
+  }
+
+  copyChoose (event) {
+    const row = JSON.parse(event.currentTarget.dataset.addressRow)
+    console.log(row)
+
+    this.populateCityOptions(row.cities)
+    this.prefTarget.value = row.prefecture_code
+    this.cityTarget.value = row.city_code
+    this.zipTarget.value = row.postal_code
+    this.addr1Target.value = row.address_line
+
+    const fields = {
+      name_field: row.name,
+      name_kana_field: row.name_kana,
+      department_field: row.department,
+      phone_number_field: row.phone_number
+    }
+
+    for (const [id, value] of Object.entries(fields)) {
+      const el = document.getElementById(id)
+      if (el) el.value = value
+    }
+
+    this.copyModal.hide()
   }
 }

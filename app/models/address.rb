@@ -5,6 +5,10 @@ class Address < ApplicationRecord
 
   before_save :unset_existing_default, if: :default_flag?
 
+  validates :name, presence: true
+  validates :name_kana, length: { maximum: 100 }, allow_blank: true
+  validates :department, length: { maximum: 100 }, allow_blank: true
+
   private
 
   def only_one_default_per_account

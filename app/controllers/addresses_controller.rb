@@ -49,7 +49,7 @@ class AddressesController < ApplicationController
   def address_params
     params.require(:address).permit(
       :postal_code, :prefecture_code, :city_code, :address_line,
-      :recipient_name, :phone_number, :label, :default_flag
+      :name, :phone_number, :label, :default_flag, :name_kana, :department
     )
   end
 

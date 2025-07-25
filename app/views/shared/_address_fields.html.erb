@@ -13,7 +13,7 @@
 <% prefectures = local_assigns.fetch(:prefectures, []) %>
 <% cities      = local_assigns.fetch(:cities, []) %>
 
-<div data-controller="address" data-city-code="<%= form.object.send(city_col) %>" data-turbo-permanent data-action="address#logConnect">
+<div id="addressContainer" data-controller="address" data-turbo-permanent>
 
   <!-- 郵便番号 & 検索ボタン -->
   <div class="input-group mb-3">
@@ -86,6 +86,16 @@
       <div class="modal-content">
         <div class="modal-body" data-address-target="modalBody">
           <!-- 動的に候補が入る -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- アドレス帳モーダル -->
+  <div class="modal" tabindex="-1" data-address-target="copy">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-body" data-address-target="copyBody">
+          <!-- 動的にアドレス帳が入る -->
         </div>
       </div>
     </div>

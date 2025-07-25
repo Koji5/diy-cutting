@@ -1,6 +1,8 @@
 class MemberProfilesController < ApplicationController
   def new
-    @member_profile = MemberProfile.new
+    @account = Current.account
+    @member_profile = Current.account.build_member_profile
+    @prefectures = MPrefecture.all.order(:code)
   end
 
   def create
@@ -29,6 +31,8 @@ class MemberProfilesController < ApplicationController
 
   def member_profile_params
     params.require(:member_profile).permit(
+      :billing_name,
+      :billing_name_kana,
       :billing_postal_code,
       :billing_prefecture_code,
       :billing_city_code,

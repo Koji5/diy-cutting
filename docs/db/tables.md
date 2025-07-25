@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-18 16:45 JST
+生成日: 2025-07-24 16:41 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -55,22 +55,28 @@
 | updated_at | timestamp(6) without time zone | × |  |  |
 | role_flags | integer | × | 0 | ロール |
 | nickname | character varying(50) | ○ |  | ニックネーム |
-| legal_type | integer | × |  | 課金状態 |
+| legal_type | integer | × |  | 法人/個人 |
 | name | character varying | × |  | 氏名または法人名 |
 | name_kana | character varying | ○ |  | 氏名または法人名かな |
 | birthday | date | ○ |  | 生年月日 |
 | gender | character varying(1) | ○ |  | 性別 |
+| registered_affiliate_id | bigint | ○ |  | アフィリエイト経由で登録した場合の登録元アカウントID |
 
 **インデックス**:
 - accounts_pkey (id) [PK]
+- index_accounts_on_registered_affiliate_id (registered_affiliate_id)
 - index_accounts_on_user_id (user_id)
 
 **外部キー**:
 - fk_rails_b1e30bebc8 (user_id) → users.id
+- fk_rails_d084a5d9a1 (registered_affiliate_id) → accounts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
 ### メモ
+
+* アフィリエイト連携判定は `registered_affiliate_id IS NOT NULL`  
+   *この列は「発番時のアフィリエイト」を永続的に保持し、注文時は orders が参照します。*  
 
 * **role_flags**は以下のようにBITS表示
   | 種別 | ROLE_BITS |
@@ -95,12 +101,14 @@
 | prefecture_code | character varying(2) | ○ |  | 都道府県コード |
 | city_code | character varying(5) | ○ |  | 市区町村コード |
 | address_line | character varying(200) | ○ |  | 番地・建物名ほか |
-| recipient_name | character varying(100) | ○ |  | 氏名／法人名 |
+| name | character varying(100) | ○ |  |  |
 | phone_number | character varying(30) | ○ |  | 電話番号 |
 | label | character varying(50) | ○ |  | 宛名ラベル（例 `自宅` `会社`） |
 | default_flag | boolean | × | false | デフォルトで使用するアドレスかどうか |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| name_kana | character varying(100) | ○ |  |  |
+| department | character varying(100) | ○ |  |  |
 
 **インデックス**:
 - addresses_pkey (id) [PK]
@@ -127,14 +135,13 @@
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
 | account_id | bigint | × |  | 対象アカウント |
-| billing_postal_code | character varying(7) | ○ |  | 請求先 郵便番号<br>*TODO:**7桁に*** |
+| billing_postal_code | character varying(7) | ○ |  | 請求先 郵便番号 |
 | billing_prefecture_code | character varying(2) | ○ |  | 請求先 都道府県コード |
 | billing_city_code | character varying(5) | × |  | 請求先 市区町村コード |
 | billing_address_line | character varying(200) | × |  | 請求先 番地・建物名ほか |
 | billing_department | character varying(100) | ○ |  | 請求先 部署 |
 | billing_phone_number | character varying(30) | ○ |  | 請求先 電話番号 |
 | stripe_customer_id | character varying | ○ |  | PaymentIntent で `customer` を渡すための顧客 ID。カードを保存する場合にも必須<br>初めて決済を行う際に作成される |
-| registered_affiliate_id | bigint | ○ |  | アフィリエイトから登録した場合につく、登録元**アフィリエイト**のアカウントID |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | deleted_by_id | bigint | ○ |  |  |
@@ -143,18 +150,18 @@
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
 | membership_plan | integer | × | 0 | 課金状態（当面無料のみ） |
+| billing_name | character varying(100) | ○ |  |  |
+| billing_name_kana | character varying(100) | ○ |  |  |
 
 **インデックス**:
 - member_profiles_pkey (id) [PK]
 - index_member_profiles_on_account_id (account_id)
 - index_member_profiles_on_created_by_id (created_by_id)
 - index_member_profiles_on_deleted_by_id (deleted_by_id)
-- index_member_profiles_on_registered_affiliate_id (registered_affiliate_id)
 - index_member_profiles_on_stripe_customer_id (stripe_customer_id)
 - index_member_profiles_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- fk_rails_1b24741643 (registered_affiliate_id) → accounts.id
 - fk_rails_6055409895 (account_id) → accounts.id
 - fk_rails_68d9f25c71 (updated_by_id) → accounts.id
 - fk_rails_7e212a956f (created_by_id) → accounts.id
@@ -166,8 +173,6 @@
 <!-- NOTE BEGIN -->
 ### メモ
 
-* アフィリエイト連携判定は `registered_affiliate_id IS NOT NULL`  
-   *この列は「発番時のアフィリエイト」を永続的に保持し、注文時は orders が参照します。*  
 * **顧客 ID (`stripe_customer_id`) はすべて Stripe が自動生成**（`cus_` プレフィクス）。
 
 <!-- NOTE END -->

@@ -11,44 +11,8 @@
                     class: "needs-validation",
                     novalidate: true
                   } do |f| %>
-      <!-- 宛名 -->
-      <div class="input-group mb-3">
-        <span class="input-group-text">宛名</span>
-        <%= f.text_field :recipient_name, class: "form-control", maxlength: 100, required: true %>
-        <div class="invalid-feedback">
-          宛名は必須です（100文字以内） 
-        </div>
-      </div>
 
-      <!-- 電話番号 -->
-      <div class="input-group mb-3">
-        <span class="input-group-text">電話番号</span>
-        <%= f.telephone_field :phone_number, class: "form-control", maxlength: 30, required: true, pattern: "[0-9()\\-]*" %>
-        <div class="invalid-feedback">
-           電話番号は半角数字・( )・- のみで入力してください（30文字以内） 
-        </div>
-      </div>
-
-      <!-- ラベル -->
-      <div class="input-group mb-3">
-        <span class="input-group-text">ラベル</span>
-        <%= f.text_field :label, class: "form-control", placeholder: "（例: 自宅、会社）", maxlength: 50 %>
-        <div class="invalid-feedback">
-          ラベルは50文字以内です 
-        </div>
-      </div>
-
-      <!-- 住所フィールド（共通パーシャル） -->
-      <%= render "shared/address_fields",
-           form: f,
-           prefectures: @prefectures,
-           cities: @cities %>
-
-      <!-- デフォルト指定 -->
-      <div class="form-check mb-4">
-        <%= f.check_box :default_flag, class: "form-check-input" %>
-        <%= f.label :default_flag, "この住所をデフォルトにする", class: "form-check-label" %>
-      </div>
+      <%= render "form_fields", f: f %>
 
       <div class="d-flex justify-content-end">
         <%= f.submit "更新する", class: "btn btn-primary" %>
