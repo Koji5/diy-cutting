@@ -19,17 +19,21 @@ class ApplicationController < ActionController::Base
     )
   end
 
-  def render_flash_and_replace_main(template:, assigns: {}, message: nil, type: nil)
+  # mainフレーム限定、messageとtypeは一組限定、flashがあっても双方表示される、messageとflashがなければ、トーストは表示されない
+  def render_flash_and_replace_main(template:, assigns: {}, message: nil, type: nil, flash: nil)
+    if message.present? && type.present?
+      flash ||= self.flash
+      flash[type] = Array(flash[type]) << message
+    end
     render_flash_and_replace(
       target_id: "main",
       template: template,
       assigns: assigns,
-      message: message,
-      type: type
+      flash: flash
     )
   end
 
-  def render_flash_and_replace(target_id: nil, template: nil, assigns: {}, message: nil, type: nil, partial: nil, locals: {})
+  def render_flash_and_replace(target_id: nil, template: nil, assigns: {}, message: nil, type: nil, partial: nil, locals: {}, flash: nil)
     hide_script = <<~SCRIPT
       <script>
         (() => {
@@ -39,21 +43,21 @@ class ApplicationController < ActionController::Base
       </script>
     SCRIPT
 
+    if message.present? && type.present?
+      flash ||= self.flash
+      flash[type] = Array(flash[type]) << message
+    end
+
     render turbo_stream: [
-      # message が present? なときのみ flash-messages を更新
-      *(message.present? ? [
+      *(flash.present? ? [
         turbo_stream.update(
-          "flash-messages",
+          "alert-container",
           ApplicationController.render(
-            partial: "shared/flash",
-            locals: { message: message, type: type }
+            partial: "shared/alert",
+            locals: { flash: flash }
           )
         )
       ] : []),
-#      *(target_id.present? ? [
-#        turbo_stream.update(target_id, render_to_string(template: template, assigns: assigns)),
-#        turbo_stream.append(target_id, hide_script)
-#      ] : [])
       *(
         if target_id.present?
           html = if partial.present?
@@ -73,12 +77,6 @@ class ApplicationController < ActionController::Base
         end
       )
     ]
+    flash.discard if flash.present?
   end
-  #トーストの場合は以下を使う
-  #def render_flash_and_replace_main(template:, assigns: {}, message: "保存しました", type: "success")
-  #  render turbo_stream: [
-  #    turbo_stream.update("toast-frame", partial: "shared/flash_toast", locals: { message: message, type: type }),
-  #    turbo_stream.update("main", render_to_string(template: template, assigns: assigns))
-  #  ]
-  #end
 end

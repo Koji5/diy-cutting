@@ -45,15 +45,9 @@
         </nav>
         <%# ===== メインコンテンツ ===== %>
         <main class="Main">
-          <%# ===== フラッシュメッセージ ===== %>
-          <div class="container-fluid" id="flash-messages">
-            <% flash.each do |type, message| %>
-              <% bs = { "notice" => "success", "alert" => "danger" }[type] || "info" %>
-              <div class="alert alert-<%= bs %> alert-dismissible fade show" role="alert">
-                <%= message %>
-                <button class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            <% end %>
+          <%# ===== アラートメッセージ ===== %>
+          <div class="container-fluid" id="alert-container">
+            <%= render partial: "shared/alert" %>
           </div>
           <turbo-frame id="main">
             <%= yield %>
@@ -69,8 +63,6 @@
         </nav>
       </div>
     </div>
-    <%# ===== トーストエリア ===== %>
-    <turbo-frame id="toast-frame" target="_top"></turbo-frame>
     <%# ===== モーダルエリア ===== %>
     <div class="modal fade" id="modalFrame" tabindex="-1" data-controller="modal">
       <div id="modalDialog" class="modal-dialog modal-dialog-scrollable modal-dialog-centered">

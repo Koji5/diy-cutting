@@ -35,7 +35,7 @@ class CartsController < ApplicationController
           cart_parts: @cart_parts,
           cart_recipes: @cart_recipes
         },
-        message: "レシピを登録しました。",
+        message: "カートを登録しました。",
         type: "success"
       )
       #flash[:notice] = '保存しました'
