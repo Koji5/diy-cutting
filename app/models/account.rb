@@ -49,7 +49,7 @@ class Account < ApplicationRecord
 
   def must_have_at_least_one_role
     if role_flags.to_i == 0
-      errors.add(:base, "少なくとも1つ以上のロールを設定してください")
+      errors.add(:base, "すべての機能を無効にすることはできません")
     end
   end
 end

@@ -1,77 +1,75 @@
-<turbo-frame id="main">
-  <%= render "accounts/link_account" %>
-  <section class="px-3">
-    <%= form_with model: @account, data: { turbo_frame: "main" } do |f| %>
-      <% if @account.errors.any? || @account.user.errors.any? %>
-        <div class="alert alert-danger">
-          <ul>
-            <% @account.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-            <% @account.user.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-          </ul>
+<%= render "accounts/link_account" %>
+<section class="px-3">
+  <%= form_with model: @account, data: { turbo_frame: "main" } do |f| %>
+    <% if @account.errors.any? || @account.user.errors.any? %>
+      <div class="alert alert-danger">
+        <ul>
+          <% @account.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+          <% @account.user.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+<legend>アカウント情報</legend>
+    <div>
+      <%= f.label :nickname, "ニックネーム" %>
+      <%= f.text_field :nickname %>
+    </div>
+
+    <div>
+      <%= f.label :legal_type, "個人または法人" %>
+      <%= f.select :legal_type, [["個人", "individual"], ["法人", "corporation"]] %>
+    </div>
+
+    <div>
+      <%= f.label :name, "氏名または法人名" %>
+      <%= f.text_field :name %>
+    </div>
+
+    <div>
+      <%= f.label :name_kana, "ふりがな" %>
+      <%= f.text_field :name_kana %>
+    </div>
+
+    <div>
+      <%= f.label :birthday, "生年月日" %>
+      <%= f.date_field :birthday %>
+    </div>
+
+    <div>
+      <%= f.label :gender, "性別" %>
+      <%= f.select :gender, [['男性', 'M'], ['女性', 'F'], ['その他', 'X']] %>
+    </div>
+  
+    <fieldset>
+      <legend>ログイン情報</legend>
+
+      <%= f.fields_for :user, @account.user do |u| %>
+        <div>
+          <%= u.label :email, "メールアドレス" %>
+          <%= u.email_field :email %>
+        </div>
+
+        <div>
+          <%= label_tag :current_password, "現在のパスワード（変更する場合のみ）" %>
+          <%= password_field_tag :current_password, nil, autocomplete: "current-password" %>
+        </div>
+
+        <div>
+          <%= u.label :password, "新しいパスワード（変更する場合のみ）" %>
+          <%= u.password_field :password, autocomplete: "new-password" %>
+        </div>
+
+        <div>
+          <%= u.label :password_confirmation, "新しいパスワード（確認用）" %>
+          <%= u.password_field :password_confirmation, autocomplete: "new-password" %>
         </div>
       <% end %>
-  <legend>アカウント情報</legend>
-      <div>
-        <%= f.label :nickname, "ニックネーム" %>
-        <%= f.text_field :nickname %>
-      </div>
+    </fieldset>
 
-      <div>
-        <%= f.label :legal_type, "個人または法人" %>
-        <%= f.select :legal_type, [["個人", "individual"], ["法人", "corporation"]] %>
-      </div>
-
-      <div>
-        <%= f.label :name, "氏名または法人名" %>
-        <%= f.text_field :name %>
-      </div>
-
-      <div>
-        <%= f.label :name_kana, "ふりがな" %>
-        <%= f.text_field :name_kana %>
-      </div>
-
-      <div>
-        <%= f.label :birthday, "生年月日" %>
-        <%= f.date_field :birthday %>
-      </div>
-
-      <div>
-        <%= f.label :gender, "性別" %>
-        <%= f.select :gender, [['男性', 'M'], ['女性', 'F'], ['その他', 'X']] %>
-      </div>
-    
-      <fieldset>
-        <legend>ログイン情報</legend>
-
-        <%= f.fields_for :user, @account.user do |u| %>
-          <div>
-            <%= u.label :email, "メールアドレス" %>
-            <%= u.email_field :email %>
-          </div>
-
-          <div>
-            <%= label_tag :current_password, "現在のパスワード（変更する場合のみ）" %>
-            <%= password_field_tag :current_password, nil, autocomplete: "current-password" %>
-          </div>
-
-          <div>
-            <%= u.label :password, "新しいパスワード（変更する場合のみ）" %>
-            <%= u.password_field :password, autocomplete: "new-password" %>
-          </div>
-
-          <div>
-            <%= u.label :password_confirmation, "新しいパスワード（確認用）" %>
-            <%= u.password_field :password_confirmation, autocomplete: "new-password" %>
-          </div>
-        <% end %>
-      </fieldset>
-
-      <%= f.submit "更新する", class: "btn btn-primary mt-3" %>
-    <% end %>
-  </section>
-</turbo-frame>
+    <%= f.submit "更新する", class: "btn btn-primary mt-3" %>
+  <% end %>
+</section>

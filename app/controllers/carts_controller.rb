@@ -3,10 +3,23 @@ class CartsController < ApplicationController
   def index
     # 今は全件。次フェーズで検索・並び替えを入れる
     @carts = Current.account.carts.order(updated_at: :desc)
+    render_flash_and_replace_main(
+        template: "carts/index",
+        assigns: { carts: @carts }
+    )
   end
 
   def new
     prepare_cart_form_data
+    render_flash_and_replace_main(
+        template: "carts/new",
+        assigns: {
+          cart: @cart,
+          excluded_recipes: @excluded_recipes,
+          parts: @parts,
+          recipes: @recipes
+        }
+    )
   end
 
   def create
@@ -36,25 +49,12 @@ class CartsController < ApplicationController
           cart_recipes: @cart_recipes
         },
         message: "カートを登録しました。",
-        type: "success"
+        type: :notice
       )
-      #flash[:notice] = '保存しました'
-      #redirect_to new_cart_path
     else
-  logger.debug @cart.errors.full_messages
-  logger.debug @cart.cart_parts.map { |cp| cp.errors.full_messages }
-  logger.debug @cart.cart_recipes.map { |cr| cr.errors.full_messages }
-      prepare_cart_form_data
-      render_flash_and_replace_main(
-        template: "carts/new",
-        assigns: {
-          cart: @cart,
-          recipes: @recipes,
-          excluded_recipes: @excluded_recipes,
-          parts: @parts
-        },
-        message: "カートの登録に失敗しました。",
-        type: "danger"
+      flash[:alert] = @cart.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
       )
     end
   end
@@ -73,6 +73,16 @@ class CartsController < ApplicationController
     @excluded_recipes = Current.account.recipes
                                     .includes(thumbnail_attachment: :blob)
                                     .where.not(id: @cart.cart_recipes.select(:recipe_id))
+    render_flash_and_replace_main(
+        template: "carts/edit",
+        assigns: {
+          cart: @cart,
+          cart_parts: @cart_parts,
+          cart_recipes: @cart_recipes,
+          excluded_parts: @excluded_parts,
+          excluded_recipes: @excluded_recipes
+        }
+    )
   end
 
   def update
@@ -86,13 +96,26 @@ class CartsController < ApplicationController
         sync_cart_parts(parts_data)  # ← 失敗したらここで例外
         sync_cart_recipes(recipes_data)  # ← 失敗したらここで例外
       end
-
-      redirect_to @cart, notice: "カートを更新しました"
-
-    rescue => e
-      load_cart_edit_data
-      flash.now[:alert] = "更新に失敗しました: #{e.message}"
-      render :edit, status: :unprocessable_entity
+      render_flash_and_replace_main(
+          template: "carts/show",
+          assigns: {
+            cart: @cart,
+            cart_parts: @cart_parts,
+            cart_recipes: @cart_recipes
+          },
+          message: "カートを更新しました",
+          type: :notice
+      )
+    rescue ActiveRecord::RecordInvalid => e
+      flash[:alert] = e.record.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
+      )
+    rescue JSON::ParserError => e
+      render_flash_and_replace(
+          message: "カートを更新できませんでした。１件も選択されていない可能性があります。",
+          type: :alert
+      )
     end
   end
 
@@ -206,43 +229,43 @@ class CartsController < ApplicationController
     @cart.cart_recipes.where(recipe_id: to_remove).destroy_all
   end
 
-  def load_cart_edit_data
-    # 1. parts_json から再構築
-    parts_data = JSON.parse(params[:cart][:parts_json], symbolize_names: true)
+#  def load_cart_edit_data
+#    # 1. parts_json から再構築
+#    parts_data = JSON.parse(params[:cart][:parts_json], symbolize_names: true)
 
-    # 2. 関連する Part をまとめて preload
-    part_ids = parts_data.map { |entry| entry[:part_id] }
-    preloaded_parts = Part.where(id: part_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
+#    # 2. 関連する Part をまとめて preload
+#    part_ids = parts_data.map { |entry| entry[:part_id] }
+#    preloaded_parts = Part.where(id: part_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
 
-    # 3. cart_parts を仮想的に復元（保存されていない状態）
-    @cart.cart_parts = parts_data.map do |entry|
-      part = preloaded_parts[entry[:part_id]]
-      @cart.cart_parts.build(part: part, quantity: entry[:qty])
-    end
+ #   # 3. cart_parts を仮想的に復元（保存されていない状態）
+ #   @cart.cart_parts = parts_data.map do |entry|
+ #     part = preloaded_parts[entry[:part_id]]
+ #     @cart.cart_parts.build(part: part, quantity: entry[:qty])
+ #   end
 
-    # 4. 含まれていないパーツを抽出
-    used_part_ids = parts_data.map { |p| p[:part_id] }
-    @excluded_parts = Current.account.parts
-                              .includes(thumbnail_attachment: :blob)
-                              .where.not(id: used_part_ids)
+ #   # 4. 含まれていないパーツを抽出
+ #   used_part_ids = parts_data.map { |p| p[:part_id] }
+ #   @excluded_parts = Current.account.parts
+ #                             .includes(thumbnail_attachment: :blob)
+ #                             .where.not(id: used_part_ids)
 
-    # 1. recipes_json から再構築
-    recipes_data = JSON.parse(params[:cart][:recipes_json], symbolize_names: true)
+  #  # 1. recipes_json から再構築
+  #  recipes_data = JSON.parse(params[:cart][:recipes_json], symbolize_names: true)
 
-    # 2. 関連する Part をまとめて preload
-    recipe_ids = recipes_data.map { |entry| entry[:recipe_id] }
-    preloaded_recipes = Recipe.where(id: recipe_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
+#    # 2. 関連する Part をまとめて preload
+#    recipe_ids = recipes_data.map { |entry| entry[:recipe_id] }
+#    preloaded_recipes = Recipe.where(id: recipe_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
 
-    # 3. cart_recipes を仮想的に復元（保存されていない状態）
-    @cart.cart_recipes = recipes_data.map do |entry|
-      recipe = preloaded_recipes[entry[:recipe_id]]
-      @cart.cart_recipes.build(recipe: recipe, quantity: entry[:qty])
-    end
+#    # 3. cart_recipes を仮想的に復元（保存されていない状態）
+#    @cart.cart_recipes = recipes_data.map do |entry|
+#      recipe = preloaded_recipes[entry[:recipe_id]]
+#      @cart.cart_recipes.build(recipe: recipe, quantity: entry[:qty])
+#    end
 
-    # 4. 含まれていないパーツを抽出
-    used_recipe_ids = recipes_data.map { |p| p[:recipe_id] }
-    @excluded_recipes = Current.account.recipes
-                              .includes(thumbnail_attachment: :blob)
-                              .where.not(id: used_recipe_ids)
-  end
+#    # 4. 含まれていないパーツを抽出
+#    used_recipe_ids = recipes_data.map { |p| p[:recipe_id] }
+#    @excluded_recipes = Current.account.recipes
+#                              .includes(thumbnail_attachment: :blob)
+#                              .where.not(id: used_recipe_ids)
+#  end
 end

@@ -72,6 +72,7 @@ class ApplicationController < ActionController::Base
         (() => {
           const loader = window.Stimulus?.getControllerForElementAndIdentifier(document.body, "page-loading");
           loader?.hide();
+          document.currentScript?.remove();
         })();
       </script>
     SCRIPT
@@ -105,7 +106,7 @@ class ApplicationController < ActionController::Base
             turbo_stream.append(target_id, hide_script)
           ]
         else
-          []
+          [turbo_stream.append("main", hide_script)]
         end
       )
     ]

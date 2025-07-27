@@ -1,50 +1,32 @@
 class AccountsController < ApplicationController
+  include AccountDashboardRenderable
   before_action :authenticate_user!
   before_action :set_account
 
   def show
-    @account = Current.account
-    @member_profile = @account.member_profile
-    @addresses = @account.addresses.includes(:prefecture, :city)
-
-    # フラッシュメッセージの条件分岐
-    if @account.has_role?(:member) && @member_profile.nil?
-      message = "お客様プロフィールが未登録です。作成してください。"
-      type = "warning"
-    else
-      message = nil
-      type = nil
-    end
-
-    render_flash_and_replace_main(
-      template: "accounts/show",
-      assigns: {
-        account: @account,
-        member_profile: @member_profile,
-        addresses: @addresses
-      },
-      message: message,
-      type: type
-    )
+    render_account_dashboard
   end
 
   def edit
     @account.user ||= User.find_by(id: @account.user_id)
+    render_flash_and_replace_main(
+      template: "accounts/edit",
+      assigns: { account: @account }
+    )
   end
 
   def update
     if user_params[:password].present?
       # パスワード変更を希望している
       unless @account.user.valid_password?(params[:current_password])
-        render_flash_and_replace_main(
-          template: "accounts/edit",
-          assigns: { account: @account },
+        render_flash_and_replace(
+          #template: "accounts/edit",
+          #assigns: { account: @account },
           message: "現在のパスワードが正しくありません。",
-          type: "danger"
+          type: :alert
         )
         return
       end
-      # password_confirmation はモデル側のバリデーションに任せてOK
     end
 
     begin
@@ -56,14 +38,13 @@ class AccountsController < ApplicationController
         template: "accounts/show",
         assigns: { account: @account },
         message: "アカウント基本情報を更新しました。",
-        type: "success"
+        type: :notice
       )
-    rescue ActiveRecord::RecordInvalid
-      render_flash_and_replace_main(
-        template: "accounts/edit",
-        assigns: { account: @account },
-        message: "エラーが発生しました。",
-        type: "danger"
+    rescue ActiveRecord::RecordInvalid => e
+      # password_confirmation はモデル側のバリデーションに任せてOK
+      flash[:alert] = e.record.errors.full_messages
+      render_flash_and_replace(
+        flash: flash
       )
     end
   end
@@ -89,15 +70,13 @@ class AccountsController < ApplicationController
 
       action_label = enabled ? "有効にしました" : "無効にしました"
       message = "#{role_label}を#{action_label}。"
+      type = :notice
+      flash[type] = Array(flash[type]) << message
       flash_stream = turbo_stream.update(
-        "flash-messages",
+        "alert-container",
         ApplicationController.render(
-          partial: "shared/flash",
-          formats: [:html],
-          locals: {
-            type: "success",
-            message: message
-          }
+          partial: "shared/alert",
+          locals: { flash: flash }
         )
       )
       respond_to do |format|
@@ -121,18 +100,16 @@ class AccountsController < ApplicationController
       end
     else
       # ゲスト化（role_flags = 0）は禁止
+      flash[:alert] = account.errors.full_messages
       render turbo_stream: turbo_stream.update(
-        "flash-messages",
+        "alert-container",
         ApplicationController.render(
-          partial: "shared/flash",
-          locals: {
-            type: "danger",
-            message: account.errors.full_messages.to_sentence.presence || "更新に失敗しました"
-          }
+          partial: "shared/alert",
+          locals: { flash: flash }
         )
       ), status: :unprocessable_entity
     end
-
+    flash.discard if flash.present?
   end
 
   private

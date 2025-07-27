@@ -1,165 +1,163 @@
-<!--turbo-frame id="main"-->
-  <%= render "accounts/link_account" %>
-  <section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
-    <div class="d-flex flex-row flex-grow-1 mb-3 thumb-show" style="min-height: 80px;">
-      <div class="d-flex thumb-box me-3">
-        <% if @account.thumbnail.attached? %>
-          <%= image_tag @account.thumbnail.variant(resize_to_limit: [200, 200]), 
-                        loading: "lazy", decoding: "async", alt: "サムネイル" %>
-        <% else %>
-          <div class="text-muted d-flex align-items-center justify-content-center flex-grow-1">No image</div>
-        <% end %>
+<%= render "accounts/link_account" %>
+<section class="d-flex flex-column px-3 mt-3 overflow-auto form-control border-0">
+  <div class="d-flex flex-row flex-grow-1 mb-3 thumb-show" style="min-height: 80px;">
+    <div class="d-flex thumb-box me-3">
+      <% if @account.thumbnail.attached? %>
+        <%= image_tag @account.thumbnail.variant(resize_to_limit: [200, 200]), 
+                      loading: "lazy", decoding: "async", alt: "サムネイル" %>
+      <% else %>
+        <div class="text-muted d-flex align-items-center justify-content-center flex-grow-1">No image</div>
+      <% end %>
+    </div>
+    <div class=" flex-grow-1">
+      <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @account.nickname %>&nbsp;さん</h5>
+      <ul class="mb-1">
+        <li>氏名または法人名：<%= @account.name %></li>
+        <li>氏名または法人名かな：<%= @account.name_kana %></li>
+        <li>生年月日：<%= @account.birthday %></li>
+        <li>性別：<%= @account.gender %></li>
+        <li>メールアドレス：<%= @account.user.email %></li>
+      </ul>
+      <div class="flex-grow-1">
+        <%= link_to "基本情報編集", 
+            edit_account_path(@account), 
+            data: { turbo_frame: "main" }, 
+            class: "btn btn-primary d-flex flex-grow-1 justify-content-center" %>
       </div>
-      <div class=" flex-grow-1">
-        <h5 class="flex-grow-1 min-w-0 mb-1 text-truncate"><%= @account.nickname %>&nbsp;さん</h5>
-        <ul class="mb-1">
-          <li>氏名または法人名：<%= @account.name %></li>
-          <li>氏名または法人名かな：<%= @account.name_kana %></li>
-          <li>生年月日：<%= @account.birthday %></li>
-          <li>性別：<%= @account.gender %></li>
-          <li>メールアドレス：<%= @account.user.email %></li>
-        </ul>
-        <div class="flex-grow-1">
-          <%= link_to "基本情報編集", 
-              edit_account_path(@account), 
-              data: { turbo_frame: "main" }, 
-              class: "btn btn-primary d-flex flex-grow-1 justify-content-center" %>
+    </div>
+  </div>
+  <div>
+    <div class="mb-2">
+      <div class="card toggle-card rounded" 
+              data-controller="account-toggle">
+        <div class="card-header d-flex align-items-center"
+              data-action="click->account-toggle#toggle">
+          <div class="min-w-0 me-2 text-truncate flex-grow-1">
+              アドレス帳を管理する
+          </div>
+          <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+        </div>
+        <div class="collapse card-body border-top rounded-bottom"
+              data-account-toggle-target="body">
+          <div class="d-flex flex-grow-1 min-w-0 me-2">
+            <%= link_to new_modal_addresses_path,
+                    data: {
+                      turbo_frame: "modalTurboFrame",
+                      modal_title: "アドレス帳に住所を追加"
+                    },
+                    class: "btn btn-outline-secondary d-block mb-3" do %>
+              <i class="bi bi-plus-lg"></i> 住所を追加する
+            <% end %>
+          </div>
+          <turbo-frame id="address_list">
+            <%= render "addresses/address_list", addresses: @addresses %>
+          </turbo-frame>
         </div>
       </div>
     </div>
-    <div>
-      <div class="mb-2">
-        <div class="card toggle-card rounded" 
-                data-controller="account-toggle">
-          <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle">
-            <div class="min-w-0 me-2 text-truncate flex-grow-1">
-                アドレス帳を管理する
-            </div>
-            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+
+    <div class="mb-2">
+      <div class="card toggle-card rounded" 
+              data-controller="account-toggle">
+        <div class="card-header d-flex align-items-center"
+              data-action="click->account-toggle#toggle">
+          <div class="min-w-0 me-2 text-truncate flex-grow-1">
+              お客様機能設定
           </div>
-          <div class="collapse card-body border-top rounded-bottom"
-                data-account-toggle-target="body">
-            <div class="d-flex flex-grow-1 min-w-0 me-2">
-              <%= link_to new_modal_addresses_path,
-                      data: {
-                        turbo_frame: "modalTurboFrame",
-                        modal_title: "アドレス帳に住所を追加"
-                      },
-                      class: "btn btn-outline-secondary d-block mb-3" do %>
-                <i class="bi bi-plus-lg"></i> 住所を追加する
-              <% end %>
+
+          <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+        </div>
+        <div class="collapse card-body border-top rounded-bottom"
+              data-account-toggle-target="body">
+          <div class="d-flex flex-row">
+            <label class="form-check-label" for="toggle-member">お客様機能の有効／無効を切替えます。</label>
+            <div class="flex-grow-1 form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="toggle-member"
+                <%= "checked" if @account.has_role?(:member) %>
+                data-controller="role-toggle"
+                data-action="change->role-toggle#toggle"
+                data-role-toggle-role-value="member"
+              >
             </div>
-            <turbo-frame id="address_list">
-              <%= render "addresses/address_list", addresses: @addresses %>
-            </turbo-frame>
+          </div>
+          <div id="member-actions">
+            <%= render "accounts/member_actions", account: @account %>
           </div>
         </div>
       </div>
-
-      <div class="mb-2">
-        <div class="card toggle-card rounded" 
-                data-controller="account-toggle">
-          <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle">
-            <div class="min-w-0 me-2 text-truncate flex-grow-1">
-                お客様機能設定
-            </div>
-
-            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
-          </div>
-          <div class="collapse card-body border-top rounded-bottom"
-                data-account-toggle-target="body">
-            <div class="d-flex flex-row">
-              <label class="form-check-label" for="toggle-member">お客様機能の有効／無効を切替えます。</label>
-              <div class="flex-grow-1 form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="toggle-member"
-                  <%= "checked" if @account.has_role?(:member) %>
-                  data-controller="role-toggle"
-                  data-action="change->role-toggle#toggle"
-                  data-role-toggle-role-value="member"
-                >
-              </div>
-            </div>
-            <div id="member-actions">
-              <%= render "accounts/member_actions", account: @account %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-2">
-        <div class="card toggle-card rounded" 
-                data-controller="account-toggle">
-          <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle">
-            <div class="min-w-0 me-2 text-truncate flex-grow-1">
-                業者様機能設定
-            </div>
-
-            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
-          </div>
-          <div class="collapse card-body border-top rounded-bottom"
-                data-account-toggle-target="body">
-            <div class="d-flex flex-row">
-              <label class="form-check-label" for="toggle-vendor">業者様機能の有効／無効を切替えます。</label>
-              <div class="flex-grow-1 form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="toggle-vendor"
-                  <%= "checked" if @account.has_role?(:vendor) %>
-                  data-controller="role-toggle"
-                  data-action="change->role-toggle#toggle"
-                  data-role-toggle-role-value="vendor"
-                >
-              </div>
-            </div>
-            <div id="vendor-actions">
-              <%= render "accounts/vendor_actions", account: @account %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-2">
-        <div class="card toggle-card rounded" 
-                data-controller="account-toggle">
-          <div class="card-header d-flex align-items-center"
-                data-action="click->account-toggle#toggle">
-            <div class="min-w-0 me-2 text-truncate flex-grow-1">
-                アフィリエイト機能設定
-            </div>
-
-            <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
-          </div>
-          <div class="collapse card-body border-top rounded-bottom"
-                data-account-toggle-target="body">
-            <div class="d-flex flex-row">
-              <label class="form-check-label" for="toggle-affiliate">アフィリエイト機能の有効／無効を切替えます。</label>
-              <div class="flex-grow-1 form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="toggle-affiliate"
-                  <%= "checked" if @account.has_role?(:affiliate) %>
-                  data-controller="role-toggle"
-                  data-action="change->role-toggle#toggle"
-                  data-role-toggle-role-value="affiliate"
-                >
-              </div>
-            </div>
-            <div id="affiliate-actions">
-              <%= render "accounts/affiliate_actions", account: @account %>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
-    <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
-  </section>
-<!--/turbo-frame-->
+
+    <div class="mb-2">
+      <div class="card toggle-card rounded" 
+              data-controller="account-toggle">
+        <div class="card-header d-flex align-items-center"
+              data-action="click->account-toggle#toggle">
+          <div class="min-w-0 me-2 text-truncate flex-grow-1">
+              業者様機能設定
+          </div>
+
+          <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+        </div>
+        <div class="collapse card-body border-top rounded-bottom"
+              data-account-toggle-target="body">
+          <div class="d-flex flex-row">
+            <label class="form-check-label" for="toggle-vendor">業者様機能の有効／無効を切替えます。</label>
+            <div class="flex-grow-1 form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="toggle-vendor"
+                <%= "checked" if @account.has_role?(:vendor) %>
+                data-controller="role-toggle"
+                data-action="change->role-toggle#toggle"
+                data-role-toggle-role-value="vendor"
+              >
+            </div>
+          </div>
+          <div id="vendor-actions">
+            <%= render "accounts/vendor_actions", account: @account %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-2">
+      <div class="card toggle-card rounded" 
+              data-controller="account-toggle">
+        <div class="card-header d-flex align-items-center"
+              data-action="click->account-toggle#toggle">
+          <div class="min-w-0 me-2 text-truncate flex-grow-1">
+              アフィリエイト機能設定
+          </div>
+
+          <i class="bi bi-chevron-down toggle-icon flex-shrink-0"></i>
+        </div>
+        <div class="collapse card-body border-top rounded-bottom"
+              data-account-toggle-target="body">
+          <div class="d-flex flex-row">
+            <label class="form-check-label" for="toggle-affiliate">アフィリエイト機能の有効／無効を切替えます。</label>
+            <div class="flex-grow-1 form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="toggle-affiliate"
+                <%= "checked" if @account.has_role?(:affiliate) %>
+                data-controller="role-toggle"
+                data-action="change->role-toggle#toggle"
+                data-role-toggle-role-value="affiliate"
+              >
+            </div>
+          </div>
+          <div id="affiliate-actions">
+            <%= render "accounts/affiliate_actions", account: @account %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <%= button_to "ログアウト", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-primary" %>
+</section>

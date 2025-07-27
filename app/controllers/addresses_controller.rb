@@ -2,12 +2,13 @@ class AddressesController < ApplicationController
   before_action :set_address, only: [:edit_modal, :update, :destroy]
 
   def index
-    @addresses = Current.account.addresses
+    #@addresses = Current.account.addresses
   end
 
   def new_modal
     @address = Current.account.addresses.build
     @prefectures = MPrefecture.all.order(:code)
+    #モーダルで表示させる場合は、turbo_streamではなくturbo_frameを使用する
     render layout: (turbo_frame_request? ? false : "application")
   end
 
@@ -36,7 +37,7 @@ class AddressesController < ApplicationController
         addresses: @addresses
       },
       message: "住所を削除しました。",
-      type: "success"
+      type: :notice
     )
   end
 
@@ -80,12 +81,12 @@ class AddressesController < ApplicationController
         partial: "addresses/address_list",
         locals: { addresses: @addresses },
         message: "住所を#{verb}しました。",
-        type: "success"
+        type: :notice
       )
     else
       render_flash_and_replace(
         message: "住所の#{verb}に失敗しました。",
-        type: "danger"
+        type: :error
       )
     end
   end

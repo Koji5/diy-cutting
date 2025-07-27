@@ -13,12 +13,23 @@ class PartsController < ApplicationController
               .order(updated_at: :desc)
     # affiliate の場合のみ “オリジナル作成者” を表示するため
     @show_owner = Current.account&.has_role?(:affiliate)
-    render layout: "application"
+    render_flash_and_replace_main(
+        template: "parts/index",
+        assigns: {
+          parts: @parts,
+          show_owner: @show_owner
+        }
+    )
   end
 
   def show
-    load_masters
     @part = Part.find(params[:id])
+    assigns = load_masters_hash
+    assigns[:part] = @part
+    render_flash_and_replace_main(
+        template: "parts/show",
+        assigns: assigns
+    )
   end
 
   def show_modal
@@ -29,8 +40,10 @@ class PartsController < ApplicationController
 
   def new
     @part = Part.new
-    load_masters
-    load_rules
+    render_flash_and_replace_main(
+        template: "parts/new",
+        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part)
+    )
   end
 
   def create
@@ -44,22 +57,21 @@ class PartsController < ApplicationController
         template: "parts/show",
         assigns: load_masters_hash.merge(part: @part),
         message: "部品を登録しました。",
-        type: "success"
+        type: :notice
       )
-      #redirect_to parts_path, notice: "部品を登録しました"
     else
-      render_flash_and_replace_main(
-        template: "parts/new",
-        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
-        message: "部品の登録に失敗しました。",
-        type: "danger"
+      flash[:alert] = @part.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
       )
     end
   end
 
   def edit
-    load_masters
-    load_rules
+    render_flash_and_replace_main(
+      template: "parts/edit",
+      assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part)
+    )
   end
 
   def update
@@ -71,15 +83,12 @@ class PartsController < ApplicationController
         template: "parts/show",
         assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
         message: "部品を更新しました。",
-        type: "success"
+        type: :notice
       )
-      #redirect_to parts_path, notice: "部品を更新しました"
     else
+      flash[:alert] = @part.errors.full_messages
       render_flash_and_replace_main(
-        template: "parts/edit",
-        assigns: load_masters_hash.merge(load_rules_hash).merge(part: @part),
-        message: "部品の更新に失敗しました。",
-        type: "danger"
+        flash: flash
       )
     end
   end
@@ -87,19 +96,16 @@ class PartsController < ApplicationController
   def destroy
     @part = Part.kept.find(params[:id])
     @part.discard!
-
-    flash_html = render_to_string(
-      partial: "shared/flash",
-      locals: {
-        message: "部品「#{@part.name}」を削除しました。",
-        type: "success"
-      }
+    flash[:notice] = Array(flash[:notice]) << "部品「#{@part.name}」を削除しました。"
+    flash_html = ApplicationController.render(
+      partial: "shared/alert",
+      locals: { flash: flash }
     )
 
     # Turbo Drive (通常のリンク) → 行を DOM から外す
       render turbo_stream: [
         turbo_stream.remove(helpers.dom_id(@part)),
-        turbo_stream.update("flash-messages", flash_html)
+        turbo_stream.update("alert-container", flash_html)
       ]
   end
 
@@ -131,30 +137,29 @@ class PartsController < ApplicationController
     @paint_colors    = MPaintColor.order(:code)
     @grain_finishes  = MGrainFinish.order(:code)
     @glosses         = MGloss.order(:code)
-
   end
 
-  def load_rules
-    # --- グローバルルール -----------------------------------------
-    @global_dim_rule = GLOBAL_DIM_RULE
+  #def load_rules
+  #  # --- グローバルルール -----------------------------------------
+  #  @global_dim_rule = GLOBAL_DIM_RULE
 
-    # ---------- Stimulus へ渡す JSON まとめ ---------- #
-    @shape_rules = {
-      shape:  @shapes.index_by(&:code).transform_values(&:allow_shape_json),
-      corner: @shapes.index_by(&:code).transform_values(&:allow_corner_json),
-      edge:   @shapes.index_by(&:code).transform_values(&:allow_edge_json)
-    }.to_json
+  #  # ---------- Stimulus へ渡す JSON まとめ ---------- #
+  #  @shape_rules = {
+  #    shape:  @shapes.index_by(&:code).transform_values(&:allow_shape_json),
+  #    corner: @shapes.index_by(&:code).transform_values(&:allow_corner_json),
+  #    edge:   @shapes.index_by(&:code).transform_values(&:allow_edge_json)
+  #  }.to_json
 
-    @corner_proc_rules = @corner_processes
-                           .index_by(&:code)
-                           .transform_values(&:allow_corner_proc_json)
-                           .to_json
+  #  @corner_proc_rules = @corner_processes
+  #                         .index_by(&:code)
+  #                         .transform_values(&:allow_corner_proc_json)
+  #                         .to_json
 
-    @paint_type_rules  = @paint_types
-                           .index_by(&:code)
-                           .transform_values(&:allow_paint_json)
-                           .to_json
-  end
+  #  @paint_type_rules  = @paint_types
+  #                         .index_by(&:code)
+  #                         .transform_values(&:allow_paint_json)
+  #                         .to_json
+  #end
 
     # ───────── 基本項目 (テーブルの直接カラム) ─────────
   def basic_part_params

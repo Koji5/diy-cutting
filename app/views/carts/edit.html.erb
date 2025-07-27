@@ -1,127 +1,125 @@
-<turbo-frame id="main">
-  <%= render "carts/link_cart" %>
-  <section class="px-3">
-    <%= form_with model: @cart do |f| %>
-      <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
-        <!-- カート名 -->
-        <div class="flex-grow-1 align-self-end">
-          <div class="input-group">
-            <span class="input-group-text"><%= f.label :name, 'カート名', class: 'form-label' %></span>
-            <%= f.text_field :name, class: 'form-control', autofocus: true %>
-          </div>
+<%= render "carts/link_cart" %>
+<section class="px-3">
+  <%= form_with model: @cart do |f| %>
+    <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
+      <!-- カート名 -->
+      <div class="flex-grow-1 align-self-end">
+        <div class="input-group">
+          <span class="input-group-text"><%= f.label :name, 'カート名', class: 'form-label' %></span>
+          <%= f.text_field :name, class: 'form-control', autofocus: true %>
         </div>
       </div>
-      <div class="d-flex flex-column" data-controller="cart-builder" style="min-height:520px;">
-        <!-- ドロップゾーン -->
-        <div class="form-floating mb-3 flex-grow-1">
-          <main data-cart-builder-target="dropZone" id="floatingInput"
-                class="overflow-auto form-control"
-                style="min-height: 256px;">
-            <% @cart_parts.each do |cart_part| %>
-              <%= render "cart_item_card", item: cart_part.part, target: "part", quantity: cart_part.quantity %>
-            <% end %>
-            <% @cart_recipes.each do |cart_recipe| %>
-              <%= render "cart_item_card", item: cart_recipe.recipe, target: "recipe", quantity: cart_recipe.quantity %>
-            <% end %>
-          </main>
-          <label for="floatingInput">ここにドロップしてください</label>
-        </div>
-        <!-- アイコン -->
-        <div class="d-flex justify-content-center mb-3">
-          <i class="bi bi-arrows-vertical"></i>
-        </div>
+    </div>
+    <div class="d-flex flex-column" data-controller="cart-builder" style="min-height:520px;">
+      <!-- ドロップゾーン -->
+      <div class="form-floating mb-3 flex-grow-1">
+        <main data-cart-builder-target="dropZone" id="floatingInput"
+              class="overflow-auto form-control"
+              style="min-height: 256px;">
+          <% @cart_parts.each do |cart_part| %>
+            <%= render "cart_item_card", item: cart_part.part, target: "part", quantity: cart_part.quantity %>
+          <% end %>
+          <% @cart_recipes.each do |cart_recipe| %>
+            <%= render "cart_item_card", item: cart_recipe.recipe, target: "recipe", quantity: cart_recipe.quantity %>
+          <% end %>
+        </main>
+        <label for="floatingInput">ここにドロップしてください</label>
+      </div>
+      <!-- アイコン -->
+      <div class="d-flex justify-content-center mb-3">
+        <i class="bi bi-arrows-vertical"></i>
+      </div>
 
-        <div class="form-floating flex-grow-1">
-          <ul class="nav nav-tabs" id="myTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active"
-                      id="floatingPartsList-tab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#floatingPartsList"
-                      type="button" role="tab">
-                パーツ
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link"
-                      id="floatingRecipesList-tab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#floatingRecipesList"
-                      type="button" role="tab">
-                レシピ
-              </button>
-            </li>
-          </ul>
-          <div class="tab-content" id="myTabsContent">
-            <div class="tab-pane fade show active"
-                    id="floatingPartsList"
-                    role="tabpanel">
-              <div class="form-floating flex-grow-1">
-                <!-- 部品一覧 -->
-                <div data-cart-builder-target="partsList" 
+      <div class="form-floating flex-grow-1">
+        <ul class="nav nav-tabs" id="myTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="floatingPartsList-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#floatingPartsList"
+                    type="button" role="tab">
+              パーツ
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="floatingRecipesList-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#floatingRecipesList"
+                    type="button" role="tab">
+              レシピ
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabsContent">
+          <div class="tab-pane fade show active"
+                  id="floatingPartsList"
+                  role="tabpanel">
+            <div class="form-floating flex-grow-1">
+              <!-- 部品一覧 -->
+              <div data-cart-builder-target="partsList" 
+                    class="overflow-auto form-control"
+                    style="min-height:256px;">
+                <% @excluded_parts.each do |part| %>
+                  <%= render "cart_item_card", item: part, target: "part" %>
+                <% end %>
+              </div>
+              <label for="floatingPartsList">マイパーツ一覧</label>
+            </div>
+          </div>
+          <!-- レシピ一覧 -->
+          <div class="tab-pane fade"
+                  id="floatingRecipesList"
+                  role="tabpanel">
+            <div class="form-floating flex-grow-1">
+              <div data-cart-builder-target="recipesList"
                       class="overflow-auto form-control"
                       style="min-height:256px;">
-                  <% @excluded_parts.each do |part| %>
-                    <%= render "cart_item_card", item: part, target: "part" %>
-                  <% end %>
-                </div>
-                <label for="floatingPartsList">マイパーツ一覧</label>
+                <% @excluded_recipes.each do |recipe| %>
+                  <%= render "cart_item_card", item: recipe, target: "recipe" %>
+                <% end %>
               </div>
-            </div>
-            <!-- レシピ一覧 -->
-            <div class="tab-pane fade"
-                    id="floatingRecipesList"
-                    role="tabpanel">
-              <div class="form-floating flex-grow-1">
-                <div data-cart-builder-target="recipesList"
-                        class="overflow-auto form-control"
-                        style="min-height:256px;">
-                  <% @excluded_recipes.each do |recipe| %>
-                    <%= render "cart_item_card", item: recipe, target: "recipe" %>
-                  <% end %>
-                </div>
-                <label for="floatingPartsList">マイレシピ一覧</label>
-              </div>
+              <label for="floatingPartsList">マイレシピ一覧</label>
             </div>
           </div>
         </div>
-        <!-- hidden JSON -->
-        <%= hidden_field_tag 'cart[parts_json]', '', id: 'cart_parts_json',
-              data: { cart_builder_target: 'partsJson' } %>
-        <%= hidden_field_tag 'cart[recipes_json]', '', id: 'cart_recipes_json',
-              data: { cart_builder_target: 'recipesJson' } %>
       </div>
+      <!-- hidden JSON -->
+      <%= hidden_field_tag 'cart[parts_json]', '', id: 'cart_parts_json',
+            data: { cart_builder_target: 'partsJson' } %>
+      <%= hidden_field_tag 'cart[recipes_json]', '', id: 'cart_recipes_json',
+            data: { cart_builder_target: 'recipesJson' } %>
+    </div>
 
-      <!-- 更新ボタン -->
-      <%= f.submit '更新', class: 'btn btn-primary w-100 mt-3' %>
-    <% end %>
-  </section>
-  <!-- --- 部品詳細モーダル骨格 -------------------- -->
-  <div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-      <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">部品詳細</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
-          </div>
-      </div>
+    <!-- 更新ボタン -->
+    <%= f.submit '更新', class: 'btn btn-primary w-100 mt-3' %>
+  <% end %>
+</section>
+<!-- --- 部品詳細モーダル骨格 -------------------- -->
+<div class="modal fade" id="partModal" tabindex="-1" data-controller="part-show-modal">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">部品詳細</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <turbo-frame id="part_modal" data-action="turbo:frame-load->part-show-modal#open"></turbo-frame>
+        </div>
     </div>
   </div>
-  <!-- レシピ詳細モーダル骨格 -->
-  <div class="modal fade" id="recipeModal" tabindex="-1" data-controller="recipe-show-modal">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">レシピ詳細</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <turbo-frame id="recipe_modal" data-action="turbo:frame-load->recipe-show-modal#open"></turbo-frame>
-          </div>
-      </div>
+</div>
+<!-- レシピ詳細モーダル骨格 -->
+<div class="modal fade" id="recipeModal" tabindex="-1" data-controller="recipe-show-modal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">レシピ詳細</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <turbo-frame id="recipe_modal" data-action="turbo:frame-load->recipe-show-modal#open"></turbo-frame>
+        </div>
     </div>
   </div>
-</turbo-frame>
+</div>

@@ -1,30 +1,46 @@
 class MemberProfilesController < ApplicationController
+  include AccountDashboardRenderable
+
   def new
     @account = Current.account
     @member_profile = Current.account.build_member_profile
     @prefectures = MPrefecture.all.order(:code)
+    render_flash_and_replace_main(
+      template: "member_profiles/new",
+      assigns: {
+        account: @account,
+        member_profile: @member_profile,
+        prefectures: @prefectures
+      }
+    )
   end
 
   def create
     @member_profile = Current.account.build_member_profile(member_profile_params)
     if @member_profile.save
-      redirect_to account_path, notice: "プロフィールを登録しました。"
+      flash[:notice] = "プロフィールを登録しました。"
+      render_account_dashboard
     else
-      render :new, status: :unprocessable_entity
+      flash[:alert] = @member_profile.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
+      )
     end
   end
 
   def edit
-    @member_profile = Current.account.member_profile
+    # 未実装
+    #@member_profile = Current.account.member_profile
   end
 
   def update
-    @member_profile = Current.account.member_profile
-    if @member_profile.update(member_profile_params)
-      redirect_to account_path, notice: "プロフィールを更新しました。"
-    else
-      render :edit, status: :unprocessable_entity
-    end
+    # 未実装
+    #@member_profile = Current.account.member_profile
+    #if @member_profile.update(member_profile_params)
+    #  redirect_to account_path, notice: "プロフィールを更新しました。"
+    #else
+    #  render :edit, status: :unprocessable_entity
+    #end
   end
 
   private

@@ -49,6 +49,7 @@
           <div class="container-fluid" id="alert-container">
             <%= render partial: "shared/alert" %>
           </div>
+          <%# メイン領域はTurbo Streamで更新 %>
           <turbo-frame id="main">
             <%= yield %>
           </turbo-frame>
@@ -64,6 +65,7 @@
       </div>
     </div>
     <%# ===== モーダルエリア ===== %>
+    <%# モーダルを開くときは、必ず turbo_frame 経由で読み込む %>
     <div class="modal fade" id="modalFrame" tabindex="-1" data-controller="modal">
       <div id="modalDialog" class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
