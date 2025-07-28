@@ -96,6 +96,7 @@ class ApplicationController < ActionController::Base
           html = if partial.present?
                   render_to_string(partial: partial, locals: locals)
                 elsif template.present?
+                  assigns[:current_view] = template
                   render_to_string(template: template, assigns: assigns)
                 else
                   ""

@@ -1,28 +1,29 @@
 <% menu = [
   {
     path:  -> { edit_recipe_path(@recipe) if @recipe },
-    match: -> { controller_name == "recipes" && action_name == "edit" },
+    #match: -> { controller_name == "recipes" && action_name == "edit" },
+    match: -> { assigns[:current_view] == "recipes/edit" },
     icon:  "pencil",
     label: "編集",
     link:  false                # 編集画面へのリンクは出さない
   },
   {
     path:  -> { recipe_path(@recipe) if @recipe },
-    match: -> { controller_name == "recipes" && action_name == "show" },
+    match: -> { assigns[:current_view] == "recipes/show" },
     icon:  "eye",
     label: "詳細",
     link:  false                # 詳細画面へのリンクは出さない
   },
   {
     path:  -> { recipes_path },
-    match: -> { current_page?(recipes_path) },
+    match: -> { assigns[:current_view] == "recipes/index" },
     icon:  "list-ul",
     label: "一覧",
     link:  true
   },
   {
     path:  -> { new_recipe_path },
-    match: -> { current_page?(new_recipe_path) },
+    match: -> { assigns[:current_view] == "recipes/new" },
     icon:  "plus-lg",
     label: "新規作成",
     link:  true
@@ -33,13 +34,9 @@
   <% title_tag = item[:label] if item[:match].call %>
 <% end %>
 
-<header class="MainHeader d-flex flex-row align-items-center">
-  <h3 class="d-flex px-3 flex-nowrap">
-    <i class="bi bi-fork-knife me-2"></i>
-    マイレシピ － <%= title_tag %>
-  </h3>
+<header class="MainHeader d-flex flex-column">
   <div class="flex-grow-1 min-w-0">
-    <div class="input-group px-3">
+    <div class="input-group px-3 mb-1">
       <% menu.each do |item| %>
         <% next if item[:match].call || !item[:link] %>
         <%= link_to item[:path].call,
@@ -50,4 +47,8 @@
       <% end %>
     </div>
   </div>
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-fork-knife me-2"></i>
+    マイレシピ － <%= title_tag %>
+  </h3>
 </header>

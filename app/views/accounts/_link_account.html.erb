@@ -1,14 +1,14 @@
 <% menu = [
   {
     path:  -> { edit_account_path(@account) if @account },
-    match: -> { controller_name == "accounts" && action_name == "edit" },
+    match: -> { assigns[:current_view] == "accounts/edit" },
     icon:  "pencil",
     label: "編集",
     link:  false                # 編集画面ではリンクを出さない
   },
   {
     path:  -> { account_path(@account) if @account },
-    match: -> { controller_name == "accounts" && action_name == "show" },
+    match: -> { assigns[:current_view] == "accounts/show" },
     icon:  "person",
     label: "基本情報",
     link:  true
@@ -27,13 +27,9 @@
   <% title_tag = item[:label] if item[:match].call %>
 <% end %>
 
-<header class="MainHeader d-flex flex-row align-items-center">
-  <h3 class="d-flex px-3 flex-nowrap">
-    <i class="bi bi-person me-2"></i>
-    アカウント － <%= title_tag %>
-  </h3>
+<header class="MainHeader d-flex flex-column">
   <div class="flex-grow-1 min-w-0">
-    <div class="input-group px-3">
+    <div class="input-group px-3 mb-1">
       <% menu.each do |item| %>
         <% next if item[:match].call || !item[:link] %>
         <% if item[:method] == :delete %>
@@ -54,4 +50,8 @@
       <% end %>
     </div>
   </div>
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-person me-2"></i>
+    アカウント － <%= title_tag %>
+  </h3>
 </header>

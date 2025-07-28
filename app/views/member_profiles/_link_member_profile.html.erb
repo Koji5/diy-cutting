@@ -1,14 +1,14 @@
 <% menu = [
   {
     path:  -> { new_member_profile_path },
-    match: -> { current_page?(new_member_profile_path) },
+    match: -> { assigns[:current_view] == "member_profiles/new" },
     icon:  "plus-lg",
     label: "新規作成",
     link:  false
   },
   {
     path:  -> { account_path(@account) if @account },
-    match: -> { controller_name == "accounts" && action_name == "show" },
+    match: -> { assigns[:current_view] == "accounts/show" },
     icon:  "person",
     label: "基本情報",
     link:  true
@@ -19,13 +19,9 @@
   <% title_tag = item[:label] if item[:match].call %>
 <% end %>
 
-<header class="MainHeader d-flex flex-row align-items-center">
-  <h3 class="d-flex px-3 flex-nowrap">
-    <i class="bi bi-person-circle me-2"></i>
-    プロフィール － <%= title_tag %>
-  </h3>
+<header class="MainHeader d-flex flex-column">
   <div class="flex-grow-1 min-w-0">
-    <div class="input-group px-3">
+    <div class="input-group px-3 mb-1">
       <% menu.each do |item| %>
         <% next if item[:match].call || !item[:link] %>
         <%= link_to item[:path].call,
@@ -36,4 +32,8 @@
       <% end %>
     </div>
   </div>
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-person-circle me-2"></i>
+    お客様プロフィール － <%= title_tag %>
+  </h3>
 </header>

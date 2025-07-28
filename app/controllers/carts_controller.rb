@@ -96,6 +96,9 @@ class CartsController < ApplicationController
         sync_cart_parts(parts_data)  # ← 失敗したらここで例外
         sync_cart_recipes(recipes_data)  # ← 失敗したらここで例外
       end
+      @cart_parts = @cart.cart_parts.reload.includes(part: { thumbnail_attachment: :blob })
+      @cart_recipes = @cart.cart_recipes.reload.includes(recipe: { thumbnail_attachment: :blob })
+
       render_flash_and_replace_main(
           template: "carts/show",
           assigns: {

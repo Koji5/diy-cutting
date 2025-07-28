@@ -58,7 +58,10 @@
                       data-action="click->recipe-builder#increase">＋</button>
             </fieldset>
             <%= link_to show_modal_part_path(part),
-                    data: { turbo_frame: "part_modal" },
+                    data: {
+                      turbo_frame: "modalTurboFrame",
+                      modal_title: "パーツ詳細"
+                    },
                     class: "btn btn-outline-secondary btn-icon eye-area",
                     style: "min-width: 40px;" do %>
               <i class="bi bi-eye"></i>
