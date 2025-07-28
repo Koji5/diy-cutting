@@ -7,6 +7,10 @@ class RecipesController < ApplicationController
     @recipes = Current.account.recipes
                           .includes(:origin_owner, thumbnail_attachment: :blob)
                           .order(updated_at: :desc)
+    render_flash_and_replace_main(
+        template: "recipes/index",
+        assigns: { recipes: @recipes }
+    )
   end
 
   def show
@@ -14,6 +18,14 @@ class RecipesController < ApplicationController
     # レシピに含まれているパーツ
     @recipe_parts = @recipe.recipe_parts.includes(part: { thumbnail_attachment: :blob })
     @carts = Current.account.carts.includes(cart_recipes: :recipe)
+    render_flash_and_replace_main(
+        template: "recipes/show",
+        assigns: {
+          recipe: @recipe,
+          recipe_parts: @recipe_parts,
+          carts: @carts
+        }
+    )
   end
 
   def show_modal
@@ -29,6 +41,13 @@ class RecipesController < ApplicationController
                      .kept
                      .includes(thumbnail_attachment: :blob)
                      .order(:name)
+    render_flash_and_replace_main(
+        template: "recipes/new",
+        assigns: {
+          recipe: @recipe,
+          parts: @parts
+        }
+    )
   end
 
   def create
@@ -54,23 +73,12 @@ class RecipesController < ApplicationController
           carts: @carts
         },
         message: "レシピを登録しました。",
-        type: "success"
+        type: :notice
       )
     else
-      @recipe = Recipe.new
-      @parts = Current.account.parts
-                      .kept
-                      .includes(thumbnail_attachment: :blob)
-                      .order(:name)
-
-      render_flash_and_replace_main(
-        template: "recipes/new",
-        assigns: {
-          recipe: @recipe,
-          parts: @parts
-        },
-        message: "レシピの登録に失敗しました。",
-        type: "danger"
+      flash[:alert] = @recipe.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
       )
     end
   end
@@ -83,6 +91,14 @@ class RecipesController < ApplicationController
     @excluded_parts = Current.account.parts
                               .includes(thumbnail_attachment: :blob)
                               .where.not(id: @recipe.recipe_parts.select(:part_id))
+    render_flash_and_replace_main(
+      template: "recipes/edit",
+      assigns: {
+        recipe: @recipe,
+        recipe_parts: @recipe_parts,
+        excluded_parts: @excluded_parts
+      }
+    )
   end
 
   def update
@@ -97,7 +113,6 @@ class RecipesController < ApplicationController
         parts_data = JSON.parse(params[:recipe][:parts_json], symbolize_names: true)
         sync_recipe_parts(parts_data)  # ← 失敗したらここで例外
       end
-
       render_flash_and_replace_main(
         template: "recipes/show",
         assigns: {
@@ -106,20 +121,17 @@ class RecipesController < ApplicationController
           carts: Current.account.carts.includes(cart_recipes: :recipe)
         },
         message: "レシピを更新しました",
-        type: "success"
+        type: :notice
       )
-
+    rescue ActiveRecord::RecordInvalid => e
+      flash[:alert] = e.record.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
+      )
     rescue => e
-      load_recipe_edit_data
-      render_flash_and_replace_main(
-        template: "recipes/edit",
-        assigns: {
-          recipe: @recipe,
-          recipe_parts: @recipe.recipe_parts,
-          excluded_parts: @excluded_parts
-        },
-        message: "レシピの更新に失敗しました: #{e.message}",
-        type: "danger"
+      render_flash_and_replace(
+        message: "レシピを更新できませんでした: #{e.message}",
+        type: :alert
       )
     end
   end
@@ -127,39 +139,11 @@ class RecipesController < ApplicationController
   def destroy
     @recipe = Recipe.find(params[:id])
     @recipe.destroy
-
-    respond_to do |format|
-      # Turbo Drive (通常のリンク) → 行を DOM から外す
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.remove(helpers.dom_id(@recipe))
-      end
-
-      # 非 Turbo (従来のブラウザ遷移) → 一覧へリダイレクト
-      format.html do
-        redirect_to recipes_path,
-                    status: :see_other,
-                    notice: "レシピ「#{@recipe.name}」を削除しました。"
-      end
-    end
+    flash[:notice] = Array(flash[:notice]) << "レシピ「#{@recipe.name}」を削除しました。"
+    render_flash_and_remove(dom_id: @recipe, flash: flash)
   end
 
   private
-
-  def flash_toast
-    render turbo_stream: turbo_stream.update(
-      "toast-frame",
-      partial: "shared/flash_toast",
-      locals: { message: params[:msg], type: params[:type] }
-    )
-  end
-
-  def render_flash_stream(message: "保存しました", type: "success")
-    render turbo_stream: turbo_stream.update(
-      "toast-frame",
-      partial: "shared/flash_toast",
-      locals: { message: message, type: type }
-    )
-  end
 
   def recipe_params
     params.require(:recipe).permit(:name, :thumbnail).merge(status: :draft)
@@ -191,27 +175,6 @@ class RecipesController < ApplicationController
     # 2. 削除（存在していたが送られてこなかったパーツ）
     to_remove = current_parts.keys - new_part_ids
     @recipe.recipe_parts.where(part_id: to_remove).destroy_all
-  end
-
-  def load_recipe_edit_data
-    # 1. parts_json から再構築
-    parts_data = JSON.parse(params[:recipe][:parts_json], symbolize_names: true)
-
-    # 2. 関連する Part をまとめて preload
-    part_ids = parts_data.map { |entry| entry[:part_id] }
-    preloaded_parts = Part.where(id: part_ids).includes(thumbnail_attachment: :blob).index_by(&:id)
-
-    # 3. recipe_parts を仮想的に復元（保存されていない状態）
-    @recipe.recipe_parts = parts_data.map do |entry|
-      part = preloaded_parts[entry[:part_id]]
-      @recipe.recipe_parts.build(part: part, quantity: entry[:qty])
-    end
-
-    # 4. 含まれていないパーツを抽出
-    used_part_ids = parts_data.map { |p| p[:part_id] }
-    @excluded_parts = Current.account.parts
-                              .includes(thumbnail_attachment: :blob)
-                              .where.not(id: used_part_ids)
   end
 
 end

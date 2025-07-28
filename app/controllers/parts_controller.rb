@@ -97,16 +97,7 @@ class PartsController < ApplicationController
     @part = Part.kept.find(params[:id])
     @part.discard!
     flash[:notice] = Array(flash[:notice]) << "部品「#{@part.name}」を削除しました。"
-    flash_html = ApplicationController.render(
-      partial: "shared/alert",
-      locals: { flash: flash }
-    )
-
-    # Turbo Drive (通常のリンク) → 行を DOM から外す
-      render turbo_stream: [
-        turbo_stream.remove(helpers.dom_id(@part)),
-        turbo_stream.update("alert-container", flash_html)
-      ]
+    render_flash_and_remove(dom_id: @part, flash: flash)
   end
 
   def inline_detail

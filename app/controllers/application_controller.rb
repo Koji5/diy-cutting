@@ -83,14 +83,14 @@ class ApplicationController < ActionController::Base
       flash[type] = Array(flash[type]) << message
     end
 
+    flash_html = ApplicationController.render(
+      partial: "shared/alert",
+      locals: { flash: flash }
+    )
+    flash.discard if flash.present?
+
     render turbo_stream: [
-      turbo_stream.update(
-        "alert-container",
-        ApplicationController.render(
-          partial: "shared/alert",
-          locals: { flash: flash }
-        )
-      ),
+      turbo_stream.update("alert-container", flash_html),
       *(
         if target_id.present?
           html = if partial.present?
@@ -110,6 +110,18 @@ class ApplicationController < ActionController::Base
         end
       )
     ]
+  end
+
+  def render_flash_and_remove(dom_id: nil, flash: nil)
+    flash_html = ApplicationController.render(
+      partial: "shared/alert",
+      locals: { flash: flash }
+    )
     flash.discard if flash.present?
+    # Turbo Drive (通常のリンク) → 行を DOM から外す
+    render turbo_stream: [
+      turbo_stream.remove(helpers.dom_id(dom_id)),
+      turbo_stream.update("alert-container", flash_html)
+    ]
   end
 end

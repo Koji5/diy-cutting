@@ -113,7 +113,7 @@ class CartsController < ApplicationController
       )
     rescue JSON::ParserError => e
       render_flash_and_replace(
-          message: "カートを更新できませんでした。１件も選択されていない可能性があります。",
+          message: "カートを更新できませんでした: #{e.message}",
           type: :alert
       )
     end
@@ -125,25 +125,21 @@ class CartsController < ApplicationController
     @cart_parts = @cart.cart_parts.includes(part: { thumbnail_attachment: :blob })
     # カートに含まれているレシピ
     @cart_recipes = @cart.cart_recipes.includes(recipe: { thumbnail_attachment: :blob })
+    render_flash_and_replace_main(
+        template: "carts/show",
+        assigns: {
+          cart: @cart,
+          cart_parts: @cart_parts,
+          cart_recipes: @cart_recipes
+        }
+    )
   end
 
   def destroy
     @cart = Cart.find(params[:id])
     @cart.destroy
-
-    respond_to do |format|
-      # Turbo Drive (通常のリンク) → 行を DOM から外す
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.remove(helpers.dom_id(@cart))
-      end
-
-      # 非 Turbo (従来のブラウザ遷移) → 一覧へリダイレクト
-      format.html do
-        redirect_to carts_path,
-                    status: :see_other,
-                    notice: "カート「#{@cart.name}」を削除しました。"
-      end
-    end
+    flash[:notice] = Array(flash[:notice]) << "カート「#{@cart.name}」を削除しました。"
+    render_flash_and_remove(dom_id: @cart, flash: flash)
   end
 
   private
