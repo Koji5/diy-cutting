@@ -18,7 +18,7 @@ class MemberProfilesController < ApplicationController
   def create
     @member_profile = Current.account.build_member_profile(member_profile_params)
     if @member_profile.save
-      flash[:notice] = "プロフィールを登録しました。"
+      flash[:notice] = "お客様プロフィールを登録しました。"
       render_account_dashboard
     else
       flash[:alert] = @member_profile.errors.full_messages
@@ -29,18 +29,33 @@ class MemberProfilesController < ApplicationController
   end
 
   def edit
-    # 未実装
-    #@member_profile = Current.account.member_profile
+    @account = Current.account
+    @member_profile = Current.account.member_profile
+    @prefectures = MPrefecture.all.order(:code)
+    @cities = MCity.where(prefecture_code: @member_profile.billing_prefecture_code)
+                .select(:code, :name_ja).order(:code, :name_ja)
+    render_flash_and_replace_main(
+      template: "member_profiles/edit",
+      assigns: {
+        account: @account,
+        member_profile: @member_profile,
+        prefectures: @prefectures,
+        cities: @cities
+      }
+    )
   end
 
   def update
-    # 未実装
-    #@member_profile = Current.account.member_profile
-    #if @member_profile.update(member_profile_params)
-    #  redirect_to account_path, notice: "プロフィールを更新しました。"
-    #else
-    #  render :edit, status: :unprocessable_entity
-    #end
+    @member_profile = Current.account.member_profile
+    if @member_profile.update(member_profile_params)
+      flash[:notice] = "お客様プロフィールを更新しました。"
+      render_account_dashboard
+    else
+      flash[:alert] = @member_profile.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
+      )
+    end
   end
 
   private
