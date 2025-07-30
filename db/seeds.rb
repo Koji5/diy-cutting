@@ -7,36 +7,14 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+# 実行コマンド（Docker開発環境）
+#   docker compose exec app rails db:seed
+# または個別実行：
+#   docker compose exec app rails runner db/seeds/local/40_banks.rb
+
 if Rails.env.development?
   Dir[Rails.root.join("db/seeds/local/*.rb")].sort.each { |f| load f }
-
-  # ───────────────────────────────
-  # 開発環境専用：管理者ユーザーを 1 件だけ用意
-  # ───────────────────────────────
-  admin_email    = "admin@example.dev"
-  admin_password = "123456"
-
-  admin = User.find_or_create_by!(email: admin_email) do |u|
-    u.password              = admin_password
-    u.password_confirmation = admin_password
-    u.role                  = :admin                 # enum { member:0, vendor:1, admin:2, affiliate:3 }
-    u.public_uid            ||= SecureRandom.urlsafe_base64(24)
-  end
-
-  # AdminDetail がまだ無ければ作成
-  if admin.admin_detail.nil?
-    admin.build_admin_detail(
-      nickname:   "DevMaster",
-      icon_url:   nil,
-      department: "Development"
-    )
-    admin.save!
-    puts <<~MSG
-      [seed] 開発用管理者ユーザーを作成／更新しました
-            email:    #{admin_email}
-            password: #{admin_password}
-    MSG
-  end
 
 #----------------------------------------
 # --- 部品系マスタ 初期値 ---

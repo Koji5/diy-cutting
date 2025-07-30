@@ -1756,6 +1756,73 @@ CREATE TABLE public.m_authorities (
 
 
 --
+-- Name: m_banks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_banks (
+    id bigint NOT NULL,
+    code character varying NOT NULL,
+    name character varying NOT NULL,
+    name_kana character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: m_banks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.m_banks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: m_banks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.m_banks_id_seq OWNED BY public.m_banks.id;
+
+
+--
+-- Name: m_branches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_branches (
+    id bigint NOT NULL,
+    bank_code character varying NOT NULL,
+    code character varying NOT NULL,
+    name character varying NOT NULL,
+    name_kana character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: m_branches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.m_branches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: m_branches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.m_branches_id_seq OWNED BY public.m_branches.id;
+
+
+--
 -- Name: m_categories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3661,6 +3728,20 @@ ALTER TABLE ONLY public.h_payout_events ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: m_banks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_banks ALTER COLUMN id SET DEFAULT nextval('public.m_banks_id_seq'::regclass);
+
+
+--
+-- Name: m_branches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_branches ALTER COLUMN id SET DEFAULT nextval('public.m_branches_id_seq'::regclass);
+
+
+--
 -- Name: m_postal_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3986,6 +4067,22 @@ ALTER TABLE ONLY public.h_affiliate_clicks
 
 ALTER TABLE ONLY public.h_payout_events
     ADD CONSTRAINT h_payout_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: m_banks m_banks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_banks
+    ADD CONSTRAINT m_banks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: m_branches m_branches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_branches
+    ADD CONSTRAINT m_branches_pkey PRIMARY KEY (id);
 
 
 --
@@ -6039,6 +6136,20 @@ CREATE INDEX index_m_authorities_on_deleted_by_id ON public.m_authorities USING 
 --
 
 CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_banks_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_banks_on_code ON public.m_banks USING btree (code);
+
+
+--
+-- Name: index_m_branches_on_bank_code_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_branches_on_bank_code_and_code ON public.m_branches USING btree (bank_code, code);
 
 
 --
@@ -10191,6 +10302,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250730063835'),
+('20250730063821'),
 ('20250729065218'),
 ('20250724072719'),
 ('20250724060538'),
