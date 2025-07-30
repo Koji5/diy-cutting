@@ -3142,6 +3142,61 @@ ALTER SEQUENCE public.vendor_offers_id_seq OWNED BY public.vendor_offers.id;
 
 
 --
+-- Name: vendor_profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendor_profiles (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    invoice_number character varying(20),
+    contact_person_name character varying(80),
+    contact_person_kana character varying(80),
+    contact_phone_number character varying(20),
+    office_postal_code character varying(7),
+    office_prefecture_code character varying(2),
+    office_city_code character varying(5) NOT NULL,
+    office_address_line character varying(200) NOT NULL,
+    office_department character varying(200),
+    office_phone_number character varying(20),
+    office_email character varying(200),
+    description text,
+    coverage_scope integer DEFAULT 0 NOT NULL,
+    bank_name character varying(60),
+    account_type smallint,
+    account_number character varying(20),
+    account_name character varying(100),
+    charges_enabled boolean DEFAULT false NOT NULL,
+    payouts_enabled boolean DEFAULT false NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: vendor_profiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.vendor_profiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: vendor_profiles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.vendor_profiles_id_seq OWNED BY public.vendor_profiles.id;
+
+
+--
 -- Name: vendor_service_areas; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3760,6 +3815,13 @@ ALTER TABLE ONLY public.vendor_offers ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: vendor_profiles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles ALTER COLUMN id SET DEFAULT nextval('public.vendor_profiles_id_seq'::regclass);
+
+
+--
 -- Name: vendor_service_prefectures id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4260,6 +4322,14 @@ ALTER TABLE ONLY public.vendor_offer_items
 
 ALTER TABLE ONLY public.vendor_offers
     ADD CONSTRAINT vendor_offers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vendor_profiles vendor_profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT vendor_profiles_pkey PRIMARY KEY (id);
 
 
 --
@@ -7246,6 +7316,55 @@ CREATE INDEX index_vendor_offers_on_vendor_id_and_status ON public.vendor_offers
 
 
 --
+-- Name: index_vendor_profiles_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_account_id ON public.vendor_profiles USING btree (account_id);
+
+
+--
+-- Name: index_vendor_profiles_on_coverage_scope; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_coverage_scope ON public.vendor_profiles USING btree (coverage_scope);
+
+
+--
+-- Name: index_vendor_profiles_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_created_by_id ON public.vendor_profiles USING btree (created_by_id);
+
+
+--
+-- Name: index_vendor_profiles_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_deleted_by_id ON public.vendor_profiles USING btree (deleted_by_id);
+
+
+--
+-- Name: index_vendor_profiles_on_invoice_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_vendor_profiles_on_invoice_number ON public.vendor_profiles USING btree (invoice_number);
+
+
+--
+-- Name: index_vendor_profiles_on_office_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_office_email ON public.vendor_profiles USING btree (office_email);
+
+
+--
+-- Name: index_vendor_profiles_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_vendor_profiles_on_updated_by_id ON public.vendor_profiles USING btree (updated_by_id);
+
+
+--
 -- Name: index_vendor_service_areas_on_city_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9002,6 +9121,14 @@ ALTER TABLE ONLY public.m_paint_types
 
 
 --
+-- Name: vendor_profiles fk_rails_6ec85fc848; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_6ec85fc848 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_grain_finishes fk_rails_70079f0d12; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9138,6 +9265,14 @@ ALTER TABLE ONLY public.h_affiliate_clicks
 
 
 --
+-- Name: vendor_profiles fk_rails_849c428992; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_849c428992 FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_offer_items fk_rails_8605eefbf2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9199,6 +9334,14 @@ ALTER TABLE ONLY public.payouts
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_8b1030bd18 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_profiles fk_rails_8bce8a5248; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_8bce8a5248 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9514,6 +9657,14 @@ ALTER TABLE ONLY public.parts
 
 
 --
+-- Name: vendor_profiles fk_rails_b92cdcb139; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_b92cdcb139 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: h_payout_events fk_rails_bd2df7a8c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9575,6 +9726,14 @@ ALTER TABLE ONLY public.m_cities
 
 ALTER TABLE ONLY public.payouts
     ADD CONSTRAINT fk_rails_c50a09411a FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: vendor_profiles fk_rails_c593e7192c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_c593e7192c FOREIGN KEY (office_city_code) REFERENCES public.m_cities(code);
 
 
 --
@@ -9810,6 +9969,14 @@ ALTER TABLE ONLY public.m_authorities
 
 
 --
+-- Name: vendor_profiles fk_rails_ea38802530; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendor_profiles
+    ADD CONSTRAINT fk_rails_ea38802530 FOREIGN KEY (office_prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
 -- Name: member_profiles fk_rails_ea596ce8ec; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10024,6 +10191,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250729065218'),
 ('20250724072719'),
 ('20250724060538'),
 ('20250724033700'),

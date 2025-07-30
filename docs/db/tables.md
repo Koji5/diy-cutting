@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-24 16:41 JST
+生成日: 2025-07-29 15:54 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -178,6 +178,68 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END member_profiles -->
+
+<!-- TABLE_BEGIN vendor_profiles -->
+## vendor_profiles — 業者様プロフィール
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| account_id | bigint | × |  | 対象アカウント |
+| invoice_number | character varying(20) | ○ |  | 適格請求書発行事業者番号 |
+| contact_person_name | character varying(80) | ○ |  | 窓口担当者名 |
+| contact_person_kana | character varying(80) | ○ |  | 窓口担当者名カナ |
+| contact_phone_number | character varying(20) | ○ |  | 窓口電話番号 |
+| office_postal_code | character varying(7) | ○ |  | 事業所 郵便番号 |
+| office_prefecture_code | character varying(2) | ○ |  | 事業所 都道府県コード |
+| office_city_code | character varying(5) | × |  | 事業所 市区町村コード |
+| office_address_line | character varying(200) | × |  | 事業所 番地・建物名ほか |
+| office_department | character varying(200) | ○ |  | 事業所 部署 |
+| office_phone_number | character varying(20) | ○ |  | 事業所 電話番号 |
+| office_email | character varying(200) | ○ |  | 事業所 メールアドレス |
+| description | text | ○ |  | 業者の紹介文など |
+| coverage_scope | integer | × | 0 | 対応地域単位 `0 : all_japan` `1 : prefectures` `2 : cities` |
+| bank_name | character varying(60) | ○ |  | 振込銀行名 |
+| account_type | smallint | ○ |  | 口座種別 `0=普通 1=当座` |
+| account_number | character varying(20) | ○ |  | 口座番号 |
+| account_name | character varying(100) | ○ |  | 口座名義 |
+| charges_enabled | boolean | × | false | Webhook `account.updated` で同期。入金停止などの UI 表示に利用 |
+| payouts_enabled | boolean | × | false | Webhook `account.updated` で同期。入金停止などの UI 表示に利用 |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp(6) without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- vendor_profiles_pkey (id) [PK]
+- index_vendor_profiles_on_account_id (account_id)
+- index_vendor_profiles_on_coverage_scope (coverage_scope)
+- index_vendor_profiles_on_created_by_id (created_by_id)
+- index_vendor_profiles_on_deleted_by_id (deleted_by_id)
+- index_vendor_profiles_on_invoice_number (invoice_number) [UNIQUE]
+- index_vendor_profiles_on_office_email (office_email)
+- index_vendor_profiles_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_6ec85fc848 (account_id) → accounts.id
+- fk_rails_849c428992 (created_by_id) → accounts.id
+- fk_rails_8bce8a5248 (deleted_by_id) → accounts.id
+- fk_rails_b92cdcb139 (updated_by_id) → accounts.id
+- fk_rails_c593e7192c (office_city_code) → m_cities.code
+- fk_rails_ea38802530 (office_prefecture_code) → m_prefectures.code
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+### メモ
+
+* 能力・対応地域は`vendor_capabilities`、`vendor_service_areas`、`vendor_materials` テーブルへ正規化。
+<!-- NOTE END -->
+
+<!-- TABLE_END vendor_profiles -->
 
 <!-- TABLE_BEGIN user_authorities -->
 ## user_authorities — ユーザー権限

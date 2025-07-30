@@ -1,55 +1,33 @@
 Rails.application.routes.draw do
 
+  # Devise
   devise_for :users, controllers: {
     sessions: 'users/sessions',
     registrations: 'users/registrations'
   }
 
-  get "parts/new"
-  get "parts/create"
-  get "articles/index"
+  # ヘルスチェック用ルート(自動生成)
   get "up" => "rails/health#show", as: :rails_health_check
-  get  "prefectures/:code/cities", to: "postals#cities"      # 都道府県→市区町村
-  get  "postal_lookup/:zip",       to: "postals#lookup"      # 郵便番号→候補一覧
-  get  "copy_address",       to: "postals#copy_address"      # アドレス帳→
-  get "vendors/flash_toast", to: "vendors/coverage_settings#flash_toast"
+
+  # API
+  namespace :api, defaults: { format: :json } do
+    get "prefectures/:code/cities",   to: "postals#cities"
+    get "postal_lookup/:zip",         to: "postals#lookup"
+    get "copy_address",               to: "postals#copy_address"
+    get "banks/search",               to: "banks#search"
+    get "banks/:bank_code/branches",  to: "banks#branches"
+  end
 
   # トップページ（ルート）の制御
   authenticated :user do
     root to: "articles#index", as: :authenticated_root
   end
-
   unauthenticated do
     root to: "welcome#index", as: :unauthenticated_root
   end
-#  root "articles#index"            # トップページを articles#index に
   resources :articles, only: [:index]
 
-  # 共通ログイン・パスワード・会員（member）登録
-#  devise_for :users,
-#            path: "",                                   # → /login /logout /sign_up
-#            path_names: { sign_in: "login",
-#                          sign_out: "logout",
-#                          sign_up:  "sign_up" },
-#            controllers: { registrations: "members/registrations" }
-
-  # ─────────────────────────────────────────────
-  # ロール専用の登録フォームだけを追加する
-  # （ログイン／パスワード関連はすべて共通の :user スコープを使う）
-  #devise_scope :user do
-    ## Vendor
-  #  get  "vendor/sign_up", to: "vendors/registrations#new",
-  #                        as: :new_vendor_registration
-  #  post "vendor",         to: "vendors/registrations#create",
-  #                        as: :vendor_registration
-
-    ## Affiliate
-  #  get  "affiliate/sign_up", to: "affiliates/registrations#new",
-  #                            as: :new_affiliate_registration
-  #  post "affiliate",         to: "affiliates/registrations#create",
-  #                            as: :affiliate_registration
-  #end
-
+  # TODO: 要修正
   namespace :vendors do
     resource  :coverage_settings, only: %i[show update]  # 画面１枚
     post "coverage_settings/cities_bulk", to: "coverage_settings#cities_bulk"
@@ -58,10 +36,10 @@ Rails.application.routes.draw do
     get  "coverage_settings/cities/:pref_code", to: "coverage_settings#cities_json", as: :coverage_cities_json
   end
 
+  # 各画面
   resources :accounts, only: [:show, :edit, :update] do
     post :toggle_role, on: :collection
   end
-
   resources :parts do
     member do
       get :inline_detail
@@ -80,6 +58,7 @@ Rails.application.routes.draw do
   end
   resources :rfqs, only: [:new, :create, :show]
   resource :member_profile, only: [:new, :create, :edit, :update]
+  resource :vendor_profile, only: [:new, :create, :edit, :update]
   resources :addresses, only: [:index, :create, :update, :destroy] do
     collection do
       get :new_modal

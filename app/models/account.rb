@@ -1,6 +1,7 @@
 class Account < ApplicationRecord
   belongs_to :user
   has_one :member_profile, dependent: :destroy
+  has_one :vendor_profile, dependent: :destroy
   has_many :parts, dependent: :destroy
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy

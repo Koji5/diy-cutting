@@ -1,4 +1,4 @@
-class PostalsController < ApplicationController
+class Api::PostalsController < ApplicationController
   def cities
     list = MCity.where(prefecture_code: params[:code])
                 .select(:code, :name_ja).order(:code, :name_ja)

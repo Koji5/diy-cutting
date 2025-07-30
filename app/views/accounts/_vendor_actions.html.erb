@@ -1,3 +1,7 @@
-<div id="vendor-actions">
-  <p>ベンダー権限の操作</p>
-</div>
+<% if account.has_role?(:vendor) %>
+  <% if account.vendor_profile.present? %>
+    <%= link_to "業者様プロフィールを編集する", edit_vendor_profile_path(account.vendor_profile), data: { turbo_frame: "main" }, class: "btn btn-primary" %>
+  <% else %>
+    <%= link_to "業者様プロフィールを作成する", new_vendor_profile_path, data: { turbo_frame: "main" }, class: "btn btn-primary" %>
+  <% end %>
+<% end %>

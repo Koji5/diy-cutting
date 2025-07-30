@@ -73,7 +73,7 @@ export default class extends Controller {
     const loader = document.getElementById("nowloading")
     loader?.classList.add("is-active")
 
-    const res  = await fetch(`/postal_lookup/${zip}`)
+    const res  = await fetch(`/api/postal_lookup/${zip}`)
     const data = await res.json()
 
     this.populateCityOptions(data.cities)
@@ -103,7 +103,7 @@ export default class extends Controller {
     const loader = document.getElementById("nowloading")
     loader?.classList.add("is-active")
 
-    const res  = await fetch(`/prefectures/${prefCode}/cities`)
+    const res  = await fetch(`/api/prefectures/${prefCode}/cities`)
     const list = await res.json()
 
     this.populateCityOptions(list)
@@ -163,7 +163,7 @@ export default class extends Controller {
   async copyAddress(event) {
     const loader = document.getElementById("nowloading")
     loader?.classList.add("is-active")
-    const res  = await fetch(`/copy_address`)
+    const res  = await fetch(`/api/copy_address`)
     const data = await res.json()
     if (data.length === 0) {
       loader?.classList.remove("is-active")
