@@ -3228,7 +3228,6 @@ CREATE TABLE public.vendor_profiles (
     office_email character varying(200),
     description text,
     coverage_scope integer DEFAULT 0 NOT NULL,
-    bank_name character varying(60),
     account_type smallint,
     account_number character varying(20),
     account_name character varying(100),
@@ -3240,7 +3239,11 @@ CREATE TABLE public.vendor_profiles (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    office_name character varying(100),
+    office_name_kana character varying(100),
+    bank_code character varying(4),
+    branch_code character varying(3)
 );
 
 
@@ -10302,6 +10305,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250731025409'),
 ('20250730063835'),
 ('20250730063821'),
 ('20250729065218'),

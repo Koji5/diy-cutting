@@ -1,0 +1,64 @@
+<% menu = [
+  {
+    path:  -> { new_vendor_profile_path },
+    match: -> { assigns[:current_view] == "vendor_profiles/new" },
+    icon:  "plus-lg",
+    label: "業者様プロフィール新規作成",
+    link:  false
+  },
+  {
+    path:  -> { edit_vendor_profile_path(@account) if @account },
+    match: -> { assigns[:current_view] == "vendor_profiles/edit" },
+    icon:  "pencil",
+    label: "業者様プロフィール編集",
+    link:  false
+  },
+  {
+    path:  -> { account_path(@account) if @account },
+    match: -> { assigns[:current_view] == "accounts/show" },
+    icon:  "person",
+    label: "基本情報",
+    link:  true
+  },
+  {
+    path:  -> { destroy_user_session_path },
+    match: -> {},
+    icon:  "box-arrow-right",
+    label: "ログアウト",
+    link:  true,
+    method: :delete
+  }
+] %>
+<% title_tag = "" %> 
+<% menu.each do |item| %>
+  <% title_tag = item[:label] if item[:match].call %>
+<% end %>
+
+<header class="MainHeader d-flex flex-column">
+  <div class="flex-grow-1 min-w-0">
+    <div class="input-group px-3 mb-1">
+      <% menu.each do |item| %>
+        <% next if item[:match].call || !item[:link] %>
+        <% if item[:method] == :delete %>
+          <%= link_to item[:path].call,
+                data: { turbo_method: "delete",
+                        turbo_frame: "_top"
+                },
+                class: "btn btn-outline-secondary form-control" do %>
+            <i class="<%= "bi bi-#{item[:icon]}" %>"></i>&nbsp;<%= item[:label] %>
+          <% end %>
+        <% else %>
+          <%= link_to item[:path].call,
+            data:  { turbo_frame: "main" },
+            class: "btn btn-outline-secondary form-control" do %>
+            <i class="<%= "bi bi-#{item[:icon]}" %>"></i>&nbsp;<%= item[:label] %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-person me-2"></i>
+    アカウント － <%= title_tag %>
+  </h3>
+</header>

@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-29 15:54 JST
+生成日: 2025-07-31 12:09 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -200,7 +200,6 @@
 | office_email | character varying(200) | ○ |  | 事業所 メールアドレス |
 | description | text | ○ |  | 業者の紹介文など |
 | coverage_scope | integer | × | 0 | 対応地域単位 `0 : all_japan` `1 : prefectures` `2 : cities` |
-| bank_name | character varying(60) | ○ |  | 振込銀行名 |
 | account_type | smallint | ○ |  | 口座種別 `0=普通 1=当座` |
 | account_number | character varying(20) | ○ |  | 口座番号 |
 | account_name | character varying(100) | ○ |  | 口座名義 |
@@ -213,6 +212,10 @@
 | deleted_by_id | bigint | ○ |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
+| office_name | character varying(100) | ○ |  |  |
+| office_name_kana | character varying(100) | ○ |  |  |
+| bank_code | character varying(4) | ○ |  |  |
+| branch_code | character varying(3) | ○ |  |  |
 
 **インデックス**:
 - vendor_profiles_pkey (id) [PK]
@@ -4437,4 +4440,53 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END member_details -->
+
+<!-- TABLE_BEGIN m_banks -->
+## m_banks
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| code | character varying | × |  |  |
+| name | character varying | × |  |  |
+| name_kana | character varying | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_banks_pkey (id) [PK]
+- index_m_banks_on_code (code) [UNIQUE]
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_banks -->
+
+<!-- TABLE_BEGIN m_branches -->
+## m_branches
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| bank_code | character varying | × |  |  |
+| code | character varying | × |  |  |
+| name | character varying | × |  |  |
+| name_kana | character varying | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_branches_pkey (id) [PK]
+- index_m_branches_on_bank_code_and_code (bank_code, code) [UNIQUE]
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_branches -->
 
