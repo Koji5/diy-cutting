@@ -161,6 +161,11 @@ export default class extends Controller {
 
   /** アドレス帳からコピー */
   async copyAddress(event) {
+    if (this.copyBodyTarget.children.length > 0) {
+      // 既にモーダルの中身が構築済みなら再利用
+      this.copyModal.show()
+      return
+    }
     const loader = document.getElementById("nowloading")
     loader?.classList.add("is-active")
     const res  = await fetch(`/api/copy_address`)
