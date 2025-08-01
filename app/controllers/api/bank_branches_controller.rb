@@ -38,7 +38,7 @@ class Api::BankBranchesController < ApplicationController
     render json: branches
   end
 
-  def list_branches
+  def branch_list
     branches = MBranch.where(bank_code: params[:code])
                       .select(:code, :name)
                       .order(:code)

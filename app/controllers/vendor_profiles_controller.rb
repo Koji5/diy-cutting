@@ -29,33 +29,33 @@ class VendorProfilesController < ApplicationController
   end
 
   def edit
-  #  @account = Current.account
-  #  @vendor_profile = Current.account.vendor_profile
-  #  @prefectures = MPrefecture.all.order(:code)
-  #  @cities = MCity.where(prefecture_code: @vendor_profile.billing_prefecture_code)
-  #              .select(:code, :name_ja).order(:code, :name_ja)
-  #  render_flash_and_replace_main(
-  #    template: "vendor_profiles/edit",
-  #    assigns: {
-  #      account: @account,
-  #      vendor_profile: @vendor_profile,
-  #      prefectures: @prefectures,
-  #      cities: @cities
-  #    }
-  #  )
+    @account = Current.account
+    @vendor_profile = Current.account.vendor_profile
+    @prefectures = MPrefecture.all.order(:code)
+    @cities = MCity.where(prefecture_code: @vendor_profile.office_prefecture_code)
+                .select(:code, :name_ja).order(:code, :name_ja)
+    render_flash_and_replace_main(
+      template: "vendor_profiles/edit",
+      assigns: {
+        account: @account,
+        vendor_profile: @vendor_profile,
+        prefectures: @prefectures,
+        cities: @cities
+      }
+    )
   end
 
   def update
-  #  @vendor_profile = Current.account.vendor_profile
-  #  if @vendor_profile.update(vendor_profile_params)
-  #    flash[:notice] = "お客様プロフィールを更新しました。"
-  #    render_account_dashboard
-  #  else
-  #    flash[:alert] = @vendor_profile.errors.full_messages
-  #    render_flash_and_replace(
-  #        flash: flash
-  #    )
-  #  end
+    @vendor_profile = Current.account.vendor_profile
+    if @vendor_profile.update(vendor_profile_params)
+      flash[:notice] = "業者様プロフィールを更新しました。"
+      render_account_dashboard
+    else
+      flash[:alert] = @vendor_profile.errors.full_messages
+      render_flash_and_replace(
+          flash: flash
+      )
+    end
   end
 
   private
@@ -78,7 +78,7 @@ class VendorProfilesController < ApplicationController
       :account_number,
       :account_name,
       :office_name,
-      :office_name_kanaL,
+      :office_name_kana,
       :bank_code,
       :branch_code
     )

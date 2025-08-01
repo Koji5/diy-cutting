@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     get "bank_branches/bank_search",            to: "bank_branches#search_bank"
     get "bank_branches/bank/:code",             to: "bank_branches#show_bank"
     get "bank_branches/:code/branch_search",    to: "bank_branches#search_branch"
-    get "bank_branches/:bank_code/branch_list", to: "bank_branches#branch_list"
+    get "bank_branches/:code/branch_list", to: "bank_branches#branch_list"
   end
 
   # トップページ（ルート）の制御
