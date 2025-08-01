@@ -1,0 +1,6 @@
+.bank-valid {
+  background-color: light-dark(rgb(232, 240, 254), rgb(70, 90, 0.4));
+}
+.readonly-no-focus {
+  pointer-events: none;      // クリック不可
+}

@@ -146,10 +146,15 @@
             <%= f.text_field :bank_name,
               id: "bank-input",
               class: "form-control",
+              value: @bank_name,
               data: { "bank-branch-target" => "bankInput" } %>
+            <span class="input-group-text">金融機関コード</span>
+            <%= f.text_field :bank_code,
+              class: "form-control bank-valid readonly-no-focus",
+              data: { "bank-branch-target" => "bankCode" },
+              readonly: true, required: true %>
           </div>
           <ul class="list-group" data-bank-branch-target="bankSuggestions" style="margin-left:74px;" hidden></ul>
-          <%= f.hidden_field :bank_code, data: { "bank-branch-target" => "bankCode" }, required: true %>
           <div class="invalid-feedback">
             銀行名は必須です
           </div>
@@ -159,13 +164,15 @@
             <%= f.text_field :branch_name,
               id: "branch-input",
               class: "form-control",
+              value: @branch_name,
               data: { "bank-branch-target" => "branchInput" } %>
+            <span class="input-group-text">支店コード</span>
+            <%= f.text_field :branch_code,
+              class: "form-control bank-valid readonly-no-focus",
+              data: { "bank-branch-target" => "branchCode" },
+              readonly: true, required: true %>
           </div>
           <ul class="list-group" data-bank-branch-target="branchSuggestions" style="margin-left:74px;" hidden></ul>
-          <%= f.hidden_field :branch_code,
-            data: {
-              "bank-branch-target" => "branchCode"
-              }, required: true %>
           <div class="invalid-feedback">
             支店名は必須です
           </div>

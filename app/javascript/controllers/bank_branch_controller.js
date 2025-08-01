@@ -16,15 +16,19 @@ export default class extends Controller {
     this.latestBranchQueryId = 0
     this.bankInputTarget.addEventListener("input", this.debounce(() => this.searchBanks(), 300))
     this.branchInputTarget.addEventListener("input", this.debounce(() => this.searchBranches(), 300))
+    this.bankInputTarget.addEventListener("blur", this.handleBankBlur.bind(this))
+    this.branchInputTarget.addEventListener("blur", this.handleBranchBlur.bind(this))
+    this.bankInputTarget.addEventListener("focus", this.handleBankFocus.bind(this))
+    this.branchInputTarget.addEventListener("focus", this.handleBranchFocus.bind(this))
 
     const bankCode = this.bankCodeTarget.value
     const branchCode = this.branchCodeTarget.value
 
     if (bankCode) {
-      this.loadBankName(bankCode)
+      this.handleBankBlur()
     }
     if (bankCode && branchCode) {
-      this.loadBranchName(bankCode, branchCode)
+      this.handleBranchBlur()
     }
 
   }
@@ -92,6 +96,7 @@ export default class extends Controller {
     this.dispatchBankChanged(code)
     // 👉 自動選択後、入力欄のフォーカスを外す
     this.bankInputTarget.blur()
+    this.handleBankBlur()
   }
 
   async loadBankName(bankCode) {
@@ -125,7 +130,8 @@ export default class extends Controller {
     const bankCode = this.currentBankCode || this.bankCodeTarget.value
 
     const queryId = ++this.latestBranchQueryId
-  
+    this.branchCodeTarget.value = ""
+
     if (!bankCode || !q) {
       this.branchSuggestionsTarget.hidden = true
       this.branchSuggestionsTarget.innerHTML = ""
@@ -169,6 +175,7 @@ export default class extends Controller {
     this.branchSuggestionsTarget.innerHTML = ""
     // 👉 自動選択後、入力欄のフォーカスを外す
     this.branchInputTarget.blur()
+    this.handleBranchBlur()
   }
 
   async loadBranchName(bankCode, branchCode) {
@@ -183,5 +190,29 @@ export default class extends Controller {
       console.error("支店名の取得に失敗しました", error)
       this.branchInputTarget.value = ""
     }
+  }
+
+  handleBankBlur() {
+    const el = this.bankInputTarget
+    el.classList.remove("bank-valid")
+    this.handleBranchBlur()
+
+    if (this.bankCodeTarget.value) {
+      el.classList.add("bank-valid")
+    }
+  }
+  handleBranchBlur() {
+    const el = this.branchInputTarget
+    el.classList.remove("bank-valid")
+
+    if (this.branchCodeTarget.value) {
+      el.classList.add("bank-valid")
+    }
+  }
+  handleBankFocus() {
+    this.bankInputTarget.classList.remove("bank-valid")
+  }
+  handleBranchFocus() {
+    this.branchInputTarget.classList.remove("bank-valid")
   }
 }

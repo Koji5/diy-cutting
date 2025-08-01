@@ -41,10 +41,11 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-@import "application";
-@import "custom";
-@import "hero_reveal";
+@import "components/application";
+@import "components/custom";
+@import "components/hero_reveal";
 @import "components/btn_icon";
-@import "sortable_animation";
-@import "thumbnail_edit";
-@import "recipes_show";
+@import "components/sortable_animation";
+@import "components/thumbnail_edit";
+@import "components/recipes_show";
+@import "components/bank_input";

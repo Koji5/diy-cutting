@@ -19,6 +19,7 @@ class MemberProfilesController < ApplicationController
     @member_profile = Current.account.build_member_profile(member_profile_params)
     if @member_profile.save
       flash[:notice] = "お客様プロフィールを登録しました。"
+      create_address_from_member_profile if params.dig(:member_profile, :add_flag) == "1"
       render_account_dashboard
     else
       flash[:alert] = @member_profile.errors.full_messages
@@ -49,6 +50,7 @@ class MemberProfilesController < ApplicationController
     @member_profile = Current.account.member_profile
     if @member_profile.update(member_profile_params)
       flash[:notice] = "お客様プロフィールを更新しました。"
+      create_address_from_member_profile if params.dig(:member_profile, :add_flag) == "1"
       render_account_dashboard
     else
       flash[:alert] = @member_profile.errors.full_messages
@@ -71,5 +73,29 @@ class MemberProfilesController < ApplicationController
       :billing_department,
       :billing_phone_number
     )
+  end
+
+  def create_address_from_member_profile
+    vp = params.require(:member_profile)
+
+    @address = Current.account.addresses.build(
+      postal_code:       vp[:billing_postal_code].to_s.strip,
+      prefecture_code:   vp[:billing_prefecture_code],
+      city_code:         vp[:billing_city_code],
+      address_line:      vp[:billing_address_line],
+      name:              vp[:billing_name],
+      name_kana:         vp[:billing_name_kana],
+      phone_number:      vp[:billing_phone_number],
+      department:        vp[:billing_department],
+      label:             "自動追加",
+      default_flag:      Current.account.addresses.none?
+    )
+
+    if @address.save
+      flash[:notice] = Array(flash[:notice]).push("アドレス帳へ住所を追加しました。")
+    else
+      flash[:alert] = @address.errors.full_messages
+      flash[:alert] = Array(flash[:alert]).push("アドレス帳への住所の追加に失敗しました。")
+    end
   end
 end

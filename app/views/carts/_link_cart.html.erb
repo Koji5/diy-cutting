@@ -35,7 +35,7 @@
 
 <header class="MainHeader d-flex flex-column">
   <div class="flex-grow-1 min-w-0">
-    <div class="input-group px-3 mb-1">
+    <div class="input-group mb-1">
       <% menu.each do |item| %>
         <% next if item[:match].call || !item[:link] %>
         <%= link_to item[:path].call,
