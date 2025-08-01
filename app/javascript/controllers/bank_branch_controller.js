@@ -11,9 +11,11 @@ export default class extends Controller {
 
   connect() {
     this.lastQuery = null
+    this.latestQueryId = 0
     this.lastBranchesQuery = null
+    this.latestBranchQueryId = 0
     this.bankInputTarget.addEventListener("input", this.debounce(() => this.searchBanks(), 300))
-    this.branchInputTarget.addEventListener("input", this.debounce(() => this.searchBranches(), 30))
+    this.branchInputTarget.addEventListener("input", this.debounce(() => this.searchBranches(), 300))
 
     const bankCode = this.bankCodeTarget.value
     const branchCode = this.branchCodeTarget.value
@@ -46,6 +48,8 @@ export default class extends Controller {
     this.bankCodeTarget.value = ""
     this.dispatchBankChanged(null)
 
+    const queryId = ++this.latestQueryId
+
     if (!q) {
       this.bankSuggestionsTarget.hidden = true
       this.bankSuggestionsTarget.innerHTML = ""
@@ -53,6 +57,18 @@ export default class extends Controller {
     }
     const res = await fetch(`/api/bank_branches/bank_search?q=${encodeURIComponent(q)}`)
     const banks = await res.json()
+    if (queryId !== this.latestQueryId) {
+      console.log("❌ 古いレスポンスを破棄:", q)
+      return
+    }
+    if (banks.length === 1) {
+      // 1件だけなら自動選択
+      const [bank] = banks
+      this.selectBank({
+        dataset: { code: bank.code, name: bank.name }
+      })
+      return
+    }
 
     this.bankSuggestionsTarget.innerHTML = banks.map(bank =>
       `<li class="list-group-item list-group-item-action py-1" data-code="${bank.code}" data-name="${bank.name}">${bank.name}</li>`
@@ -74,6 +90,8 @@ export default class extends Controller {
     this.bankSuggestionsTarget.innerHTML = ""
 
     this.dispatchBankChanged(code)
+    // 👉 自動選択後、入力欄のフォーカスを外す
+    this.bankInputTarget.blur()
   }
 
   async loadBankName(bankCode) {
@@ -99,12 +117,15 @@ export default class extends Controller {
 
   async searchBranches() {
     const q = this.branchInputTarget.value.trim()
+
     // 🔁 直前と同じクエリならスキップ
     if (q === this.lastBranchesQuery) return
     this.lastBranchesQuery = q
 
     const bankCode = this.currentBankCode || this.bankCodeTarget.value
 
+    const queryId = ++this.latestBranchQueryId
+  
     if (!bankCode || !q) {
       this.branchSuggestionsTarget.hidden = true
       this.branchSuggestionsTarget.innerHTML = ""
@@ -113,6 +134,19 @@ export default class extends Controller {
 
     const res = await fetch(`/api/bank_branches/${bankCode}/branch_search?q=${encodeURIComponent(q)}`)
     const branches = await res.json()
+
+    if (queryId !== this.latestBranchQueryId) {
+      console.log("❌ 古いレスポンスを破棄:", q)
+      return
+    }
+    if (branches.length === 1) {
+      const [branch] = branches
+
+      this.selectBranch({
+        dataset: { code: branch.code, name: branch.name }
+      })
+      return
+    }
 
     this.branchSuggestionsTarget.innerHTML = branches.map(branch =>
       `<li class="list-group-item list-group-item-action py-1" data-code="${branch.code}" data-name="${branch.name}">${branch.name}</li>`
@@ -133,6 +167,8 @@ export default class extends Controller {
     this.branchCodeTarget.value = code
     this.branchSuggestionsTarget.hidden = true
     this.branchSuggestionsTarget.innerHTML = ""
+    // 👉 自動選択後、入力欄のフォーカスを外す
+    this.branchInputTarget.blur()
   }
 
   async loadBranchName(bankCode, branchCode) {
