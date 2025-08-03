@@ -48,6 +48,38 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: account_coverage_areas; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.account_coverage_areas (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    city_code character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: account_coverage_areas_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.account_coverage_areas_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: account_coverage_areas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.account_coverage_areas_id_seq OWNED BY public.account_coverage_areas.id;
+
+
+--
 -- Name: accounts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3577,6 +3609,13 @@ ALTER TABLE ONLY public.h_payment_webhooks ATTACH PARTITION public.h_payment_web
 
 
 --
+-- Name: account_coverage_areas id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_coverage_areas ALTER COLUMN id SET DEFAULT nextval('public.account_coverage_areas_id_seq'::regclass);
+
+
+--
 -- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3910,6 +3949,14 @@ ALTER TABLE ONLY public.vendor_profiles ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.vendor_service_prefectures ALTER COLUMN id SET DEFAULT nextval('public.vendor_service_prefectures_id_seq'::regclass);
+
+
+--
+-- Name: account_coverage_areas account_coverage_areas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_coverage_areas
+    ADD CONSTRAINT account_coverage_areas_pkey PRIMARY KEY (id);
 
 
 --
@@ -5698,6 +5745,27 @@ CREATE UNIQUE INDEX idx_vsa_unique ON public.vendor_service_areas USING btree (v
 --
 
 CREATE UNIQUE INDEX idx_vsp_unique ON public.vendor_service_prefectures USING btree (vendor_id, prefecture_code);
+
+
+--
+-- Name: index_account_coverage_areas_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_coverage_areas_on_account_id ON public.account_coverage_areas USING btree (account_id);
+
+
+--
+-- Name: index_account_coverage_areas_on_account_id_and_city_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_account_coverage_areas_on_account_id_and_city_code ON public.account_coverage_areas USING btree (account_id, city_code);
+
+
+--
+-- Name: index_account_coverage_areas_on_city_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_coverage_areas_on_city_code ON public.account_coverage_areas USING btree (city_code);
 
 
 --
@@ -9411,6 +9479,14 @@ ALTER TABLE ONLY public.article_comments
 
 
 --
+-- Name: account_coverage_areas fk_rails_8836a59e19; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_coverage_areas
+    ADD CONSTRAINT fk_rails_8836a59e19 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_service_prefectures fk_rails_8a9ace2194; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9808,6 +9884,14 @@ ALTER TABLE ONLY public.recipe_snapshots
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_c2cdeb6f7c FOREIGN KEY (billing_prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
+-- Name: account_coverage_areas fk_rails_c3045c190a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_coverage_areas
+    ADD CONSTRAINT fk_rails_c3045c190a FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
 
 
 --
@@ -10305,6 +10389,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250803033015'),
 ('20250731025409'),
 ('20250730063835'),
 ('20250730063821'),

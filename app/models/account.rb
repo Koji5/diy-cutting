@@ -6,6 +6,7 @@ class Account < ApplicationRecord
   has_many :recipes, dependent: :destroy
   has_many :carts, dependent: :destroy
   has_many :addresses, dependent: :destroy
+  has_many :account_coverage_areas, dependent: :destroy
   has_one_attached :thumbnail
   #accepts_nested_attributes_for :user ← Account モデル側ではネストしない
 

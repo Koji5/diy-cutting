@@ -1,0 +1,13 @@
+<div data-controller="area-form"
+     data-area-form-geojson-path-value="<%= asset_path("/munis/pref_index.geojson") %>"
+     data-area-form-initial-codes-value="<%= json_escape(@selected_codes.to_json) %>"
+     data-area-form-post-url-value="<%= service_area_path %>">
+
+  <div id="serviceAreaMap" data-area-form-target="serviceAreaMap" class="Square"></div>
+
+  <%= form_with url: confirm_service_area_path, method: :patch, 
+            data: { turbo_frame: "modalTurboFrame" } do |f| %>
+    <input type="hidden" name="payload" data-area-form-target="payload">
+    <%= f.submit "登録", class: "btn btn-primary" %>
+  <% end %>
+</div>

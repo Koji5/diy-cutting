@@ -1,15 +1,15 @@
 class MCity < ApplicationRecord
   self.primary_key = "code"
-
+  scope :active, -> { where(deleted_flag: false) }
   # ─── 関連 ───
   belongs_to :prefecture,
              class_name:  "MPrefecture",
              foreign_key: "prefecture_code",
              primary_key: "code"
 
-  belongs_to :created_by, class_name: "User", optional: true
-  belongs_to :updated_by, class_name: "User", optional: true
-  belongs_to :deleted_by, class_name: "User", optional: true
+  belongs_to :created_by, class_name: "Account", optional: true
+  belongs_to :updated_by, class_name: "Account", optional: true
+  belongs_to :deleted_by, class_name: "Account", optional: true
   has_many :addresses, foreign_key: "city_code"
 
   # ─── バリデーション ───

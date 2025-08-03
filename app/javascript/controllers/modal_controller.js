@@ -11,8 +11,9 @@ export default class extends Controller {
 
     const trigger = document.activeElement
 
+
     // タイトル変更
-    const title = trigger?.dataset?.modalTitle
+    const title = trigger?.dataset?.modalTitle || this.element.querySelector("#modalMetaTitle")?.value
     const titleEl = this.element.querySelector("#modalTitle")
     if (title && titleEl) titleEl.textContent = title
 
