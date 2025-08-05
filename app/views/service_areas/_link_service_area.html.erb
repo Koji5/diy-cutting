@@ -1,16 +1,9 @@
 <% menu = [
   {
-    path:  -> { new_vendor_profile_path },
-    match: -> { assigns[:current_view] == "vendor_profiles/new" },
-    icon:  "plus-lg",
-    label: "プロフィール新規作成",
-    link:  false
-  },
-  {
-    path:  -> { edit_vendor_profile_path(@account) if @account },
-    match: -> { assigns[:current_view] == "vendor_profiles/edit" },
+    path:  -> { edit_service_area_path(@account) if @account },
+    match: -> { assigns[:current_view] == "service_areas/edit" },
     icon:  "pencil",
-    label: "プロフィール編集",
+    label: "対応可能地域設定",
     link:  false
   },
   {

@@ -1,7 +1,17 @@
+<%= render "service_areas/link_service_area" %>
 <div data-controller="area-form"
      data-area-form-geojson-path-value="<%= asset_path("/munis/pref_index.geojson") %>"
      data-area-form-initial-codes-value="<%= json_escape(@selected_codes.to_json) %>"
      data-area-form-post-url-value="<%= service_area_path %>">
+
+  <!-- 全市区町村コードを保持する hidden input（Stimulus用）-->
+  <input type="hidden" value="<%= json_escape(MCity.active.pluck(:code).to_json) %>" data-area-form-target="allCityCodes">
+
+  <%
+    city_groups = MCity.active.group_by(&:prefecture_code)
+    pref_city_map = city_groups.transform_values { |cities| cities.map(&:code) }
+  %>
+  <input type="hidden" value="<%= json_escape(pref_city_map.to_json) %>" data-area-form-target="prefCityMap">
 
   <div id="serviceAreaMap" data-area-form-target="serviceAreaMap" class="Square"></div>
 
