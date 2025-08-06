@@ -11,13 +11,14 @@ Rails.application.routes.draw do
 
   # API
   namespace :api, defaults: { format: :json } do
-    get "prefectures/:code/cities",     to: "postals#cities"
-    get "postal_lookup/:zip",           to: "postals#lookup"
-    get "copy_address",                 to: "postals#copy_address"
-    get "bank_branches/bank_search",            to: "bank_branches#search_bank"
-    get "bank_branches/bank/:code",             to: "bank_branches#show_bank"
-    get "bank_branches/:code/branch_search",    to: "bank_branches#search_branch"
+    get "prefectures/:code/cities", to: "postals#cities"
+    get "postal_lookup/:zip", to: "postals#lookup"
+    get "copy_address", to: "postals#copy_address"
+    get "bank_branches/bank_search", to: "bank_branches#search_bank"
+    get "bank_branches/bank/:code", to: "bank_branches#show_bank"
+    get "bank_branches/:code/branch_search", to: "bank_branches#search_branch"
     get "bank_branches/:code/branch_list", to: "bank_branches#branch_list"
+    post "service_area_summary", to: "service_area_summaries#create"
   end
 
   # トップページ（ルート）の制御

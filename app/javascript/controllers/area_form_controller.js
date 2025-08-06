@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus"
 const L = window.L
 
 export default class extends Controller {
-  static targets = ["payload", "serviceAreaMap", "prefCityMap", "allCityCodes"]
+  static targets = ["payload", "serviceAreaMap", "prefCityMap", "allCityCodes", "selectedArea"]
   static values = {
     geojsonPath: String,
     initialCodes: Array,
@@ -207,6 +207,9 @@ export default class extends Controller {
   }
 
   #updatePayload() {
+    const cityCodes = [...this.selectedCities]
+    this.payloadTarget.value = JSON.stringify({ city_codes: cityCodes })
+
     this.payloadTarget.value = JSON.stringify({
       city_codes: [...this.selectedCities]
     })
@@ -216,5 +219,43 @@ export default class extends Controller {
     Object.values(this.prefLayers || {}).forEach(layer => {
       layer.setStyle(layer.options.style)
     })
+
+    this.#updateServiceAreaSummary(cityCodes)
+  }
+
+  async #updateServiceAreaSummary(cityCodes) {
+    if (!this.hasSelectedAreaTarget) return
+
+    if (cityCodes.length === 0) {
+      this.selectedAreaTarget.textContent = "未選択"
+      return
+    }
+
+    // 読み込み中表示（任意）
+    this.selectedAreaTarget.textContent = "読み込み中..."
+
+    try {
+      const res = await fetch("/api/service_area_summary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-Token": this.#getMetaContent("csrf-token")
+        },
+        body: JSON.stringify({ city_codes: cityCodes })
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      const json = await res.json()
+      this.selectedAreaTarget.textContent = json.summary || "取得失敗"
+    } catch (e) {
+      console.error("サービスエリア取得エラー:", e)
+      this.selectedAreaTarget.textContent = "取得エラー"
+    }
+  }
+
+  #getMetaContent(name) {
+    const el = document.querySelector(`meta[name="${name}"]`)
+    return el && el.content
   }
 }
