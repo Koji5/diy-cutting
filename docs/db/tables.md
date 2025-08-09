@@ -1,6 +1,6 @@
 # DB テーブル一覧
 
-生成日: 2025-07-31 12:09 JST
+生成日: 2025-08-09 15:33 JST
 
 <!-- SECTION_BEGIN ユーザー系 -->
 # ユーザー系
@@ -628,20 +628,6 @@
 | account_id | bigint | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
-| material_category_code | character varying(10) | × |  | 材質カテゴリコード（WOOD / METAL など） |
-| material_code | character varying(16) | × |  | 具体的な材質コード（樹種・金属種） |
-| shape_code | character varying(10) | × |  | 平面形状コード（RECT、TRIANGLE など） |
-| paint_type_code | character varying(4) | ○ |  | 塗装種別コード（ウレタン、自然塗装等） |
-| thickness_mm | numeric(8,2) | × |  | 厚み [mm] |
-| width1_mm | numeric(8,2) | × |  | 幅1 [mm]（矩形の場合は幅） |
-| width2_mm | numeric(8,2) | ○ |  | 幅2 [mm]（台形・三角形などで使用） |
-| length_mm | numeric(8,2) | × |  | 長さ [mm] |
-| shape_json | jsonb | ○ | {} | 面取り・角丸等の形状加工パラメータ |
-| corner_proc_json | jsonb | ○ | {} | 四隅の角加工設定 |
-| hole_json | jsonb | ○ | {} | 丸穴加工設定 |
-| sqhole_json | jsonb | ○ | {} | 角穴加工設定 |
-| edge_json | jsonb | ○ | {} | 断面加工（面取り／R など） |
-| paint_json | jsonb | ○ | {} | 塗装詳細（色・艶・導管処理等） |
 | note | text | ○ |  | 備考メモ |
 | deleted_flag | boolean | × | false |  |
 | deleted_at | timestamp(6) without time zone | ○ |  |  |
@@ -649,34 +635,25 @@
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
 | origin_snapshot_id | bigint | ○ |  |  |
-| origin_owner_id | bigint | ○ |  |  |
-| camera_state | jsonb | ○ |  |  |
 | name | character varying(50) | × |  | パーツ名称（ユーザー入力） |
+| shape_type_code | character varying(12) | × |  |  |
 
 **インデックス**:
 - parts_pkey (id) [PK]
 - index_parts_on_account_id (account_id)
-- index_parts_on_corner_proc_json (corner_proc_json)
 - index_parts_on_created_by_id (created_by_id)
 - index_parts_on_deleted_by_id (deleted_by_id)
-- index_parts_on_hole_json (hole_json)
 - index_parts_on_origin_snapshot_id (origin_snapshot_id)
-- index_parts_on_sqhole_json (sqhole_json)
+- index_parts_on_shape_type_code (shape_type_code)
 - index_parts_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- fk_rails_001c6f3575 (origin_owner_id) → accounts.id
 - fk_rails_30be2232d9 (deleted_by_id) → accounts.id
+- fk_rails_6f878b3965 (shape_type_code) → m_shape_types.code
 - fk_rails_86b8db80ec (account_id) → accounts.id
-- fk_rails_9790700793 (material_category_code) → m_categories.code
-- fk_rails_a63b0793fa (material_code) → m_materials.code
-- fk_rails_b13d63e301 (shape_code) → m_shapes.code
+- fk_rails_9d79b5ea56 (origin_snapshot_id) → part_snapshots.id
 - fk_rails_b8a090e626 (updated_by_id) → accounts.id
 - fk_rails_d9a2b8fbeb (created_by_id) → accounts.id
-- fk_rails_da03c13c19 (paint_type_code) → m_paint_types.code
-
-**チェック制約**:
-- chk_parts_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -867,57 +844,35 @@
 | 列名 | 型 | NULL | デフォルト | 説明 |
 |------|----|------|-----------|------|
 | id | bigint | × |  |  |
-| part_id | bigint | × |  |  |
-| checksum | character varying | × |  |  |
 | created_at | timestamp(6) without time zone | × |  |  |
 | updated_at | timestamp(6) without time zone | × |  |  |
-| material_category_code | character varying(10) | × |  |  |
-| material_code | character varying(16) | × |  |  |
-| shape_code | character varying(8) | × |  |  |
-| paint_type_code | character varying(4) | ○ |  |  |
-| thickness_mm | numeric(8,2) | × |  |  |
-| width1_mm | numeric(8,2) | × |  |  |
-| width2_mm | numeric(8,2) | ○ |  |  |
-| length_mm | numeric(8,2) | × |  |  |
-| shape_json | jsonb | ○ | {} |  |
-| corner_proc_json | jsonb | ○ | {} |  |
-| hole_json | jsonb | ○ | {} |  |
-| sqhole_json | jsonb | ○ | {} |  |
-| edge_json | jsonb | ○ | {} |  |
-| paint_json | jsonb | ○ | {} |  |
 | note | text | ○ |  |  |
 | deleted_flag | boolean | × | false |  |
 | deleted_at | timestamp(6) without time zone | ○ |  |  |
 | deleted_by_id | bigint | ○ |  |  |
 | created_by_id | bigint | ○ |  |  |
 | updated_by_id | bigint | ○ |  |  |
-| origin_snapshot_id | bigint | ○ |  |  |
-| origin_owner_id | bigint | ○ |  |  |
+| account_id | bigint | × |  |  |
+| name | character varying(50) | × |  |  |
+| shape_type_code | character varying(12) | × |  |  |
+| source_part_id | bigint | ○ |  |  |
 
 **インデックス**:
 - part_snapshots_pkey (id) [PK]
-- index_part_snapshots_on_checksum (checksum)
-- index_part_snapshots_on_corner_proc_json (corner_proc_json)
+- index_part_snapshots_on_account_id (account_id)
 - index_part_snapshots_on_created_by_id (created_by_id)
 - index_part_snapshots_on_deleted_by_id (deleted_by_id)
-- index_part_snapshots_on_hole_json (hole_json)
-- index_part_snapshots_on_origin_snapshot_id (origin_snapshot_id)
-- index_part_snapshots_on_part_id (part_id)
-- index_part_snapshots_on_sqhole_json (sqhole_json)
+- index_part_snapshots_on_shape_type_code (shape_type_code)
+- index_part_snapshots_on_source_part_id (source_part_id)
 - index_part_snapshots_on_updated_by_id (updated_by_id)
 
 **外部キー**:
-- fk_rails_0a3ba229b5 (paint_type_code) → m_paint_types.code
-- fk_rails_140f6f0234 (material_code) → m_materials.code
-- fk_rails_44200a9608 (material_category_code) → m_categories.code
-- fk_rails_4a942da875 (created_by_id) → users.id
-- fk_rails_c44e04702a (updated_by_id) → users.id
-- fk_rails_c87b5a313e (part_id) → parts.id
-- fk_rails_d38f648163 (shape_code) → m_shapes.code
-- fk_rails_dc20f86c16 (deleted_by_id) → users.id
-
-**チェック制約**:
-- chk_ps_dims_positive: thickness_mm > 0::numeric AND width1_mm > 0::numeric AND (width2_mm IS NULL OR width2_mm > 0::numeric) AND length_mm > 0::numeric
+- fk_rails_11492a97a7 (shape_type_code) → m_shape_types.code
+- fk_rails_4a942da875 (created_by_id) → accounts.id
+- fk_rails_9a54ec38e1 (account_id) → accounts.id
+- fk_rails_c44e04702a (updated_by_id) → accounts.id
+- fk_rails_cb2a5b066c (source_part_id) → parts.id
+- fk_rails_dc20f86c16 (deleted_by_id) → accounts.id
 <!-- AUTO END -->
 
 <!-- NOTE BEGIN -->
@@ -4489,4 +4444,71 @@
 <!-- NOTE END -->
 
 <!-- TABLE_END m_branches -->
+
+<!-- TABLE_BEGIN account_coverage_areas -->
+## account_coverage_areas
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| id | bigint | × |  |  |
+| account_id | bigint | × |  |  |
+| city_code | character varying | × |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- account_coverage_areas_pkey (id) [PK]
+- index_account_coverage_areas_on_account_id (account_id)
+- index_account_coverage_areas_on_account_id_and_city_code (account_id, city_code) [UNIQUE]
+- index_account_coverage_areas_on_city_code (city_code)
+
+**外部キー**:
+- fk_rails_8836a59e19 (account_id) → accounts.id
+- fk_rails_c3045c190a (city_code) → m_cities.code
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END account_coverage_areas -->
+
+<!-- TABLE_BEGIN m_shape_types -->
+## m_shape_types
+
+<!-- AUTO BEGIN -->
+| 列名 | 型 | NULL | デフォルト | 説明 |
+|------|----|------|-----------|------|
+| code | character varying(12) | × |  |  |
+| name_ja | character varying(10) | × |  |  |
+| name_en | character varying(20) | × |  |  |
+| kana | character varying(20) | × |  |  |
+| created_by_id | bigint | ○ |  |  |
+| updated_by_id | bigint | ○ |  |  |
+| deleted_flag | boolean | × | false |  |
+| deleted_at | timestamp without time zone | ○ |  |  |
+| deleted_by_id | bigint | ○ |  |  |
+| created_at | timestamp(6) without time zone | × |  |  |
+| updated_at | timestamp(6) without time zone | × |  |  |
+
+**インデックス**:
+- m_shape_types_pkey (code) [PK]
+- index_m_shape_types_on_code (code) [UNIQUE]
+- index_m_shape_types_on_created_by_id (created_by_id)
+- index_m_shape_types_on_deleted_by_id (deleted_by_id)
+- index_m_shape_types_on_name_ja (name_ja) [UNIQUE]
+- index_m_shape_types_on_updated_by_id (updated_by_id)
+
+**外部キー**:
+- fk_rails_d7f4fb5d64 (updated_by_id) → accounts.id
+- fk_rails_dae1eaaef3 (created_by_id) → accounts.id
+- fk_rails_e63705d0a5 (deleted_by_id) → accounts.id
+<!-- AUTO END -->
+
+<!-- NOTE BEGIN -->
+<!-- 任意のメモを書いてください -->
+<!-- NOTE END -->
+
+<!-- TABLE_END m_shape_types -->
 

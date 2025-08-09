@@ -10,23 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: forbid_origin_update(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.forbid_origin_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  IF NEW.origin_snapshot_id IS DISTINCT FROM OLD.origin_snapshot_id
-     OR NEW.origin_owner_id IS DISTINCT FROM OLD.origin_owner_id THEN
-    RAISE EXCEPTION 'origin columns are immutable';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
 -- Name: tg_h_error_logs_compress(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2170,6 +2153,25 @@ CREATE TABLE public.m_process_types (
 
 
 --
+-- Name: m_shape_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_shape_types (
+    code character varying(12) NOT NULL,
+    name_ja character varying(10) NOT NULL,
+    name_en character varying(20) NOT NULL,
+    kana character varying(20) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: m_shapes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2495,33 +2497,18 @@ ALTER SEQUENCE public.part_files_id_seq OWNED BY public.part_files.id;
 
 CREATE TABLE public.part_snapshots (
     id bigint NOT NULL,
-    part_id bigint NOT NULL,
-    checksum character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    material_category_code character varying(10) NOT NULL,
-    material_code character varying(16) NOT NULL,
-    shape_code character varying(8) NOT NULL,
-    paint_type_code character varying(4),
-    thickness_mm numeric(8,2) NOT NULL,
-    width1_mm numeric(8,2) NOT NULL,
-    width2_mm numeric(8,2),
-    length_mm numeric(8,2) NOT NULL,
-    shape_json jsonb DEFAULT '{}'::jsonb,
-    corner_proc_json jsonb DEFAULT '{}'::jsonb,
-    hole_json jsonb DEFAULT '{}'::jsonb,
-    sqhole_json jsonb DEFAULT '{}'::jsonb,
-    edge_json jsonb DEFAULT '{}'::jsonb,
-    paint_json jsonb DEFAULT '{}'::jsonb,
     note text,
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_by_id bigint,
     updated_by_id bigint,
-    origin_snapshot_id bigint,
-    origin_owner_id bigint,
-    CONSTRAINT chk_ps_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
+    account_id bigint NOT NULL,
+    name character varying(50) NOT NULL,
+    shape_type_code character varying(12) NOT NULL,
+    source_part_id bigint
 );
 
 
@@ -2553,20 +2540,6 @@ CREATE TABLE public.parts (
     account_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    material_category_code character varying(10) NOT NULL,
-    material_code character varying(16) NOT NULL,
-    shape_code character varying(10) NOT NULL,
-    paint_type_code character varying(4),
-    thickness_mm numeric(8,2) NOT NULL,
-    width1_mm numeric(8,2) NOT NULL,
-    width2_mm numeric(8,2),
-    length_mm numeric(8,2) NOT NULL,
-    shape_json jsonb DEFAULT '{}'::jsonb,
-    corner_proc_json jsonb DEFAULT '{}'::jsonb,
-    hole_json jsonb DEFAULT '{}'::jsonb,
-    sqhole_json jsonb DEFAULT '{}'::jsonb,
-    edge_json jsonb DEFAULT '{}'::jsonb,
-    paint_json jsonb DEFAULT '{}'::jsonb,
     note text,
     deleted_flag boolean DEFAULT false NOT NULL,
     deleted_at timestamp(6) without time zone,
@@ -2574,10 +2547,8 @@ CREATE TABLE public.parts (
     created_by_id bigint,
     updated_by_id bigint,
     origin_snapshot_id bigint,
-    origin_owner_id bigint,
-    camera_state jsonb,
     name character varying(50) NOT NULL,
-    CONSTRAINT chk_parts_dims_positive CHECK (((thickness_mm > (0)::numeric) AND (width1_mm > (0)::numeric) AND ((width2_mm IS NULL) OR (width2_mm > (0)::numeric)) AND (length_mm > (0)::numeric)))
+    shape_type_code character varying(12) NOT NULL
 );
 
 
@@ -4229,6 +4200,14 @@ ALTER TABLE ONLY public.m_postal_codes
 
 ALTER TABLE ONLY public.m_process_types
     ADD CONSTRAINT m_process_types_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_shape_types m_shape_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shape_types
+    ADD CONSTRAINT m_shape_types_pkey PRIMARY KEY (code);
 
 
 --
@@ -6679,6 +6658,41 @@ CREATE INDEX index_m_process_types_on_updated_by_id ON public.m_process_types US
 
 
 --
+-- Name: index_m_shape_types_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_shape_types_on_code ON public.m_shape_types USING btree (code);
+
+
+--
+-- Name: index_m_shape_types_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shape_types_on_created_by_id ON public.m_shape_types USING btree (created_by_id);
+
+
+--
+-- Name: index_m_shape_types_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shape_types_on_deleted_by_id ON public.m_shape_types USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_shape_types_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_shape_types_on_name_ja ON public.m_shape_types USING btree (name_ja);
+
+
+--
+-- Name: index_m_shape_types_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_shape_types_on_updated_by_id ON public.m_shape_types USING btree (updated_by_id);
+
+
+--
 -- Name: index_m_shapes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6931,17 +6945,10 @@ CREATE INDEX index_part_files_on_part_id ON public.part_files USING btree (part_
 
 
 --
--- Name: index_part_snapshots_on_checksum; Type: INDEX; Schema: public; Owner: -
+-- Name: index_part_snapshots_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_part_snapshots_on_checksum ON public.part_snapshots USING btree (checksum);
-
-
---
--- Name: index_part_snapshots_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_part_snapshots_on_corner_proc_json ON public.part_snapshots USING gin (corner_proc_json);
+CREATE INDEX index_part_snapshots_on_account_id ON public.part_snapshots USING btree (account_id);
 
 
 --
@@ -6959,31 +6966,17 @@ CREATE INDEX index_part_snapshots_on_deleted_by_id ON public.part_snapshots USIN
 
 
 --
--- Name: index_part_snapshots_on_hole_json; Type: INDEX; Schema: public; Owner: -
+-- Name: index_part_snapshots_on_shape_type_code; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_part_snapshots_on_hole_json ON public.part_snapshots USING gin (hole_json);
-
-
---
--- Name: index_part_snapshots_on_origin_snapshot_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_part_snapshots_on_origin_snapshot_id ON public.part_snapshots USING btree (origin_snapshot_id);
+CREATE INDEX index_part_snapshots_on_shape_type_code ON public.part_snapshots USING btree (shape_type_code);
 
 
 --
--- Name: index_part_snapshots_on_part_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_part_snapshots_on_source_part_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_part_snapshots_on_part_id ON public.part_snapshots USING btree (part_id);
-
-
---
--- Name: index_part_snapshots_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_part_snapshots_on_sqhole_json ON public.part_snapshots USING gin (sqhole_json);
+CREATE INDEX index_part_snapshots_on_source_part_id ON public.part_snapshots USING btree (source_part_id);
 
 
 --
@@ -7001,13 +6994,6 @@ CREATE INDEX index_parts_on_account_id ON public.parts USING btree (account_id);
 
 
 --
--- Name: index_parts_on_corner_proc_json; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_parts_on_corner_proc_json ON public.parts USING gin (corner_proc_json);
-
-
---
 -- Name: index_parts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7022,13 +7008,6 @@ CREATE INDEX index_parts_on_deleted_by_id ON public.parts USING btree (deleted_b
 
 
 --
--- Name: index_parts_on_hole_json; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_parts_on_hole_json ON public.parts USING gin (hole_json);
-
-
---
 -- Name: index_parts_on_origin_snapshot_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7036,10 +7015,10 @@ CREATE INDEX index_parts_on_origin_snapshot_id ON public.parts USING btree (orig
 
 
 --
--- Name: index_parts_on_sqhole_json; Type: INDEX; Schema: public; Owner: -
+-- Name: index_parts_on_shape_type_code; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_parts_on_sqhole_json ON public.parts USING gin (sqhole_json);
+CREATE INDEX index_parts_on_shape_type_code ON public.parts USING btree (shape_type_code);
 
 
 --
@@ -8513,20 +8492,6 @@ CREATE TRIGGER trg_h_error_logs_compress BEFORE INSERT ON public.h_error_logs FO
 
 
 --
--- Name: part_snapshots trg_part_snapshots_origin_immutable; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_part_snapshots_origin_immutable BEFORE UPDATE ON public.part_snapshots FOR EACH ROW WHEN ((old.origin_snapshot_id IS NOT NULL)) EXECUTE FUNCTION public.forbid_origin_update();
-
-
---
--- Name: parts trg_parts_origin_immutable; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_parts_origin_immutable BEFORE UPDATE ON public.parts FOR EACH ROW WHEN ((old.origin_snapshot_id IS NOT NULL)) EXECUTE FUNCTION public.forbid_origin_update();
-
-
---
 -- Name: affiliate_details fk_affiliate_details_city_code; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8548,14 +8513,6 @@ ALTER TABLE ONLY public.member_details
 
 ALTER TABLE ONLY public.member_shipping_addresses
     ADD CONSTRAINT fk_member_shipping_addresses_city_code FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
-
-
---
--- Name: parts fk_rails_001c6f3575; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_001c6f3575 FOREIGN KEY (origin_owner_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8631,14 +8588,6 @@ ALTER TABLE ONLY public.recipe_snapshot_parts
 
 
 --
--- Name: part_snapshots fk_rails_0a3ba229b5; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_0a3ba229b5 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
-
-
---
 -- Name: m_corner_processes fk_rails_0c41746295; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8687,6 +8636,14 @@ ALTER TABLE ONLY public.affiliate_recipe_commissions
 
 
 --
+-- Name: part_snapshots fk_rails_11492a97a7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_11492a97a7 FOREIGN KEY (shape_type_code) REFERENCES public.m_shape_types(code);
+
+
+--
 -- Name: affiliate_details fk_rails_1250f45d05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8700,14 +8657,6 @@ ALTER TABLE ONLY public.affiliate_details
 
 ALTER TABLE ONLY public.m_paint_types
     ADD CONSTRAINT fk_rails_12bace13d4 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
--- Name: part_snapshots fk_rails_140f6f0234; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_140f6f0234 FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
 
 
 --
@@ -8959,14 +8908,6 @@ ALTER TABLE ONLY public.article_comments
 
 
 --
--- Name: part_snapshots fk_rails_44200a9608; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_44200a9608 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
-
-
---
 -- Name: m_authorities fk_rails_44f5207aff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9027,7 +8968,7 @@ ALTER TABLE ONLY public.m_postal_codes
 --
 
 ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_4a942da875 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_4a942da875 FOREIGN KEY (created_by_id) REFERENCES public.accounts(id) NOT VALID;
 
 
 --
@@ -9311,6 +9252,14 @@ ALTER TABLE ONLY public.vendor_profiles
 
 
 --
+-- Name: parts fk_rails_6f878b3965; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_6f878b3965 FOREIGN KEY (shape_type_code) REFERENCES public.m_shape_types(code) NOT VALID;
+
+
+--
 -- Name: m_grain_finishes fk_rails_70079f0d12; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9591,14 +9540,6 @@ ALTER TABLE ONLY public.m_postal_codes
 
 
 --
--- Name: parts fk_rails_9790700793; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_9790700793 FOREIGN KEY (material_category_code) REFERENCES public.m_categories(code);
-
-
---
 -- Name: stripe_payouts fk_rails_981e366b28; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9655,6 +9596,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: part_snapshots fk_rails_9a54ec38e1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.part_snapshots
+    ADD CONSTRAINT fk_rails_9a54ec38e1 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_process_types fk_rails_9a94eea366; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9692,6 +9641,14 @@ ALTER TABLE ONLY public.m_cities
 
 ALTER TABLE ONLY public.m_process_types
     ADD CONSTRAINT fk_rails_9c515c2693 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: parts fk_rails_9d79b5ea56; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parts
+    ADD CONSTRAINT fk_rails_9d79b5ea56 FOREIGN KEY (origin_snapshot_id) REFERENCES public.part_snapshots(id) NOT VALID;
 
 
 --
@@ -9743,14 +9700,6 @@ ALTER TABLE ONLY public.vendor_offers
 
 
 --
--- Name: parts fk_rails_a63b0793fa; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_a63b0793fa FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
-
-
---
 -- Name: member_profiles fk_rails_a782c690cb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9772,14 +9721,6 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_aeb287d4a2 FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
-
-
---
--- Name: parts fk_rails_b13d63e301; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_b13d63e301 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
 
 
 --
@@ -9907,7 +9848,7 @@ ALTER TABLE ONLY public.active_storage_attachments
 --
 
 ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_c44e04702a FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_c44e04702a FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id) NOT VALID;
 
 
 --
@@ -9943,11 +9884,11 @@ ALTER TABLE ONLY public.affiliate_signups
 
 
 --
--- Name: part_snapshots fk_rails_c87b5a313e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: part_snapshots fk_rails_cb2a5b066c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_c87b5a313e FOREIGN KEY (part_id) REFERENCES public.parts(id);
+    ADD CONSTRAINT fk_rails_cb2a5b066c FOREIGN KEY (source_part_id) REFERENCES public.parts(id) NOT VALID;
 
 
 --
@@ -10007,19 +9948,19 @@ ALTER TABLE ONLY public.affiliate_recipe_commissions
 
 
 --
--- Name: part_snapshots fk_rails_d38f648163; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_d38f648163 FOREIGN KEY (shape_code) REFERENCES public.m_shapes(code);
-
-
---
 -- Name: m_postal_codes fk_rails_d6f8c39731; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.m_postal_codes
     ADD CONSTRAINT fk_rails_d6f8c39731 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_shape_types fk_rails_d7f4fb5d64; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shape_types
+    ADD CONSTRAINT fk_rails_d7f4fb5d64 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10055,19 +9996,19 @@ ALTER TABLE ONLY public.parts
 
 
 --
--- Name: parts fk_rails_da03c13c19; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parts
-    ADD CONSTRAINT fk_rails_da03c13c19 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
-
-
---
 -- Name: affiliate_signups fk_rails_da86bb4702; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.affiliate_signups
     ADD CONSTRAINT fk_rails_da86bb4702 FOREIGN KEY (affiliate_click_id) REFERENCES public.h_affiliate_clicks(id);
+
+
+--
+-- Name: m_shape_types fk_rails_dae1eaaef3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shape_types
+    ADD CONSTRAINT fk_rails_dae1eaaef3 FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10091,7 +10032,7 @@ ALTER TABLE ONLY public.orders
 --
 
 ALTER TABLE ONLY public.part_snapshots
-    ADD CONSTRAINT fk_rails_dc20f86c16 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_dc20f86c16 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id) NOT VALID;
 
 
 --
@@ -10140,6 +10081,14 @@ ALTER TABLE ONLY public.recipes
 
 ALTER TABLE ONLY public.vendor_details
     ADD CONSTRAINT fk_rails_e57cb87d98 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_shape_types fk_rails_e63705d0a5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_shape_types
+    ADD CONSTRAINT fk_rails_e63705d0a5 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10389,6 +10338,13 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250809063234'),
+('20250809053820'),
+('20250809053430'),
+('20250809053031'),
+('20250809052816'),
+('20250809050000'),
+('20250809043900'),
 ('20250803033015'),
 ('20250731025409'),
 ('20250730063835'),
