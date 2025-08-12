@@ -179,43 +179,6 @@ MShape.upsert_all([
   }
 ])
 
-# === 塗装種別マスタ ================================================
-MPaintType.upsert_all([
-  {
-    code: "NONE",
-    name_ja: "選択なし",
-    name_en: "None",
-    allow_paint_json: {
-      surfaces: [],
-      colors:   [],
-      grains:   [],
-      glosses:  []
-    }
-  },
-  {
-    code: "URTH",
-    name_ja: "ウレタン塗装",
-    name_en: "Polyurethane",
-    allow_paint_json: {
-      surfaces: %w[STD ALL],
-      colors:   %w[CL LT MD DK WH MT],
-      grains:   %w[OP CL SOL],
-      glosses:  %w[G00 G30 G50 G100]
-    }
-  },
-  {
-    code: "NTRL",
-    name_ja: "自然塗装",
-    name_en: "Natural Oil",
-    allow_paint_json: {
-      surfaces: %w[STD ALL],
-      colors:   %w[CL],
-      grains:   [],
-      glosses:  []
-    }
-  }
-])
-
 
 # === コーナー加工マスタ ============================
 MCornerProcess.upsert_all([
@@ -335,37 +298,6 @@ MEdgeProcess.upsert_all([
     description_ja: nil,
     description_en: nil
   }
-])
-
-# === 8) 塗装面 ==========================
-MPaintSurface.upsert_all([
-  { code: "STD", name_ja: "標準塗装", name_en: "Standard" },
-  { code: "ALL", name_ja: "全面塗装", name_en: "All-Over" }
-])
-
-# === 9) 塗装色 ==========================
-MPaintColor.upsert_all([
-  { code: "CL", name_ja: "クリアー（透明）", name_en: "Clear"  },
-  { code: "LT", name_ja: "ライト",           name_en: "Light"  },
-  { code: "MD", name_ja: "ミディアム",       name_en: "Medium" },
-  { code: "DK", name_ja: "ダーク",           name_en: "Dark"   },
-  { code: "WH", name_ja: "ホワイト",         name_en: "White"  },
-  { code: "MT", name_ja: "色合わせ",         name_en: "Match"  }
-])
-
-# === 10) 導管・木目仕上げ ===============
-MGrainFinish.upsert_all([
-  { code: "OP",  name_ja: "セミオープン塗装(標準)", name_en: "Semi-Open" },
-  { code: "CL",  name_ja: "クローズ塗装",           name_en: "Closed"    },
-  { code: "SOL", name_ja: "塗りつぶし",             name_en: "Solid"     }
-])
-
-# === 11) ツヤ ===========================
-MGloss.upsert_all([
-  { code: "G00",  gloss_pct: 0,   name_ja: "全消し",          name_en: "Flat"       },
-  { code: "G30",  gloss_pct: 30,  name_ja: "3分ツヤ(標準)",    name_en: "30% Gloss" },
-  { code: "G50",  gloss_pct: 50,  name_ja: "5分ツヤ",         name_en: "50% Gloss" },
-  { code: "G100", gloss_pct: 100, name_ja: "全ツヤ",          name_en: "Full Gloss"}
 ])
 
 end

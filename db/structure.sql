@@ -593,6 +593,56 @@ ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
 
 
 --
+-- Name: board_parts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.board_parts (
+    id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    material_code character varying(16) NOT NULL,
+    paint_type_code character varying(16) NOT NULL,
+    paint_color_code character varying(16),
+    paint_finish_code character varying(16),
+    paint_gloss_code character varying(16),
+    thickness_mm numeric(8,2) NOT NULL,
+    width_mm numeric(8,2) NOT NULL,
+    length_mm numeric(8,2) NOT NULL,
+    corner_json jsonb DEFAULT '{}'::jsonb,
+    side_json jsonb DEFAULT '{}'::jsonb,
+    edge_json jsonb DEFAULT '{}'::jsonb,
+    hole_json jsonb DEFAULT '{}'::jsonb,
+    sqhole_json jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    camera_state_json jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: board_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.board_parts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: board_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.board_parts_id_seq OWNED BY public.board_parts.id;
+
+
+--
 -- Name: cart_parts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1921,48 +1971,6 @@ CREATE TABLE public.m_edge_processes (
 
 
 --
--- Name: m_glosses; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.m_glosses (
-    code character varying(6) NOT NULL,
-    name_ja character varying(30) NOT NULL,
-    name_en character varying(30) NOT NULL,
-    gloss_pct smallint NOT NULL,
-    description_ja character varying(80),
-    description_en character varying(80),
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT chk_gloss_pct CHECK (((gloss_pct >= 0) AND (gloss_pct <= 100)))
-);
-
-
---
--- Name: m_grain_finishes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.m_grain_finishes (
-    code character varying(6) NOT NULL,
-    name_ja character varying(30) NOT NULL,
-    name_en character varying(30) NOT NULL,
-    description_ja character varying(80),
-    description_en character varying(80),
-    created_by_id bigint,
-    updated_by_id bigint,
-    deleted_flag boolean DEFAULT false NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-
---
 -- Name: m_hole_diameters; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2009,7 +2017,7 @@ CREATE TABLE public.m_materials (
 --
 
 CREATE TABLE public.m_paint_colors (
-    code character varying(6) NOT NULL,
+    code character varying(16) NOT NULL,
     name_ja character varying(30) NOT NULL,
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
@@ -2020,16 +2028,17 @@ CREATE TABLE public.m_paint_colors (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
 --
--- Name: m_paint_surfaces; Type: TABLE; Schema: public; Owner: -
+-- Name: m_paint_finishes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.m_paint_surfaces (
-    code character varying(6) NOT NULL,
+CREATE TABLE public.m_paint_finishes (
+    code character varying(16) NOT NULL,
     name_ja character varying(30) NOT NULL,
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
@@ -2040,7 +2049,29 @@ CREATE TABLE public.m_paint_surfaces (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+--
+-- Name: m_paint_glosses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_paint_glosses (
+    code character varying(16) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -2049,7 +2080,7 @@ CREATE TABLE public.m_paint_surfaces (
 --
 
 CREATE TABLE public.m_paint_types (
-    code character varying(10) NOT NULL,
+    code character varying(16) NOT NULL,
     name_ja character varying(30) NOT NULL,
     name_en character varying(30) NOT NULL,
     description_ja character varying(80),
@@ -3671,6 +3702,13 @@ ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.art
 
 
 --
+-- Name: board_parts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts ALTER COLUMN id SET DEFAULT nextval('public.board_parts_id_seq'::regclass);
+
+
+--
 -- Name: cart_parts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4051,6 +4089,14 @@ ALTER TABLE ONLY public.articles
 
 
 --
+-- Name: board_parts board_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT board_parts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cart_parts cart_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4131,22 +4177,6 @@ ALTER TABLE ONLY public.m_edge_processes
 
 
 --
--- Name: m_glosses m_glosses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_glosses
-    ADD CONSTRAINT m_glosses_pkey PRIMARY KEY (code);
-
-
---
--- Name: m_grain_finishes m_grain_finishes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_grain_finishes
-    ADD CONSTRAINT m_grain_finishes_pkey PRIMARY KEY (code);
-
-
---
 -- Name: m_hole_diameters m_hole_diameters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4171,11 +4201,19 @@ ALTER TABLE ONLY public.m_paint_colors
 
 
 --
--- Name: m_paint_surfaces m_paint_surfaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: m_paint_finishes m_paint_finishes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.m_paint_surfaces
-    ADD CONSTRAINT m_paint_surfaces_pkey PRIMARY KEY (code);
+ALTER TABLE ONLY public.m_paint_finishes
+    ADD CONSTRAINT m_paint_finishes_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_paint_glosses m_paint_glosses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_glosses
+    ADD CONSTRAINT m_paint_glosses_pkey PRIMARY KEY (code);
 
 
 --
@@ -6091,6 +6129,34 @@ CREATE INDEX index_articles_on_views_count ON public.articles USING btree (views
 
 
 --
+-- Name: index_board_parts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_board_parts_on_created_by_id ON public.board_parts USING btree (created_by_id);
+
+
+--
+-- Name: index_board_parts_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_board_parts_on_deleted_by_id ON public.board_parts USING btree (deleted_by_id);
+
+
+--
+-- Name: index_board_parts_on_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_board_parts_on_part_id ON public.board_parts USING btree (part_id);
+
+
+--
+-- Name: index_board_parts_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_board_parts_on_updated_by_id ON public.board_parts USING btree (updated_by_id);
+
+
+--
 -- Name: index_cart_parts_on_cart_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6336,48 +6402,6 @@ CREATE INDEX index_m_edge_processes_on_updated_by_id ON public.m_edge_processes 
 
 
 --
--- Name: index_m_glosses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_glosses_on_created_by_id ON public.m_glosses USING btree (created_by_id);
-
-
---
--- Name: index_m_glosses_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_glosses_on_deleted_by_id ON public.m_glosses USING btree (deleted_by_id);
-
-
---
--- Name: index_m_glosses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_glosses_on_updated_by_id ON public.m_glosses USING btree (updated_by_id);
-
-
---
--- Name: index_m_grain_finishes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_grain_finishes_on_created_by_id ON public.m_grain_finishes USING btree (created_by_id);
-
-
---
--- Name: index_m_grain_finishes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_grain_finishes_on_deleted_by_id ON public.m_grain_finishes USING btree (deleted_by_id);
-
-
---
--- Name: index_m_grain_finishes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_grain_finishes_on_updated_by_id ON public.m_grain_finishes USING btree (updated_by_id);
-
-
---
 -- Name: index_m_hole_diameters_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6441,6 +6465,13 @@ CREATE INDEX index_m_materials_on_updated_by_id ON public.m_materials USING btre
 
 
 --
+-- Name: index_m_paint_colors_on_allow_paint_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_colors_on_allow_paint_types ON public.m_paint_colors USING gin (allow_paint_types);
+
+
+--
 -- Name: index_m_paint_colors_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6476,38 +6507,87 @@ CREATE INDEX index_m_paint_colors_on_updated_by_id ON public.m_paint_colors USIN
 
 
 --
--- Name: index_m_paint_surfaces_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_m_paint_finishes_on_allow_paint_types; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_m_paint_surfaces_on_created_by_id ON public.m_paint_surfaces USING btree (created_by_id);
-
-
---
--- Name: index_m_paint_surfaces_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_m_paint_surfaces_on_deleted_by_id ON public.m_paint_surfaces USING btree (deleted_by_id);
+CREATE INDEX index_m_paint_finishes_on_allow_paint_types ON public.m_paint_finishes USING gin (allow_paint_types);
 
 
 --
--- Name: index_m_paint_surfaces_on_name_en; Type: INDEX; Schema: public; Owner: -
+-- Name: index_m_paint_finishes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_m_paint_surfaces_on_name_en ON public.m_paint_surfaces USING btree (name_en);
-
-
---
--- Name: index_m_paint_surfaces_on_name_ja; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_m_paint_surfaces_on_name_ja ON public.m_paint_surfaces USING btree (name_ja);
+CREATE INDEX index_m_paint_finishes_on_created_by_id ON public.m_paint_finishes USING btree (created_by_id);
 
 
 --
--- Name: index_m_paint_surfaces_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_m_paint_finishes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_m_paint_surfaces_on_updated_by_id ON public.m_paint_surfaces USING btree (updated_by_id);
+CREATE INDEX index_m_paint_finishes_on_deleted_by_id ON public.m_paint_finishes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_paint_finishes_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_finishes_on_name_en ON public.m_paint_finishes USING btree (name_en);
+
+
+--
+-- Name: index_m_paint_finishes_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_finishes_on_name_ja ON public.m_paint_finishes USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_finishes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_finishes_on_updated_by_id ON public.m_paint_finishes USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_paint_glosses_on_allow_paint_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_glosses_on_allow_paint_types ON public.m_paint_glosses USING gin (allow_paint_types);
+
+
+--
+-- Name: index_m_paint_glosses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_glosses_on_created_by_id ON public.m_paint_glosses USING btree (created_by_id);
+
+
+--
+-- Name: index_m_paint_glosses_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_glosses_on_deleted_by_id ON public.m_paint_glosses USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_paint_glosses_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_glosses_on_name_en ON public.m_paint_glosses USING btree (name_en);
+
+
+--
+-- Name: index_m_paint_glosses_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_paint_glosses_on_name_ja ON public.m_paint_glosses USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_glosses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_glosses_on_updated_by_id ON public.m_paint_glosses USING btree (updated_by_id);
 
 
 --
@@ -8556,22 +8636,6 @@ ALTER TABLE ONLY public.part_files
 
 
 --
--- Name: m_paint_surfaces fk_rails_04940c0fa3; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_paint_surfaces
-    ADD CONSTRAINT fk_rails_04940c0fa3 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
--- Name: m_glosses fk_rails_051c4b4700; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_glosses
-    ADD CONSTRAINT fk_rails_051c4b4700 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: member_details fk_rails_08851c9c2d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8616,7 +8680,7 @@ ALTER TABLE ONLY public.m_edge_processes
 --
 
 ALTER TABLE ONLY public.m_paint_colors
-    ADD CONSTRAINT fk_rails_0e6e729dcb FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_0e6e729dcb FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8656,7 +8720,7 @@ ALTER TABLE ONLY public.affiliate_details
 --
 
 ALTER TABLE ONLY public.m_paint_types
-    ADD CONSTRAINT fk_rails_12bace13d4 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_12bace13d4 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8740,6 +8804,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: m_paint_glosses fk_rails_26ac21a880; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_glosses
+    ADD CONSTRAINT fk_rails_26ac21a880 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: stripe_refunds fk_rails_27113da1c6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8764,11 +8836,11 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
--- Name: m_paint_surfaces fk_rails_2c0d76fe0e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: board_parts fk_rails_2b45ffc82f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.m_paint_surfaces
-    ADD CONSTRAINT fk_rails_2c0d76fe0e FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_2b45ffc82f FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -8833,14 +8905,6 @@ ALTER TABLE ONLY public.m_shapes
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT fk_rails_38adeaa02b FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
--- Name: m_glosses fk_rails_3dcf832460; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_glosses
-    ADD CONSTRAINT fk_rails_3dcf832460 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
 
 
 --
@@ -8988,6 +9052,14 @@ ALTER TABLE ONLY public.m_shapes
 
 
 --
+-- Name: board_parts fk_rails_4c4e3df871; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_4c4e3df871 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_shapes fk_rails_4cab80b183; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9108,14 +9180,6 @@ ALTER TABLE ONLY public.articles
 
 
 --
--- Name: m_paint_surfaces fk_rails_6273a3930b; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_paint_surfaces
-    ADD CONSTRAINT fk_rails_6273a3930b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: m_edge_processes fk_rails_632e7fe66e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9180,6 +9244,14 @@ ALTER TABLE ONLY public.article_comments
 
 
 --
+-- Name: m_paint_finishes fk_rails_685ef93b13; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_finishes
+    ADD CONSTRAINT fk_rails_685ef93b13 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_hole_diameters fk_rails_68c00434d4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9240,7 +9312,7 @@ ALTER TABLE ONLY public.vendor_details
 --
 
 ALTER TABLE ONLY public.m_paint_types
-    ADD CONSTRAINT fk_rails_6d6d56ac9b FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_6d6d56ac9b FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9260,11 +9332,11 @@ ALTER TABLE ONLY public.parts
 
 
 --
--- Name: m_grain_finishes fk_rails_70079f0d12; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: m_paint_finishes fk_rails_6fd7330c0e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.m_grain_finishes
-    ADD CONSTRAINT fk_rails_70079f0d12 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.m_paint_finishes
+    ADD CONSTRAINT fk_rails_6fd7330c0e FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9345,6 +9417,14 @@ ALTER TABLE ONLY public.stripe_refunds
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_7c046c89f6 FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: m_paint_glosses fk_rails_7ceec93418; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_glosses
+    ADD CONSTRAINT fk_rails_7ceec93418 FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9436,6 +9516,14 @@ ALTER TABLE ONLY public.account_coverage_areas
 
 
 --
+-- Name: m_paint_glosses fk_rails_89b44b593f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_glosses
+    ADD CONSTRAINT fk_rails_89b44b593f FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: vendor_service_prefectures fk_rails_8a9ace2194; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9484,14 +9572,6 @@ ALTER TABLE ONLY public.vendor_profiles
 
 
 --
--- Name: m_grain_finishes fk_rails_8bfc7696b8; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_grain_finishes
-    ADD CONSTRAINT fk_rails_8bfc7696b8 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: m_postal_codes fk_rails_8cab43ec13; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9532,6 +9612,14 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 
 --
+-- Name: board_parts fk_rails_946740e3ba; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_946740e3ba FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
 -- Name: m_postal_codes fk_rails_9584d0ef32; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9552,7 +9640,7 @@ ALTER TABLE ONLY public.stripe_payouts
 --
 
 ALTER TABLE ONLY public.m_paint_colors
-    ADD CONSTRAINT fk_rails_98b42979dc FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_98b42979dc FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9561,6 +9649,14 @@ ALTER TABLE ONLY public.m_paint_colors
 
 ALTER TABLE ONLY public.m_hole_diameters
     ADD CONSTRAINT fk_rails_98dcfdc04c FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: board_parts fk_rails_9932dc120c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_9932dc120c FOREIGN KEY (paint_finish_code) REFERENCES public.m_paint_finishes(code);
 
 
 --
@@ -9672,7 +9768,7 @@ ALTER TABLE ONLY public.vendor_capabilities
 --
 
 ALTER TABLE ONLY public.m_paint_colors
-    ADD CONSTRAINT fk_rails_9f7ace30eb FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_9f7ace30eb FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9705,6 +9801,22 @@ ALTER TABLE ONLY public.vendor_offers
 
 ALTER TABLE ONLY public.member_profiles
     ADD CONSTRAINT fk_rails_a782c690cb FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: m_paint_finishes fk_rails_a9d25c3d7d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_paint_finishes
+    ADD CONSTRAINT fk_rails_a9d25c3d7d FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: board_parts fk_rails_aac6bd04e2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_aac6bd04e2 FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
 
 
 --
@@ -9745,14 +9857,6 @@ ALTER TABLE ONLY public.order_reviews
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_b2a090b409 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
-
-
---
--- Name: m_glosses fk_rails_b2e63cb87f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_glosses
-    ADD CONSTRAINT fk_rails_b2e63cb87f FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -9801,14 +9905,6 @@ ALTER TABLE ONLY public.vendor_profiles
 
 ALTER TABLE ONLY public.h_payout_events
     ADD CONSTRAINT fk_rails_bd2df7a8c8 FOREIGN KEY (payout_id) REFERENCES public.payouts(id);
-
-
---
--- Name: m_grain_finishes fk_rails_bf35672699; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_grain_finishes
-    ADD CONSTRAINT fk_rails_bf35672699 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
 
 
 --
@@ -9884,6 +9980,14 @@ ALTER TABLE ONLY public.affiliate_signups
 
 
 --
+-- Name: board_parts fk_rails_c814c4e1bc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_c814c4e1bc FOREIGN KEY (paint_color_code) REFERENCES public.m_paint_colors(code);
+
+
+--
 -- Name: part_snapshots fk_rails_cb2a5b066c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9897,6 +10001,22 @@ ALTER TABLE ONLY public.part_snapshots
 
 ALTER TABLE ONLY public.m_corner_processes
     ADD CONSTRAINT fk_rails_cbf0dca52b FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: board_parts fk_rails_ccc7a1839d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_ccc7a1839d FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: board_parts fk_rails_cd5b573bd6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_cd5b573bd6 FOREIGN KEY (paint_gloss_code) REFERENCES public.m_paint_glosses(code);
 
 
 --
@@ -9945,6 +10065,14 @@ ALTER TABLE ONLY public.rfqs
 
 ALTER TABLE ONLY public.affiliate_recipe_commissions
     ADD CONSTRAINT fk_rails_d31b25a08a FOREIGN KEY (original_user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: board_parts fk_rails_d40d4d4b41; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.board_parts
+    ADD CONSTRAINT fk_rails_d40d4d4b41 FOREIGN KEY (part_id) REFERENCES public.parts(id);
 
 
 --
@@ -10104,7 +10232,7 @@ ALTER TABLE ONLY public.member_profiles
 --
 
 ALTER TABLE ONLY public.m_paint_types
-    ADD CONSTRAINT fk_rails_e8d8c7b2a3 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_e8d8c7b2a3 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10338,6 +10466,14 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250812062029'),
+('20250812053445'),
+('20250812051012'),
+('20250812050426'),
+('20250812043343'),
+('20250812042622'),
+('20250812042036'),
+('20250812041048'),
 ('20250809063234'),
 ('20250809053820'),
 ('20250809053430'),
