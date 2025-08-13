@@ -62,8 +62,9 @@ export function buildCtx (form) {
   const shape   = shapeEl ? shapeEl.value : "RECT"; // Fallback はそのまま
 
   // --- 共通フィールド -----------------------------------------------
-  const ctx   = { shapeCode: shape, T: v(form, "thickness_mm") };
-  ctx.W1      = v(form, "width1_mm");         // 巾1 は必ずフォームにある
+  const ctx   = { shapeCode: shape, T: -v(form, "thickness_mm") };
+  //ctx.W1      = v(form, "width1_mm");         // 巾1 は必ずフォームにある
+  ctx.W1      = v(form, "width_mm");
 
   // --- shapeCode 別の L / W2 / 角パラメータ ------------------------
   switch (shape) {

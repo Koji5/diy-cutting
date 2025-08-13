@@ -1,0 +1,72 @@
+<%= render "parts/link_part" %>
+<section class="px-3">
+  <!-- 1200px 以上で 2 列、それ未満は 1 列 -->
+  <div class="row row-cols-1 row-cols-xl-2 g-3">
+    <% @parts.each do |part| %>
+      <div class="col" id="<%= dom_id(part) %>" data-controller="remove-card">
+        <div class="card h-100 p-3">
+          <!-- 幅が狭いと縦並び、md 以上で横並び -->
+          <div class="d-flex flex-column flex-md-row gap-3">
+            <!-- ── 左ブロック：サムネイル ─────────────────────────── -->
+            <div class="flex-shrink-0 text-center">
+              <% if part.thumbnail.attached? %>
+                <%= image_tag part.thumbnail
+                              .variant(resize_to_fill: [100, 100]),
+                          loading: "lazy",
+                          decoding: "async",
+                          width: 84, height: 84,
+                          class: "rounded border" %>
+              <% else %>
+                <%= tag.div "No image",
+                            class: "border rounded d-flex align-items-center justify-content-center text-muted",
+                            style: "width:160px;height:160px;" %>
+              <% end %>
+            </div>
+
+            <!-- ── 右ブロック：情報 + ボタン ─────────────────────── -->
+            <div class="d-flex flex-column flex-grow-1">
+              <!-- 情報 -->
+              <div>
+                <h5 class="mb-2"><%= part.name %></h5>
+
+                <dl class="row small mb-3">
+                  <dt class="col-4 col-sm-3 fw-bold text-muted">作成</dt>
+                  <dd class="col-8 col-sm-9 mb-1"><%= l part.created_at, format: :short %></dd>
+
+                  <dt class="col-4 col-sm-3 fw-bold text-muted">更新</dt>
+                  <dd class="col-8 col-sm-9 mb-1"><%= l part.updated_at, format: :short %></dd>
+
+                  <% if @show_owner %>
+                    <dt class="col-4 col-sm-3 fw-bold text-muted">オリジナル</dt>
+                    <dd class="col-8 col-sm-9 mb-1"><%= part.origin_owner&.public_uid || "—" %></dd>
+                  <% end %>
+                </dl>
+              </div>
+
+              <!-- ボタン群 -->
+              <div class="mt-auto d-flex gap-2">
+                <!-- 詳細 -->
+                <%= link_to part_path(part), data: { turbo_frame: "main" }, class: "btn btn-outline-secondary btn-icon" do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
+
+                <!-- 編集 -->
+                <%= link_to edit_part_path(part), data: { turbo_frame: "main" }, class: "btn btn-outline-primary btn-icon" do %>
+                  <i class="bi bi-pencil"></i>
+                <% end %>
+
+                <!-- 削除 (フォーム方式で確実に DELETE) -->
+                <%= button_to part_path(part),
+                              method: :delete,
+                              form: { data: { turbo_confirm: "この部品を削除しますか?" }, class: "d-inline" },
+                              class: "btn btn-outline-danger btn-icon" do %>
+                  <i class="bi bi-trash"></i>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>

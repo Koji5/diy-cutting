@@ -35,11 +35,18 @@ Rails.application.routes.draw do
     post :toggle_role, on: :collection
   end
   resources :parts do
-    member do
-      get :inline_detail
-      get :show_modal
-    end
+    resource :board_part,  only: [:show, :edit, :update, :destroy]
+    resource :lumber_part, only: [:show, :edit, :update, :destroy]
   end
+  resources :board_parts,  only: [:new, :create]
+  resources :lumber_parts, only: [:new, :create]
+  # 使うヘルパ
+  # edit    edit_part_board_part_path(@part)  => /parts/:part_id/board_part/edit
+  # update  part_board_part_path(@part)       => PATCH /parts/:part_id/board_part
+  # new     new_board_part_path               => /board_parts/new
+  # create  board_parts_path board_parts      => POST /board_parts
+  # show    part_board_part_path(@part)       => GET /parts/:part_id/board_part
+  # destroy part_board_part_path(@part)       => DELETE /parts/:part_id/board_part
   resources :recipes do
     member do
       get :show_modal

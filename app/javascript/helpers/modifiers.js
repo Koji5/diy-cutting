@@ -54,7 +54,7 @@ export function applyEdges(baseMesh, ctx) {
   } else {
     console.warn('cuttersがありません');
   }
-  _centerGeometry(resultMesh.geometry);   // エッジ加工後に XYZ 原点合わせ
+//  _centerGeometry(resultMesh.geometry);   // エッジ加工後に XYZ 原点合わせ
   return resultMesh;
 }
 

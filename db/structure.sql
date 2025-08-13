@@ -1854,6 +1854,25 @@ ALTER SEQUENCE public.m_banks_id_seq OWNED BY public.m_banks.id;
 
 
 --
+-- Name: m_board_thicknesses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_board_thicknesses (
+    code character varying(10) NOT NULL,
+    thickness_mm numeric(8,2) NOT NULL,
+    name_ja character varying(20) NOT NULL,
+    name_en character varying(6) NOT NULL,
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: m_branches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4145,6 +4164,14 @@ ALTER TABLE ONLY public.m_banks
 
 
 --
+-- Name: m_board_thicknesses m_board_thicknesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_board_thicknesses
+    ADD CONSTRAINT m_board_thicknesses_pkey PRIMARY KEY (code);
+
+
+--
 -- Name: m_branches m_branches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6259,6 +6286,27 @@ CREATE INDEX index_m_authorities_on_updated_by_id ON public.m_authorities USING 
 --
 
 CREATE UNIQUE INDEX index_m_banks_on_code ON public.m_banks USING btree (code);
+
+
+--
+-- Name: index_m_board_thicknesses_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_board_thicknesses_on_created_by_id ON public.m_board_thicknesses USING btree (created_by_id);
+
+
+--
+-- Name: index_m_board_thicknesses_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_board_thicknesses_on_deleted_by_id ON public.m_board_thicknesses USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_board_thicknesses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_board_thicknesses_on_updated_by_id ON public.m_board_thicknesses USING btree (updated_by_id);
 
 
 --
@@ -8740,6 +8788,14 @@ ALTER TABLE ONLY public.payouts
 
 
 --
+-- Name: m_board_thicknesses fk_rails_186a333ed1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_board_thicknesses
+    ADD CONSTRAINT fk_rails_186a333ed1 FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: order_reviews fk_rails_19289e95c6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8793,6 +8849,14 @@ ALTER TABLE ONLY public.m_materials
 
 ALTER TABLE ONLY public.vendor_materials
     ADD CONSTRAINT fk_rails_24b9aa6af6 FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
+-- Name: m_board_thicknesses fk_rails_267314c7c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_board_thicknesses
+    ADD CONSTRAINT fk_rails_267314c7c6 FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9617,6 +9681,14 @@ ALTER TABLE ONLY public.affiliate_commissions
 
 ALTER TABLE ONLY public.board_parts
     ADD CONSTRAINT fk_rails_946740e3ba FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
+
+
+--
+-- Name: m_board_thicknesses fk_rails_952607013e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_board_thicknesses
+    ADD CONSTRAINT fk_rails_952607013e FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10466,6 +10538,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250813062758'),
+('20250813062155'),
 ('20250812062029'),
 ('20250812053445'),
 ('20250812051012'),

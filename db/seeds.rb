@@ -28,30 +28,122 @@ MCategory.upsert_all([
 ])
 
 # === 2) 材質 ============================
+# m_materials を「追加だけ」で投入（既存は更新しない）
+# 必須: category_code "WOOD" が m_categories に存在すること
+
 MMaterial.upsert_all([
+  # 合板・ボード系
   {
-    code:              "PLY_BIRCH",
-    category_code:     "WOOD",
-    name_ja:           "シナ合板",
-    name_en:           "Birch Plywood",
-    jis_iso:           nil,            # ← 全行に同じキー
-    density_kg_per_m3: 680
+    code: "lauan_plywood",
+    category_code: "WOOD",
+    name_ja: "ラワン合板",
+    name_en: "Lauan Plywood",
+    description_ja: "ラワン（南洋材）を芯にした汎用合板。内装・造作向け。",
+    description_en: "General-purpose plywood (meranti/laun veneers).",
+    jis_iso: "JAS Plywood",          # JAS系の合板規格
+    density_kg_per_m3: 590.0          # 目安：ラワンの平均比重域から
   },
   {
-    code:              "SOLID_OAK",
-    category_code:     "WOOD",
-    name_ja:           "ナラ無垢",
-    name_en:           "Solid Oak",
-    jis_iso:           nil,
-    density_kg_per_m3: 720
+    code: "shina_plywood",
+    category_code: "WOOD",
+    name_ja: "シナベニヤ",
+    name_en: "Shina (Basswood) Plywood",
+    description_ja: "表面にシナ材単板。塗装性・加工性が高い軽量合板。",
+    description_en: "Basswood-faced plywood for fine finishing.",
+    jis_iso: "JAS Plywood",
+    density_kg_per_m3: 450.0          # 目安：バスウッドの中庸域
   },
   {
-    code:              "SS400",
-    category_code:     "METAL",
-    name_ja:           "一般構造用圧延鋼材",
-    name_en:           "Steel SS400",
-    jis_iso:           "JIS G3101",
-    density_kg_per_m3: 7850
+    code: "mdf",
+    category_code: "WOOD",
+    name_ja: "MDF",
+    name_en: "Medium Density Fiberboard",
+    description_ja: "中密度繊維板。フラットで塗装・切削性に優れる。",
+    description_en: "Flat, machinable panel for painting and routing.",
+    jis_iso: "JIS A5905",             # 繊維板
+    density_kg_per_m3: 750.0          # 一般的なMDFの代表値
+  },
+  {
+    code: "osb",
+    category_code: "WOOD",
+    name_ja: "OSB",
+    name_en: "Oriented Strand Board",
+    description_ja: "配向ストランドボード。構造用下地などに用いる。",
+    description_en: "Engineered structural panel made from oriented strands.",
+    jis_iso: "JIS A5908",             # パーティクルボード系（構造用含む）
+    density_kg_per_m3: 640.0          # 一般的な代表値
+  },
+
+  # 集成材・製材
+  {
+    code: "pine_glulam",
+    category_code: "WOOD",
+    name_ja: "パイン集成材",
+    name_en: "Pine Glulam",
+    description_ja: "パイン小角の集成材。造作用に広く利用。",
+    description_en: "Pine glued-laminated timber for interior use.",
+    jis_iso: "JAS1152",               # 集成材
+    density_kg_per_m3: 450.0
+  },
+  {
+    code: "sugi_glulam",
+    category_code: "WOOD",
+    name_ja: "杉集成材",
+    name_en: "Sugi Glulam (Cedar)",
+    description_ja: "国産杉の集成材。軽量で加工性に優れる。",
+    description_en: "Japanese cedar glulam; light and easy to machine.",
+    jis_iso: "JAS1152",
+    density_kg_per_m3: 380.0
+  },
+  {
+    code: "spf",
+    category_code: "WOOD",
+    name_ja: "SPF材",
+    name_en: "SPF Lumber",
+    description_ja: "スプルース・パイン・ファーの北米製材の総称。",
+    description_en: "Spruce-Pine-Fir softwood lumber group.",
+    jis_iso: "JAS1083",               # 製材（構造用を含む）
+    density_kg_per_m3: 400.0          # 代表値（Spruce/Pine/Firの中庸）
+  },
+  {
+    code: "sugi",
+    category_code: "WOOD",
+    name_ja: "杉（国産）",
+    name_en: "Japanese Cedar (Sugi)",
+    description_ja: "軽量で加工しやすい国産針葉樹。内装・造作向け。",
+    description_en: "Lightweight Japanese cedar for interior/joinery.",
+    jis_iso: "JAS1083",
+    density_kg_per_m3: 380.0          # 乾燥密度の代表域から
+  },
+  {
+    code: "hinoki",
+    category_code: "WOOD",
+    name_ja: "ヒノキ",
+    name_en: "Hinoki Cypress",
+    description_ja: "高耐久・芳香が特長の国産材。造作・建具材に。",
+    description_en: "Durable, aromatic Japanese cypress.",
+    jis_iso: "JAS1083",
+    density_kg_per_m3: 380.0          # 比重0.38相当
+  },
+  {
+    code: "douglas_fir",
+    category_code: "WOOD",
+    name_ja: "米松",
+    name_en: "Douglas Fir (Oregon)",
+    description_ja: "強度に優れた外来針葉樹。構造・枠材に好適。",
+    description_en: "Strong softwood for structural and framing.",
+    jis_iso: "JAS1083",
+    density_kg_per_m3: 530.0
+  },
+  {
+    code: "whitewood",
+    category_code: "WOOD",
+    name_ja: "ホワイトウッド",
+    name_en: "Whitewood (Spruce)",
+    description_ja: "欧州トウヒ系の総称。内装・造作や枠材向け。",
+    description_en: "European spruce group for interior/framing.",
+    jis_iso: "JAS1083",
+    density_kg_per_m3: 470.0
   }
 ])
 

@@ -1,0 +1,60 @@
+<% menu = [
+  {
+    path:  -> { edit_part_board_part_path(@part) if @part },
+    match: -> { assigns[:current_view] == "board_parts/edit" },
+    icon:  "pencil",
+    label: "編集",
+    link:  false                # 編集画面ではリンクを出さない
+  },
+  {
+    path:  -> { part_board_part_path(@part) if @part },
+    match: -> { assigns[:current_view] == "board_parts/show" },
+    icon:  "eye",
+    label: "詳細",
+    link:  false                # 詳細画面へのリンクは出さない
+  },
+  {
+    path:  -> { parts_path },
+    match: -> { assigns[:current_view] == "parts/index" },
+    icon:  "list-ul",
+    label: "一覧",
+    link:  true
+  },
+  {
+    path:  -> { new_part_path },
+    match: -> { assigns[:current_view] == "parts/new" },
+    icon:  "plus-lg",
+    label: "新規作成",
+    link:  true
+  },
+  {
+    path:  -> { new_part_path },
+    match: -> { assigns[:current_view] == "board_parts/new" },
+    icon:  "plus-lg",
+    label: "新規作成",
+    link:  true
+  }
+] %>
+<% title_tag = "" %> 
+<% menu.each do |item| %>
+  <% title_tag = item[:label] if item[:match].call %>
+<% end %>
+
+<header class="MainHeader d-flex flex-column">
+  <div class="flex-grow-1 min-w-0">
+    <div class="input-group mb-1">
+      <% menu.each do |item| %>
+        <% next if item[:match].call || !item[:link] %>
+        <%= link_to item[:path].call,
+          data:  { turbo_frame: "main" },
+          class: "btn btn-outline-secondary form-control" do %>
+          <i class="<%= "bi bi-#{item[:icon]}" %>"></i>&nbsp;<%= item[:label] %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <h3 class="d-flex px-3 flex-nowrap">
+    <i class="bi bi-puzzle me-2"></i>
+    マイパーツ － 板材 － <%= title_tag %>
+  </h3>
+</header>
