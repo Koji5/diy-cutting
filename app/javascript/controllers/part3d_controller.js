@@ -19,6 +19,9 @@ export default class extends Controller {
   static values = { shaderUrl: String }
   woodMat = null;           // キャッシュ済み ShaderMaterial
   cameraInitialized = false;
+  lastL = 0;
+  lastW = 0;
+  lastT = 0;
 
   /*=============================  接続 ============================*/
   async connect () {
@@ -202,8 +205,9 @@ export default class extends Controller {
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
 
+      const cameraReset = this.lastL !== ctx.L || this.lastW !== ctx.W1 || this.lastT !== ctx.T
       /* ★ 初回だけ固定アングルにセット */
-      if (!this.cameraInitialized) {
+      if (!this.cameraInitialized || cameraReset) {
         /* ① モデル中心から “斜め前上” 方向へ伸ばす距離を計算  */
         const dir = new THREE.Vector3(0, 1, 5).normalize();  // 視線方向 (縦-横比同じ)
 
@@ -212,8 +216,11 @@ export default class extends Controller {
         this.camera.position.copy(center).addScaledVector(dir, r * 4);
         this.controls.target.copy(center);    // ← ② モデル中心を見る
         this.controls.update();               // ← ③ 行列を同期
-        this._makeLabelSpriteInitialized(box);
+        this._buildAxesAndLabels(box);
         this.cameraInitialized = true;        // フラグを立てる
+        this.lastL = ctx.L
+        this.lastW = ctx.W1
+        this.lastT = ctx.T
       }
 
       /* --- クリップ面は毎回更新（大型モデル対策） --- */
@@ -266,75 +273,88 @@ export default class extends Controller {
     document.getElementById("camera_state_json").value = json;
   }
 
-  _makeLabelSpriteInitialized(box) {
-    const maxVal = Math.max(
-      Math.max(Math.abs(box.min.x), Math.abs(box.max.x)),
-      Math.max(Math.abs(box.min.y), Math.abs(box.max.y)),
-      Math.max(Math.abs(box.min.z), Math.abs(box.max.z))
-    ) * 1.5;
- //   const { x, y, z } = box.max;
-    /* === 軸＆グリッド === */
-  //  const L = 2000;
+  _buildAxesAndLabels(box = null) {
+    // --- 1) 前回の軸＆ラベルを破棄 ---
+    if (this.axisGroup) {
+      this.axisGroup.traverse(o => {
+        if (o.isSprite && o.material) {
+          if (o.material.map) o.material.map.dispose();
+          o.material.dispose();
+        }
+        if (o.material) {
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => {
+            if (m.map) m.map.dispose();
+            m.dispose();
+          });
+        }
+        if (o.geometry) o.geometry.dispose();
+      });
+      this.scene.remove(this.axisGroup);
+      this.axisGroup = null;
+    }
+
+    let X = 0;
+    let Y = 0;
+    let Z = 0;
+    if (box && !box.isEmpty()) {
+      X = Math.max(Math.abs(box.min.x), Math.abs(box.max.x)) * 1.5;
+      Y = Math.max(Math.abs(box.min.y), Math.abs(box.max.y)) * 1.5;
+      Z = Math.min(X, Y);
+    }
+
+    // --- 3) 新しいグループを作成 ---
+    const g = this.axisGroup = new THREE.Group();
+    g.name = "axisGroup";
+
+    // --- 4) 軸（+X, +Y, -Z） ---
     const origin = new THREE.Vector3(0, 0, 0);
-    const axes = new THREE.Group();
+    g.add(new THREE.ArrowHelper(new THREE.Vector3( 1, 0, 0), origin, X, 0xff0000));
+    g.add(new THREE.ArrowHelper(new THREE.Vector3( 0, 1, 0), origin, Y, 0x00ff00));
+    g.add(new THREE.ArrowHelper(new THREE.Vector3( 0, 0,-1), origin, Z, 0x0000ff));
 
-    // +X（赤）
-    axes.add(new THREE.ArrowHelper(new THREE.Vector3( 1, 0, 0), origin, maxVal, 0xff0000));
-    // +Y（緑）
-    axes.add(new THREE.ArrowHelper(new THREE.Vector3( 0, 1, 0), origin, maxVal, 0x00ff00));
-    // -Z（青）
-    axes.add(new THREE.ArrowHelper(new THREE.Vector3( 0, 0,-1), origin, maxVal, 0x0000ff));
-    this.scene.add(axes);
-
-    //this.grid = new THREE.GridHelper(600, 12, 0x666666, 0x333333);
-    //this.grid.position.y = 0;
-    //this.scene.add(this.grid);
-
-    /* カメラ操作の注視点を原点へ（任意）*/
-    //this.controls.target.set(0, 0, 0);
-
-    /* === 軸ラベル（Spriteテキスト） === */
-    const makeLabelSprite = (text) => {
+    // --- 5) ラベル（Sprite） ---
+    const makeLabelSprite = (text, fontPx = 64, pad = 24) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      const fontSize = maxVal;
-      ctx.font = `bold ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif`;
-      const pad = 24;
-      const textW = Math.ceil(ctx.measureText(text).width);
-      canvas.width  = textW + pad * 2;
-      canvas.height = fontSize + pad * 2;
+      ctx.font = `bold ${fontPx}px system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif`;
+      const w = Math.ceil(ctx.measureText(text).width);
+      canvas.width  = w + pad * 2;
+      canvas.height = fontPx + pad * 2;
 
-      // 再設定後にもう一度フォント指定
-      ctx.font = `bold ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif`;
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "center";
-      // 文字の縁取りで視認性UP
+      const cx = canvas.width/2, cy = canvas.height/2;
+      ctx.font = `bold ${fontPx}px system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.lineWidth = 10; ctx.strokeStyle = "rgba(0,0,0,0.7)";
-      ctx.strokeText(text, canvas.width/2, canvas.height/2);
+      ctx.strokeText(text, cx, cy);
       ctx.fillStyle = "white";
-      ctx.fillText(text, canvas.width/2, canvas.height/2);
+      ctx.fillText(text, cx, cy);
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy?.() || 1;
 
       const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-      const sprite = new THREE.Sprite(mat);
-      // キャンバスpx → ワールド単位: 適当なスケール（軸長200に合わせて見やすく）
-      const s = 35;
-      sprite.scale.set((canvas.width/10), (canvas.height/10), 1); // 好みで調整
-      sprite.renderOrder = 999; // 手前に
-      return sprite;
+      const sp = new THREE.Sprite(mat);
+
+      // px→ワールドの変換係数（Lに比例させて見やすさ一定化）
+      const k = (Z / 500); // 好みで調整
+      sp.scale.set(canvas.width * k, canvas.height * k, 1);
+      sp.renderOrder = 999;
+      return sp;
     };
 
     const lx = makeLabelSprite("巾 (x)");
-    lx.position.set(maxVal, 0, 0);
+    lx.position.set(X * 1.1, 0, 0);
 
     const ly = makeLabelSprite("高さ (y)");
-    ly.position.set(0, maxVal, 0);
+    ly.position.set(0, Y * 1.1, 0);
 
     const lz = makeLabelSprite("厚み (z)");
-    lz.position.set(0, 0, -maxVal);
+    lz.position.set(0, 0, -(Z * 1.1));
 
-    this.scene.add(lx, ly, lz);
+    g.add(lx, ly, lz);
+
+    // --- 6) シーンに追加 ---
+    this.scene.add(g);
   }
+
 }
