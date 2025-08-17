@@ -1,17 +1,15 @@
 <%= render "board_parts/link_board_part" %>
 <section class="m-0">
   <div class="d-flex flex-grow-1" id="preview-pane">
-    <div class="ratio ratio-1x1 bg-light" 
-        data-controller="part3d" 
-        data-part3d-shader-url-value="<%= asset_path('wood_shader.json') %>">
-        <canvas data-part3d-target="canvas" class="w-100 h-100"></canvas>
+    <div class="bg-light square-half mx-auto" data-controller="board-part3d">
+        <canvas data-board-part3d-target="canvas" class="w-100 h-100"></canvas>
     </div>
   </div>
   <%= form_with model: @part,
                 url: board_parts_path,
                 data: {
                   turbo_frame: "main",
-                  controller: "board-part-new form-validation",
+                  controller: "board-part-form form-validation",
                   "form-validation-context-value": "board-part-new"
                 },
                 html: {
@@ -21,8 +19,6 @@
     <div id="boardPartForm" class="carousel slide mt-2">
       <%= render "form_fields", f: f %>
     </div>
-    <div class="d-flex flex-grow-1">
-      <%= f.submit "登録する", class: "btn btn-primary flex-grow-1" %>
-    </div>
+
   <% end %>
 </section>

@@ -1,5 +1,101 @@
-  <div class="carousel-inner" style="min-height: 185px;">
-    <div class="carousel-item active px-4 pt-2">
+  <div class="carousel-inner">
+    <%= f.fields_for :board_part do |bf| %>
+      <%= bf.hidden_field :camera_state_json, id: "camera_state_json" %>
+      <div class="carousel-item active px-4">
+        <div class="d-block w-100 px-5">
+          <div class="fw-bold fs-4 mb-2">基本形状</div>
+          <div class="input-group">
+            <span class="input-group-text">板の横巾 (mm)</span>
+            <%= bf.number_field :length_mm, step: 0.1, class: "form-control", required: true %>
+            <div class="invalid-feedback">
+              板の横巾 は必須です
+            </div>
+          </div>
+          <div class="form-text mb-2">
+            板の横巾は2000mm以内で入力してください。
+          </div>
+          <div class="input-group">
+            <span class="input-group-text">板の縦巾 (mm)</span>
+            <%= bf.number_field :width_mm, step: 0.1, class: "form-control", required: true %>
+            <div class="invalid-feedback">
+              板の縦巾 は必須です
+            </div>
+          </div>
+          <div class="form-text mb-2">
+            板の縦巾は1000mm以内で入力してください。
+          </div>
+          <div class="input-group">
+            <span class="input-group-text">板の厚み</span>
+            <%= bf.collection_select :thickness_mm, @board_thickness, :thickness_mm, :name_en,
+                                  { prompt: "選択…" },
+                                  class: "form-select", required: true %>
+            <div class="invalid-feedback">
+              板の厚みは必須です
+            </div>
+          </div>
+        </div>
+      </div>
+      <%# コーナー加工 %>
+      <div class="carousel-item px-4">
+        <div class="d-block w-100 px-5">
+          <div class="fw-bold fs-4 mb-2">コーナー加工</div>
+          <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
+          <% corners.each do |key, label| %>
+            <% h = (bf.object.corner_json || {}).dig(key.to_s) || {} %>
+            <% sel = h["proc"].presence || "NONE" %>
+            <div class="fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %></div>
+            <div class="input-group mb-2">
+              <span class="input-group-text">加工方法</span>
+              <%= select_tag "part[board_part_attributes][corner_json][#{key}][proc]",
+                              options_from_collection_for_select(@corner_processes, :code, :name_ja, sel),
+                              class: "form-select" %>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text">加工範囲X (mm)</span>
+              <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dx]",
+                                    h["dx"],
+                                    step: 0.1, class: "form-control" %>
+              <div class="invalid-feedback">
+                加工範囲X は必須です
+              </div>
+            </div>
+            <div class="form-text mb-2">
+              <%= "#{label}" %>角からのX軸の加工範囲を入力してください。
+            </div>
+            <div class="input-group">
+              <span class="input-group-text">加工範囲Y (mm)</span>
+              <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dy]",
+                                    h["dy"],
+                                    step: 0.1, class: "form-control" %>
+              <div class="invalid-feedback">
+                加工範囲Y は必須です
+              </div>
+            </div>
+            <div class="form-text mb-3">
+              <%= "#{label}" %>角からのY軸の加工範囲を入力してください。
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="carousel-item px-4 pt-2">
+        <div class="d-block w-100 px-5">
+          <pre><%= raw json_escape(
+            JSON.pretty_generate(
+              @part.as_json(
+                only: [:id, :name, :shape_type_code],
+                include: {
+                  board_part:  { except: [:created_at, :updated_at] },
+                  lumber_part: { except: [:created_at, :updated_at] }
+                }
+              )
+            )
+          ) %></pre>
+        </div>
+      </div>
+
+    <% end %>
+    <div class="carousel-item px-4 pt-2">
       <div class="d-block w-100 px-5">
         <div class="input-group mb-3">
           <span class="input-group-text">部品名称</span>
@@ -8,7 +104,7 @@
             部品名称は必須です（50文字以内）
           </div>
         </div>
-        <div class="card">
+        <div class="card mb-3">
           <div class="card-header">
             説明文
           </div>
@@ -18,57 +114,12 @@
                   maxlength: 1000,
                   placeholder: "説明文などをご記入ください" %>
         </div>
-      </div>
-    </div>
-    <%= f.fields_for :board_part do |bf| %>
-    <%= bf.hidden_field :camera_state_json, id: "camera_state_json" %>
-    <div class="carousel-item px-4 pt-2">
-      <div class="d-block w-100 px-5">
-        <div class="input-group">
-          <span class="input-group-text">板の幅 (mm)</span>
-          <%= bf.number_field :length_mm, step: 0.1, class: "form-control", required: true %>
-          <div class="invalid-feedback">
-            板の幅 は必須です
-          </div>
-        </div>
-        <div class="form-text mb-3">
-          板の幅は2000mm以内で入力してください。
-        </div>
-        <div class="input-group">
-          <span class="input-group-text">板の高さ (mm)</span>
-          <%= bf.number_field :width_mm, step: 0.1, class: "form-control", required: true %>
-          <div class="invalid-feedback">
-            板の高さ は必須です
-          </div>
-        </div>
-        <div class="form-text mb-3">
-          板の高さは1000mm以内で入力してください。
-        </div>
-        <div class="input-group">
-          <span class="input-group-text">板の厚み</span>
-          <%= bf.collection_select :thickness_mm, @board_thickness, :thickness_mm, :name_en,
-                                { prompt: "選択…" },
-                                class: "form-select", required: true %>
-          <div class="invalid-feedback">
-            板の厚みは必須です
-          </div>
+        <div class="d-flex flex-grow-1">
+          <%= f.submit "登録する", class: "btn btn-primary flex-grow-1" %>
         </div>
       </div>
     </div>
-    <div class="carousel-item">
-      <div class="d-block w-100 px-5">
-        <%= bf.label :width_mm, "幅(mm)" %>
-        <%= bf.number_field :width_mm, step: 0.1, class: "form-control", required: true %>
-      </div>
-    </div>
-    <div class="carousel-item">
-      <div class="d-block w-100 px-5">
-        <%= bf.label :length_mm, "長さ(mm)" %>
-        <%= bf.number_field :length_mm, step: 0.1, class: "form-control", required: true %>
-      </div>
-    </div>
-    <% end %>
-  </div>
+
   <button class="carousel-control-prev" type="button" data-bs-target="#boardPartForm" data-bs-slide="prev" data-bs-theme="dark">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
     <span class="visually-hidden">Previous</span>

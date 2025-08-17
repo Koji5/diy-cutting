@@ -22,6 +22,7 @@ pin "controllers/hello_controller",             to: "controllers/hello_controlle
 #pin "copy-address-controller", to: "controllers/copy_address_controller.js"
 
 pin "lib/eval_expr", to: "lib/eval_expr.js"
+pin "lib/serialize_form", to: "lib/serialize_form.js"
 
 # --- Three.js 本体 -------------------------------------------------------
 pin "three", to: "https://unpkg.com/three@0.176.0/build/three.module.js"

@@ -21,10 +21,17 @@
     link:  true
   },
   {
-    path:  -> { new_part_path },
-    match: -> { assigns[:current_view] == "parts/new" },
+    path:  -> { new_board_part_path },
+    match: -> {},
     icon:  "plus-lg",
-    label: "新規作成",
+    label: "新規作成（板材）",
+    link:  true
+  },
+  {
+    path:  -> { new_lumber_part_path },
+    match: -> {},
+    icon:  "plus-lg",
+    label: "新規作成（角材）",
     link:  true
   }
 ] %>

@@ -25,6 +25,7 @@ class BoardPartsController < ApplicationController
   end
 
   def edit
+    @part = Current.account.parts.includes(:board_part).find(params[:id])
     raise ActiveRecord::RecordNotFound unless @part.board?
     @part.build_board_part unless @part.board_part  # 念のため
   end

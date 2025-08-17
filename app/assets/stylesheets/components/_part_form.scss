@@ -1,0 +1,16 @@
+.square-half {
+  width: min(50dvh, 100%); /* 画面高の半分 or 親幅の小さい方 */
+  aspect-ratio: 1 / 1;     /* 正方形にする */
+  height: auto;            /* 高さは比率から算出 */
+}
+.square-half > canvas {
+  width: 100%;
+  height: 100%;
+  display: block; /* 余白回避 */
+}
+.carousel-item {
+  height: 100%;                 /* 親の高さを埋める */
+  overflow-y: auto;             /* 縦スクロール許可 */
+  -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
+  overscroll-behavior: contain; /* 端でのページスクロール連鎖を防ぐ */
+}

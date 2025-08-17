@@ -1,0 +1,8 @@
+<div data-controller="part3d"
+     data-part3d-part-value="<%= j @part.as_json(
+       only: [:id, :name, :shape_type_code],
+       include: {
+         board_part:  { only: [:thickness_mm, :width_mm, :length_mm, :corner_json] },
+         lumber_part: { only: [:side_a_mm, :side_b_mm, :length_mm, :corner_json] }
+       }
+     ).to_json %>"></div>
