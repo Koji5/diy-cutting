@@ -1,7 +1,7 @@
 import { Controller }    from "@hotwired/stimulus";
 import * as THREE        from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { buildBoardGeometry } from "helpers/board_builders"
+import { buildMeshesFromCtx } from "helpers/board_builders"
 
 export default class extends Controller {
 
@@ -9,6 +9,7 @@ export default class extends Controller {
   lastL = 0;
   lastW = 0;
   lastT = 0;
+  boardMeshes = {};
 
   connect () {
     /* Three.js --------------------------------- */
@@ -66,8 +67,8 @@ export default class extends Controller {
           color: 0x7d4712,
           transparent: true,   // ← 必須
           opacity: 0.35,       // 0(完全透明)〜1(不透明)
-          depthWrite: false,   // 透過重なりのチラつき軽減に有効（必要に応じて）
-          side: THREE.DoubleSide // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
+          depthWrite: true,   // 透過重なりのチラつき軽減に有効（必要に応じて）
+          side: THREE.FrontSide // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
         });
 
     /* レンダラー */
@@ -112,11 +113,18 @@ export default class extends Controller {
       return;
     }
     /* Geometry 生成 */
-    const boardGeometry = buildBoardGeometry(boardCtx);
+    this.boardMeshes = buildMeshesFromCtx(boardCtx);
     /* --- マテリアル取得 */
     const mat = this.boardMat
-    const baseMesh  = new THREE.Mesh(boardGeometry);
-    this._replaceMesh(baseMesh, mat);
+    //const baseMesh  = new THREE.Mesh(boardMeshes.board);
+    const baseMesh  = this.boardMeshes.board
+    this._replaceMesh(baseMesh);
+    baseMesh.material = mat;
+    this._forEachMesh(this.boardMeshes, (mesh, path) => {
+      const isBoardTop = path.length === 1 && path[0] === "board";
+      mesh.visible = isBoardTop;   // board だけ true、他は false
+      this.scene.add(mesh)
+    });
     const box = new THREE.Box3().setFromObject(baseMesh);
     console.log("isFinite(box.max.x):", isFinite(box.max.x));
     if (isFinite(box.max.x)) {
@@ -134,13 +142,13 @@ export default class extends Controller {
         this.camera.position.copy(center).addScaledVector(dir, r * 4);
         this.controls.target.copy(center);    // ← ② モデル中心を見る
         this.controls.update();               // ← ③ 行列を同期
-        this._buildAxesAndLabels(box);
         this.dirLight.position.copy(this.camera.position).multiplyScalar(1.2);
         this.cameraInitialized = true;        // フラグを立てる
         this.lastL = boardCtx.length_mm
         this.lastW = boardCtx.width_mm
         this.lastT = boardCtx.thickness_mm
       }
+      this._buildAxesAndLabels(box);
 
       /* --- クリップ面は毎回更新（大型モデル対策） --- */
       const radius = box.getSize(new THREE.Vector3()).length() * 0.5;
@@ -151,7 +159,21 @@ export default class extends Controller {
       /* ライト位置はカメラと一緒に動かすと自然 */
       this.dirLight.position.copy(this.camera.position).multiplyScalar(1.2);
     }
+    console.log("this.scene:",this.scene)
     this.render()
+  }
+
+  _forEachMesh(node, fn, path = []) {
+    if (!node) return;
+    if (node instanceof THREE.Mesh) {
+      fn(node, path);
+    } else if (Array.isArray(node)) {
+      node.forEach((child, i) => forEachMesh(child, fn, path.concat(String(i))));
+    } else if (typeof node === "object") {
+      for (const key in node) {
+        this._forEachMesh(node[key], fn, path.concat(key));
+      }
+    }
   }
 
   _syncCameraState() {
@@ -165,30 +187,34 @@ export default class extends Controller {
   }
 
   /*====================== メッシュ差し替え ======================*/
-  _replaceMesh (mesh, mat) {
+  _replaceMesh (mesh) {
 
     // 旧メッシュと旧エッジを撤去＆破棄
     if (this.mesh) {
-      this.scene.remove(this.mesh);
-      try { this.mesh.traverse(o => {
-        o.geometry?.dispose?.();
-        (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m?.dispose?.());
-      }); } catch(e){}
+      const targets = []
+       this.scene.traverse(obj => {
+        if (obj.isMesh) targets.push(obj)           // Group配下も拾う
+        // 必要なら obj.isPoints / obj.isLine も対象に
+      })
+      targets.forEach(me => {
+        me.parent?.remove(me)                   // シーンから外す
+        try { me.geometry?.dispose?.() } catch (e) {}
+        const mat = me.material
+        if (Array.isArray(mat)) mat.forEach(m => m?.dispose?.())
+        else mat?.dispose?.()
+      })
     }
-
     this.mesh = mesh;
-    if (!mesh) return;
-    mesh.material = mat;
+    //if (!mesh) return;
+    //mesh.material = mat;
     // エッジをメッシュの子にする（一緒に動く）
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(mesh.geometry /*, thresholdAngle */),
-      new THREE.LineBasicMaterial({ color: 0x333333, depthTest: false })
-    );
-    edges.renderOrder = 999;
-    mesh.renderOrder  = 998;
-    mesh.add(edges);        // ← ここがポイント
-
-    this.scene.add(mesh);
+    //const edges = new THREE.LineSegments(
+    //  new THREE.EdgesGeometry(mesh.geometry ,/* thresholdAngle */30),
+    //  new THREE.LineBasicMaterial({ color: 0x333333, depthTest: true, depthWrite: false })
+    //);
+    //edges.renderOrder = 999;
+    //mesh.renderOrder  = 998;
+    //mesh.add(edges);
   }
 
   _buildAxesAndLabels(box = null) {
