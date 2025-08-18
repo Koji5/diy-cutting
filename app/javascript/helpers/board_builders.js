@@ -23,7 +23,7 @@ function createBoardMesh(L, W, T) {
   // 上面Z=0（Z ∈ [-T,0]）
   geo.translate(0, 0, -T)
 
-  const m = mat("board", new THREE.MeshStandardMaterial({ color: 0xffffff, metalness:0.2, roughness:0.7 }))
+  const m = mat("board", new THREE.MeshStandardMaterial({ color: 0xffffff, metalness:0, roughness:0.8 }))
   const mesh = new THREE.Mesh(geo, m)
   return mesh
 }
@@ -103,12 +103,10 @@ export function buildMeshesFromCtx(ctx) {
       if (!cornerMesh) continue;
       cornerMesh.name = makeName("corner", pos)
       meshes.corner[pos] = cornerMesh
-      //  boardMesh.updateMatrixWorld( true );
-      //  cornerMesh.updateMatrixWorld( true );
       const A = new Brush(boardMesh.geometry.clone(), boardMesh.material);
       const B = new Brush(cornerMesh.geometry.clone(), cornerMesh.material);
-      A.matrixWorld.copy(boardMesh.matrixWorld );
-      B.matrixWorld.copy(cornerMesh.matrixWorld );
+      A.matrixWorld.copy(boardMesh.matrixWorld);
+      B.matrixWorld.copy(cornerMesh.matrixWorld);
       A.matrixAutoUpdate = B.matrixAutoUpdate = false;
       const out = evaluator.evaluate(
         A,            // A
@@ -155,186 +153,14 @@ export function buildMeshesFromCtx(ctx) {
     }
   }
   // 最終的な board.geometry が確定した後に
-  // 1) 退化除去 → 頂点マージ
-  const tmp   = stripDegenerateTriangles(boardMesh.geometry);
-  const clean = weldToIndexed(tmp, 1e-4);  // 必要なら 1e-3 まで上げる
-  tmp.dispose();
+  boardMesh.geometry.computeVertexNormals()
+  boardMesh.geometry.computeBoundingSphere()
+  boardMesh.geometry.computeBoundingBox()
 
-  // 進捗ログ（ここが true になれば OK）
-  console.log('after weld -> indexed?', !!clean.index,
-              'uniq verts', clean.getAttribute('position')?.count,
-              'index tris', clean.index?.count/3);
-
-  boardMesh.geometry.dispose();
-  boardMesh.geometry = clean;              // ← 置き換え
-  boardMesh.geometry.computeVertexNormals();
-
-  // 4) 置き換え後の boardMesh.geometry から Edges を作る
-  const eg = new THREE.EdgesGeometry(boardMesh.geometry, 30); // 20〜40°で調整可
-  console.log('edges posCount', eg.getAttribute('position')?.count);
-  clean.dispose();
-
-  const edges = new THREE.LineSegments(
-    eg,
-    new THREE.LineBasicMaterial({ color: 0x333333, depthTest: true, depthWrite: false })
-  );
-  boardMesh.renderOrder = 10;
-  edges.renderOrder     = 11;
-  boardMesh.add(edges);
-
-  const g = boardMesh.geometry
-  // debug
-  console.log('indexed?', !!g.index, 'posCount', g.getAttribute('position')?.count);
-  const egTest = new THREE.EdgesGeometry(g, 30);
-  console.log('edges posCount', egTest.getAttribute('position')?.count);
-  egTest.dispose();
-  g.computeVertexNormals()
-  g.computeBoundingSphere()
-  g.computeBoundingBox()
   meshes.board = boardMesh
-  meshes.board.geometry = g
   meshes.board.name = makeName("board")
 
-  g.dispose()
   boardMesh.geometry.dispose()
   boardMesh.material?.dispose?.()
   return meshes
-}
-
-//function stripDegenerateTriangles(geom, eps = 1e-12) {
-//  const src = geom.index ? geom.toNonIndexed() : geom.clone();
-//  const pos = src.getAttribute('position');
-//  if (!pos) return src;
-
-//  const out = [];
-//  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-//  for (let i = 0; i < pos.count; i += 3) {
-//    a.fromBufferAttribute(pos, i+0);
-//    b.fromBufferAttribute(pos, i+1);
-//    c.fromBufferAttribute(pos, i+2);
-//    const area2 = b.clone().sub(a).cross(c.clone().sub(a)).lengthSq();
-//    if (Number.isFinite(area2) && area2 > eps) {
-//      out.push(a.x,a.y,a.z, b.x,b.y,b.z, c.x,c.y,c.z);
-//    }
-//  }
-//  const G = new THREE.BufferGeometry();
-//  if (out.length) G.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
-//  src.dispose();
-//  return G;
-//}
-
-function mergeVerticesForEdges(geom, tol = 1e-4) { // ★ tol を大きめに
-  // 1) 非インデックス化（三角順に並ぶ）
-  const src = geom.index ? geom.toNonIndexed() : geom.clone();
-  const pos = src.getAttribute('position');
-  if (!pos || pos.count === 0) return src;
-
-  const keyScale = 1 / tol;
-  const map = new Map();   // 量子化座標 → 新index
-  const uniq = [];
-  const index = [];
-
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const k = `${Math.round(x*keyScale)},${Math.round(y*keyScale)},${Math.round(z*keyScale)}`;
-    let idx = map.get(k);
-    if (idx === undefined) {
-      idx = (uniq.length / 3);
-      uniq.push(x, y, z);
-      map.set(k, idx);
-    }
-    index.push(idx);
-  }
-
-  const G = new THREE.BufferGeometry();
-  G.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(uniq), 3));
-  const IndexArray = (uniq.length/3 > 65535) ? Uint32Array : Uint16Array;
-  G.setIndex(new THREE.BufferAttribute(new IndexArray(index), 1));
-  G.clearGroups();
-  G.computeBoundingSphere();
-  G.computeBoundingBox();
-
-  src.dispose();
-  return G;
-}
-
-function makeEdgesSafeForBoard(boardMesh) {
-  // 退化を除去 → 頂点共有化（tolは mm スケールなら 1e-4 〜 1e-3 を推奨）
-  const tmp   = stripDegenerateTriangles(boardMesh.geometry);
-  const clean = mergeVerticesForEdges(tmp, 1e-4);
-  tmp.dispose();
-
-  // 進捗ログ（★ここが重要）
-  console.log('clean indexed?', !!clean.index,
-              'uniq verts', clean.getAttribute('position')?.count,
-              'triangles', clean.index?.count/3);
-
-  const eg = new THREE.EdgesGeometry(clean, 30); // 20〜40°で調整可
-  clean.dispose();
-
-  const ep = eg.getAttribute('position');
-  if (!ep || ep.count === 0) { eg.dispose(); return null; }
-
-  const edges = new THREE.LineSegments(
-    eg,
-    new THREE.LineBasicMaterial({ color: 0x333333, depthTest: true, depthWrite: false })
-  );
-  edges.renderOrder = (boardMesh.renderOrder ?? 0) + 1;
-  return edges;
-}
-// 1) 退化三角形を除去（おまじない）
-function stripDegenerateTriangles(geom, eps = 1e-12) {
-  const src = geom.index ? geom.toNonIndexed() : geom.clone();
-  const pos = src.getAttribute('position');
-  if (!pos) return src;
-
-  const out = [];
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i += 3) {
-    a.fromBufferAttribute(pos, i+0);
-    b.fromBufferAttribute(pos, i+1);
-    c.fromBufferAttribute(pos, i+2);
-    const area2 = b.clone().sub(a).cross(c.clone().sub(a)).lengthSq();
-    if (Number.isFinite(area2) && area2 > eps) {
-      out.push(a.x,a.y,a.z, b.x,b.y,b.z, c.x,c.y,c.z);
-    }
-  }
-  const G = new THREE.BufferGeometry();
-  if (out.length) G.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
-  src.dispose();
-  return G;
-}
-
-// 2) 頂点溶接して index を作る（tol は mm スケールなら 1e-4〜1e-3）
-function weldToIndexed(geom, tol = 1e-4) {
-  const src = geom.index ? geom.toNonIndexed() : geom.clone();
-  const pos = src.getAttribute('position');
-  if (!pos || pos.count === 0) return src;
-
-  const keyScale = 1 / tol;
-  const map = new Map();
-  const uniq = [];
-  const index = [];
-
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const k = `${Math.round(x*keyScale)},${Math.round(y*keyScale)},${Math.round(z*keyScale)}`;
-    let idx = map.get(k);
-    if (idx === undefined) {
-      idx = (uniq.length / 3);
-      uniq.push(x, y, z);
-      map.set(k, idx);
-    }
-    index.push(idx);
-  }
-
-  const G = new THREE.BufferGeometry();
-  G.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(uniq), 3));
-  const IndexArray = (uniq.length/3 > 65535) ? Uint32Array : Uint16Array;
-  G.setIndex(new THREE.BufferAttribute(new IndexArray(index), 1));
-  G.clearGroups();
-  G.computeBoundingSphere();
-  G.computeBoundingBox();
-  src.dispose();
-  return G;
 }

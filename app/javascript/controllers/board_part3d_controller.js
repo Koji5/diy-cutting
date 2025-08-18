@@ -51,26 +51,46 @@ export default class extends Controller {
 
     /* シーン */
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x006666);
+    this.scene.background = new THREE.Color(0xfff8dc);
 
     /* カメラ */
     this.camera = new THREE.PerspectiveCamera(45, 1, 1, 5000);
-    this.camera.position.set(300, 300, 300);
+    this.camera.position.set(4, 4, 6);
 
     /* ライト */
-    this.dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    this.dirLight.position.set(1, 1, 1);
+    this.dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    this.dirLight.position.set(6, 8, 4);
+    this.dirLight.castShadow = true;
     this.scene.add(this.dirLight);
-
+    // 影品質（重要）
+    this.dirLight.shadow.mapSize.set(2048, 2048);   // 解像度
+    this.dirLight.shadow.camera.near = 1;
+    this.dirLight.shadow.camera.far  = 30;
+    this.dirLight.shadow.camera.left   = -10;
+    this.dirLight.shadow.camera.right  =  10;
+    this.dirLight.shadow.camera.top    =  15;
+    this.dirLight.shadow.camera.bottom = -15;
+    this.dirLight.shadow.bias = -0.0005;      // アクネ対策
+    this.dirLight.shadow.normalBias = 0.02;   // モデルが厚い/スケールが大きい時に有効
     /* マテリアル */
     this.boardMat = new THREE.MeshStandardMaterial({
           color: 0x7d4712,
           transparent: true,   // ← 必須
-          opacity: 0.35,       // 0(完全透明)〜1(不透明)
+          opacity: 0.5,       // 0(完全透明)〜1(不透明)
           depthWrite: true,   // 透過重なりのチラつき軽減に有効（必要に応じて）
-          side: THREE.FrontSide // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
+          metalness: 0,
+          roughness: 0.9,
+          side: THREE.FrontSide, // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
+          flatShading: true
         });
-
+    this.boardMat.needsUpdate = true;
+    // 環境光は弱めに（影が見えやすい）
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+    // 背面光
+    this.rim = new THREE.DirectionalLight(0xffffff, 0.9);
+    this.rim.position.set(-6, -8, -4);
+    this.rim.castShadow = false;
+    this.scene.add(this.rim);
     /* レンダラー */
     this.renderer = new THREE.WebGLRenderer({ 
       antialias:             true,
@@ -80,6 +100,8 @@ export default class extends Controller {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     /* 仮サイズで一旦 setSize —— 実サイズは ResizeObserver が上書き */
     this.renderer.setSize(1, 1, false);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 柔らかい影
     // ① プレースホルダを本物キャンバスに置き換え
     const ph = this.element.querySelector("canvas[data-board-part3d-target='canvas']");
     ph?.replaceWith(this.renderer.domElement);
@@ -114,19 +136,14 @@ export default class extends Controller {
     }
     /* Geometry 生成 */
     this.boardMeshes = buildMeshesFromCtx(boardCtx);
-    /* --- マテリアル取得 */
-    const mat = this.boardMat
-    //const baseMesh  = new THREE.Mesh(boardMeshes.board);
-    const baseMesh  = this.boardMeshes.board
-    this._replaceMesh(baseMesh);
-    baseMesh.material = mat;
+    this._replaceMesh(this.boardMeshes.board);
+    this.boardMeshes.board.material = this.boardMat;
     this._forEachMesh(this.boardMeshes, (mesh, path) => {
       const isBoardTop = path.length === 1 && path[0] === "board";
       mesh.visible = isBoardTop;   // board だけ true、他は false
       this.scene.add(mesh)
     });
-    const box = new THREE.Box3().setFromObject(baseMesh);
-    console.log("isFinite(box.max.x):", isFinite(box.max.x));
+    const box = new THREE.Box3().setFromObject(this.boardMeshes.board);
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
 
@@ -142,7 +159,6 @@ export default class extends Controller {
         this.camera.position.copy(center).addScaledVector(dir, r * 4);
         this.controls.target.copy(center);    // ← ② モデル中心を見る
         this.controls.update();               // ← ③ 行列を同期
-        this.dirLight.position.copy(this.camera.position).multiplyScalar(1.2);
         this.cameraInitialized = true;        // フラグを立てる
         this.lastL = boardCtx.length_mm
         this.lastW = boardCtx.width_mm
@@ -155,11 +171,7 @@ export default class extends Controller {
       this.camera.near = 0.1;
       this.camera.far  = radius * 10;
       this.camera.updateProjectionMatrix();
-
-      /* ライト位置はカメラと一緒に動かすと自然 */
-      this.dirLight.position.copy(this.camera.position).multiplyScalar(1.2);
     }
-    console.log("this.scene:",this.scene)
     this.render()
   }
 
@@ -205,16 +217,6 @@ export default class extends Controller {
       })
     }
     this.mesh = mesh;
-    //if (!mesh) return;
-    //mesh.material = mat;
-    // エッジをメッシュの子にする（一緒に動く）
-    //const edges = new THREE.LineSegments(
-    //  new THREE.EdgesGeometry(mesh.geometry ,/* thresholdAngle */30),
-    //  new THREE.LineBasicMaterial({ color: 0x333333, depthTest: true, depthWrite: false })
-    //);
-    //edges.renderOrder = 999;
-    //mesh.renderOrder  = 998;
-    //mesh.add(edges);
   }
 
   _buildAxesAndLabels(box = null) {
