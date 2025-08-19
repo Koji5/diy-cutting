@@ -138,8 +138,14 @@ export default class extends Controller {
     this.boardMeshes = buildMeshesFromCtx(boardCtx);
     this._replaceMesh(this.boardMeshes.board);
     this.boardMeshes.board.material = this.boardMat;
+    console.log("boardCtx: ", boardCtx)
     this._forEachMesh(this.boardMeshes, (mesh, path) => {
-      const isBoardTop = path.length === 1 && path[0] === "board";
+      console.log("mesh: ", mesh)
+      console.log("path: ", path)
+      const dispPath = [...path, "disp"]
+      console.log("dispPath: ", dispPath)
+      console.log("this._getValueByPath(boardCtx, dispPath): ", this._getValueByPath(boardCtx, dispPath))
+      const isBoardTop = (path.length === 1 && path[0] === "board") || this._getValueByPath(boardCtx, dispPath) === true;
       mesh.visible = isBoardTop;   // board だけ true、他は false
       this.scene.add(mesh)
     });
@@ -301,5 +307,9 @@ export default class extends Controller {
 
     // --- 6) シーンに追加 ---
     this.scene.add(g);
+  }
+
+  _getValueByPath(obj, path) {
+    return path.reduce((acc, key) => acc?.[key], obj)
   }
 }

@@ -13,6 +13,19 @@ function makeName(...parts) {
   return parts.filter(v => v != null && v !== "").join(":")
 }
 
+function getMeshStandardMaterial() {
+  return new THREE.MeshStandardMaterial({
+          color: 0xff0000,
+          transparent: true,   // ← 必須
+          opacity: 0.8,       // 0(完全透明)〜1(不透明)
+          depthWrite: true,   // 透過重なりのチラつき軽減に有効（必要に応じて）
+          metalness: 0,
+          roughness: 0.9,
+          side: THREE.FrontSide, // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
+          flatShading: true
+        });
+}
+
 // ===== メッシュ生成器（葉ノードの具体実装） =====
 // 板
 function createBoardMesh(L, W, T) {
@@ -71,7 +84,7 @@ function createCornerMesh(cornerCtx, pos, L, W, T) {
   const geo = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: false })
   // 上面Z=0（Z ∈ [-T,0]）
   geo.translate(0, 0, -T)
-  const m = mat("corner", new THREE.MeshStandardMaterial({ color: 0xff0000, metalness:0.2, roughness:0.7 }))
+  const m = mat("corner", getMeshStandardMaterial())
   return new THREE.Mesh(geo, m)
 }
 
@@ -97,12 +110,12 @@ export function buildMeshesFromCtx(ctx) {
 
   // corner（オブジェクト：tl,tr,bl,brなど）
   if (ctx.corner_json && typeof ctx.corner_json === "object") {
-    meshes.corner = {}
+    meshes.corner_json = {}
     for (const pos of Object.keys(ctx.corner_json)) {
       const cornerMesh = createCornerMesh(ctx.corner_json[pos], pos, L, W, T)
       if (!cornerMesh) continue;
-      cornerMesh.name = makeName("corner", pos)
-      meshes.corner[pos] = cornerMesh
+      cornerMesh.name = makeName("corner_json", pos)
+      meshes.corner_json[pos] = cornerMesh
       const A = new Brush(boardMesh.geometry.clone(), boardMesh.material);
       const B = new Brush(cornerMesh.geometry.clone(), cornerMesh.material);
       A.matrixWorld.copy(boardMesh.matrixWorld);
