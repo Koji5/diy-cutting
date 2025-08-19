@@ -47,19 +47,17 @@ function createCornerMesh(cornerCtx, pos, L, W, T) {
   const DX = Number(cornerCtx?.dx);
   const DY = Number(cornerCtx?.dy);
   if (!Number.isFinite(DX) || !Number.isFinite(DY) || DX <= 0 || DY <= 0) return null;
-  let CX = 0, CY = 0, signX = 1, signY = 1;
-  console.log("DX:", DX, " DY:", DY, " pos:", pos)
+  let CX = 0, CY = 0, signX = 1, signY = 1, pix = 0, piy = 0;
   switch (pos) {
-    case "tl": CX = 0;  CY = W;  signX = +1; signY = -1; break;
-    case "tr": CX = L;  CY = W;  signX = -1; signY = -1; break;
-    case "bl": CX = 0;  CY = 0;  signX = +1; signY = +1; break;
-    case "br": CX = L;  CY = 0;  signX = -1; signY = +1; break;
+    case "tl": CX = 0;  CY = W;  signX = +1; signY = -1; pix = Math.PI / 2; piy = Math.PI; break;
+    case "tr": CX = L;  CY = W;  signX = -1; signY = -1; pix = Math.PI / 2; piy = 0; break;
+    case "bl": CX = 0;  CY = 0;  signX = +1; signY = +1; pix = -Math.PI / 2; piy = Math.PI; break;
+    case "br": CX = L;  CY = 0;  signX = -1; signY = +1; pix = -Math.PI / 2; piy = 0; break;
     default:
       console.warn("unknown pos:", JSON.stringify(pos), "len=", String(pos).length,
               "codes=", [...String(pos)].map(c => c.charCodeAt(0)))
       return null;
   }
-  console.log("DX:", DX, " DY:", DY)
   const s = new THREE.Shape()
   switch(cornerCtx.proc) {
     case "BEVEL":
@@ -74,6 +72,22 @@ function createCornerMesh(cornerCtx, pos, L, W, T) {
       .lineTo(CX + DX * signX, CY + DY * signY)
       .lineTo(CX, CY + DY * signY)
       .closePath();
+      break;
+    case "ROUND_R":
+      const h = DX > DY ? DY : DX;
+      const l = DX > DY ? DX : DY;
+      const r = ((l * 2) ** 2) / (8 * h) + h / 2;
+      const sx = DX > DY ? CX + signX * DX : CX + signX * r;
+      const sy = DX > DY ? CY + signY * r : CY + signY * DY;
+      const theta = Math.asin(l / r);
+      s.moveTo(CX, CY)
+      .lineTo(CX + DX * signX, CY);
+      if (DX > DY) {
+        s.absarc(sx, sy, r, pix, pix - signX * signY * theta, (signX * signY === 1));
+      } else {
+        s.absarc(sx, sy, r, piy + signX * signY * theta, piy , (signX * signY === 1));
+      }
+      s.closePath();
       break;
     default:
       console.warn("unknown cornerCtx.prop:", JSON.stringify(cornerCtx.proc), "len=", String(cornerCtx.proc).length,
