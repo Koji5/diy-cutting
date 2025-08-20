@@ -58,43 +58,49 @@ function createCornerMesh(cornerCtx, pos, L, W, T) {
               "codes=", [...String(pos)].map(c => c.charCodeAt(0)))
       return null;
   }
-  const s = new THREE.Shape()
+  const h = DX > DY ? DY : DX;
+  const l = DX > DY ? DX : DY;
+  const r = ((l * 2) ** 2) / (8 * h) + h / 2;
+  const theta = Math.asin(l / r);
+  const s = new THREE.Shape();
+  s.moveTo(CX, CY).lineTo(CX + DX * signX, CY);
   switch(cornerCtx.proc) {
     case "BEVEL":
-      s.moveTo(CX, CY)
-      .lineTo(CX + DX * signX, CY)
-      .lineTo(CX, CY + DY * signY)
-      .closePath();
+      s.lineTo(CX, CY + DY * signY);
       break;
     case "CHAMFER":
-      s.moveTo(CX, CY)
-      .lineTo(CX + DX * signX, CY)
-      .lineTo(CX + DX * signX, CY + DY * signY)
-      .lineTo(CX, CY + DY * signY)
-      .closePath();
+      s.lineTo(CX + DX * signX, CY + DY * signY)
+      .lineTo(CX, CY + DY * signY);
       break;
     case "ROUND_R":
-      const h = DX > DY ? DY : DX;
-      const l = DX > DY ? DX : DY;
-      const r = ((l * 2) ** 2) / (8 * h) + h / 2;
-      const sx = DX > DY ? CX + signX * DX : CX + signX * r;
-      const sy = DX > DY ? CY + signY * r : CY + signY * DY;
-      const theta = Math.asin(l / r);
-      s.moveTo(CX, CY)
-      .lineTo(CX + DX * signX, CY);
-      if (DX > DY) {
-        s.absarc(sx, sy, r, pix, pix - signX * signY * theta, (signX * signY === 1));
-      } else {
-        s.absarc(sx, sy, r, piy + signX * signY * theta, piy , (signX * signY === 1));
+      {
+        const sx = DX > DY ? CX + signX * DX : CX + signX * r;
+        const sy = DX > DY ? CY + signY * r : CY + signY * DY;
+        if (DX > DY) {
+          s.absarc(sx, sy, r, pix, pix - signX * signY * theta, (signX * signY === 1));
+        } else {
+          s.absarc(sx, sy, r, piy + signX * signY * theta, piy , (signX * signY === 1));
+        }
       }
-      s.closePath();
+      break;
+    case "INROUND":
+      {
+        const sx = DX > DY ? CX : CX + signX * (DX - r);
+        const sy = DX > DY ? CY + signY * (DY - r) : CY;
+        if (DX > DY) {
+          s.absarc(sx, sy, r, -pix - signX * signY * theta, -pix, (signX * signY === -1));
+        } else {
+          s.absarc(sx, sy, r, piy - signX * Math.PI, piy - signX * (Math.PI - signY * theta) , (signX * signY === -1));
+        }
+      }
       break;
     default:
       console.warn("unknown cornerCtx.prop:", JSON.stringify(cornerCtx.proc), "len=", String(cornerCtx.proc).length,
               "codes=", [...String(cornerCtx.proc)].map(c => c.charCodeAt(0)))
+      s = null;
       return null;
   }
-  console.log("s:", s)
+  s.closePath();
   const geo = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: false })
   // 上面Z=0（Z ∈ [-T,0]）
   geo.translate(0, 0, -T)
