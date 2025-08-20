@@ -81,6 +81,12 @@
             <div class="form-text mb-3">
               <%= "#{label}" %>角からのY軸の加工範囲を入力してください。
             </div>
+            <div class="input-group mb-2">
+              <span class="input-group-text">エッジ加工</span>
+              <%= select_tag "part[board_part_attributes][corner_json][#{key}][edge]",
+                              options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
+                              class: "form-select" %>
+            </div>
           <% end %>
         </div>
       </div>

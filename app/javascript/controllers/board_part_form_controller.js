@@ -33,7 +33,6 @@ export default class extends Controller {
         this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d")
     }
     const formJSON = formToJSON(this.form)
-    console.log(formJSON)
     this.boardPart3dCtrl?.updateModel?.(formJSON)
   }
 
@@ -47,19 +46,15 @@ export default class extends Controller {
       header && getComputedStyle(header).display !== "none"
         ? header.getBoundingClientRect().height
         : 0
-    console.log("headerH", headerH)
     const bottomH =
       bottom && getComputedStyle(bottom).display !== "none"
         ? bottom.getBoundingClientRect().height
         : 0
-    console.log("bottomH", bottomH)
     const canvasH =
       canvas && getComputedStyle(canvas).display !== "none"
         ? canvas.getBoundingClientRect().height
         : 0
-    console.log("canvasH", canvasH)
     const targetH = Math.max(0, Math.round(window.innerHeight - canvasH - headerH - bottomH -10))
-    console.log("targetH", targetH)
     const el = document.querySelector(".carousel-inner")
     if (el) el.style.height = `${targetH}px`
   }
