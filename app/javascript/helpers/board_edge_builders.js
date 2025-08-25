@@ -14,7 +14,7 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
     case "br": CX = L;  CY = 0;  signX = -1; signY = +1; pix = -Math.PI / 2; piy = 0; break;
     default:
   }
-  const m = 0.01;
+  const m = 0.2;
   const mx = CX - signX * m;
   const my = CY - signY * m;
   const h = DX > DY ? DY : DX;
@@ -202,7 +202,7 @@ function buildFillerGeometry(code, T, edgePath) {
 
 function buildCavityGeometry(code, T, edgePath){
   // マージン
-  const m = -0.01;
+  const m = -0.1;
   const s = new THREE.Shape();
   s.moveTo(0, m);
   switch (code) {
