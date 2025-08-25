@@ -1,6 +1,9 @@
 import * as THREE from "three";
+import { unionMesh } from "helpers/bvh_csg_utils";
 
-export function buildEdgeGeometries(cornerCtx, pos, L, W, T) {
+export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
+  const code = cornerCtx.edge;
+  if (!code || code === "NONE") return null;
   const DX = Number(cornerCtx?.dx);
   const DY = Number(cornerCtx?.dy);
   let CX = 0, CY = 0, signX = 1, signY = 1, pix = 0, piy = 0;
@@ -15,7 +18,8 @@ export function buildEdgeGeometries(cornerCtx, pos, L, W, T) {
   const l = DX > DY ? DX : DY;
   const r = ((l * 2) ** 2) / (8 * h) + h / 2;
   const theta = Math.asin(l / r);
-  const a = notchWidthFromCode(cornerCtx.edge, T);
+  const a = notchWidthFromCode(code, T);
+  if (!a) return null;
   const edgePath = new THREE.CurvePath();
   const cutters = [];
   const p1 = new THREE.Vector3(CX + DX * signX, CY, 0);
@@ -118,258 +122,169 @@ export function buildEdgeGeometries(cornerCtx, pos, L, W, T) {
   // 上面Z=0（Z ∈ [-T,0]）
   geo.translate(0, 0, -T)
   cutters.push(geo);
-
+  cutters.push(buildFillerGeometry(code, T, edgePath));
+  cutters.push(buildCavityGeometry(code, T, edgePath));
   return cutters
 }
 
 /** 帯の幅（mm）：エッジ加工コードから決める（例） */
 function notchWidthFromCode(code, T){
   switch (code) {
-    case "CHM10MM": return Math.min(10, Math.max(0, T*0.5 - 0.001));
-    case "CHM5MM" : return Math.min( 5, Math.max(0, T*0.5 - 0.001));
+    case "CHAMF_BTH": return 1;
+    case "BULLNOSE":return T / 2;
+    case "CHM5MM" : return 5;
     case "R5ROUND": return 5;
-    case "R10ROUND":return 10;
-    case "BULLNOSE":return T * 0.5; // ざっくり（必要なら調整）
-    default:        return 5;       // デフォルト
+    case "CHM10MM": return 10;
+    case "R10ROUND": return 10;
+    case "COVE": return 9;
+    case "OGEE": return T - 10 / Math.sqrt(2);
+    default: return null;
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function buildNotchGeometries(edgePath, code, T, rightSide=false, curveSegments=8) {
-  if (!code || code === "NONE") return null;
-  if (!edgePath?.curves?.length) return null;
-  const a = notchWidthFromCode(code, T);
-  const geos = [];
-  for (const c of edgePath.curves) {
-    if (c.isLineCurve3) {
-      const p0 = c.v1 || c.getPoint(0); // LineCurve3(v1,v2) か getPoint で取得
-      const p1 = c.v2 || c.getPoint(1);
-      const shape = makeStripShape(p0, p1, a, rightSide);
-      const geo = new THREE.ExtrudeGeometry(shape, {
-        depth: T, bevelEnabled: false, curveSegments
-      });
-      geo.translate(0, 0, -T); // 上面Z=0（Z∈[-T,0]）に合わせる
-      geos.push(geo.index ? geo.toNonIndexed() : geo);
-      continue;
-    }
-    // ArcCurve3 相当（中心・半径・角度・回転向きを持つ）
-    const hasArc = 'center' in c && ('radius' in c || ('xRadius' in c && 'yRadius' in c));
-    if (hasArc) {
-      const center    = c.center || new THREE.Vector3(0,0,0);
-      const R         = c.radius ?? c.xRadius;  // 円弧想定
-      const start     = c.startAngle ?? c.aStartAngle;
-      const end       = c.endAngle   ?? c.aEndAngle;
-      const clockwise = !!c.clockwise;
-
-      // どちらが“内側”か：rightSide の向きに応じて半径を増減
-      const Rin = rightSide ? R + a : R - a;
-      const Rout = R;
-
-      // もし Rin <= 0 になりそうならスキップ
-      if (!Number.isFinite(Rin) || Rin <= 0) return null;
-
-      const shape = makeAnnularSectorShape(center, Rout, Rin, start, end, clockwise);
-      const geo = new THREE.ExtrudeGeometry(shape, {
-        depth: T, bevelEnabled: false//, curveSegments
-      });
-      geo.translate(0, 0, -T);
-      geos.push(geo.index ? geo.toNonIndexed() : geo);
-      continue;
-    }
-  }
-  return geos;
-}
-
-
-
-/** 円弧エッジの扇形リングの Shape（外半径 Rout、内半径 Rin） */
-function makeAnnularSectorShape(center, Rout, Rin, a0, a1, clockwise){
+function buildFillerGeometry(code, T, edgePath) {
+  // マージン
   const m = 0.01;
-  const cx = center.x, cy = center.y;
   const s = new THREE.Shape();
-  // 外周スタート
-  //s.moveTo(cx + (Rout + m)*Math.cos(a0), cy + (Rout + m)*Math.sin(a0));
-  //s.absarc(cx, cy, Rout + m, a0, a1, clockwise);
-  // 外→内へ放射状につなぐ
-  s.lineTo(cx + Rin*Math.cos(a1), cy + Rin*Math.sin(a1));
-  // 内周は逆回し
-  s.absarc(cx, cy, Rin, a1, a0, !clockwise);
-  //s.closePath();
-  return s;
+  switch (code) {
+    case "CHAMF_BTH":
+      s.moveTo(1, 0);
+      s.lineTo(T - 1, 0).lineTo(T, 1).lineTo(T, 1 + m).lineTo(0, 1 + m).lineTo(0, 1);
+      break;
+    case "BULLNOSE":  // ボーズ面
+      s.moveTo(0, T / 2);
+      s.absarc(T / 2, T / 2, T / 2, Math.PI, 0, false);
+      s.lineTo(T, T / 2 + m).lineTo(0, T / 2 + m);
+      break;
+    case "CHM5MM":  // 上下5mm面
+      s.moveTo(5, 0);
+      s.lineTo(T - 5, 0).lineTo(T, 5).lineTo(T, 5 + m).lineTo(0, 5 + m).lineTo(0, 5);
+      break;
+    case "R5ROUND": // 上下5R面
+      s.moveTo(5, 0);
+      s.absarc(5,  5, 5, Math.PI, -Math.PI / 2, false);
+      s.lineTo(T - 5, 0);
+      s.absarc(T - 5,  5, 5, -Math.PI / 2, 0, false);
+      s.lineTo(T, 5 + m);
+      break;
+    case "CHM10MM": // 上下10mm面
+      s.moveTo(10, 0);
+      s.lineTo(T - 10, 0).lineTo(T, 10).lineTo(T, 10 + m).lineTo(0, 10 + m).lineTo(0, 10);
+      break;
+    case "R10ROUND":  // 上下10R面
+      s.moveTo(10, 0);
+      s.absarc(10,  10, 10, Math.PI, -Math.PI / 2, false);
+      s.lineTo(T - 10, 0);
+      s.absarc(T - 10,  10, 10, -Math.PI / 2, 0, false);
+      s.lineTo(T, 10 + m);
+      break;
+    case "COVE":  // ギンナン面
+      s.moveTo(0, 9).lineTo(3, 9);
+      s.absarc(9, 9, 6, Math.PI, -Math.PI / 2, false);
+      s.lineTo(9, 0).lineTo(T, 0).lineTo(T, 9 + m).lineTo(0, 9 + m);
+      break;
+    case "OGEE": { // 船底面
+      const l = T - 10 / Math.sqrt(2);
+      s.moveTo(0, 5);
+      s.absarc(5, 5, 5, Math.PI, -Math.PI / 4, false);
+      s.lineTo(T, l).lineTo(T, l + m).lineTo(0, l + m);
+      break;
+    }
+  }
+  s.closePath();
+  return extrudeAlongPath(s, edgePath);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export function createEdgeGeometry(code, T, edgePath, isReversed, type) {
-  if (!code || code === "NONE") return null;
-  if (!edgePath?.curves?.length) return null;
-  if (edgePath.getLength() === 0) return null;
-
-  let profile = type === "notch" ? notchProfile(code, T) : fillerProfile(code, T);
-  if (isReversed) {
-    const points = profile.getPoints().map(p => new THREE.Vector2(p.x, -p.y));
-    profile = new THREE.Shape(points);
-  }
-//  function stepsForCurve(c) {
-//    if (c.isLineCurve3)          return 1;                 // 直線は 1
-//    const len  = c.getLength();                            // mm
-//    const unit = c.isCubicBezierCurve3 ? 2 : 3;            // ベジエ 2 mm, それ以外 3 mm
-//    return Math.max(1, Math.ceil(len / unit));
-//  }
-// 呼び出し側（ノッチは粗め / フィラーは細かめ）
-const notchOpts  = { s: 0.12, maxDeg: 5, maxChord: 3 };  // ← 6.3°より細かくしたいなら maxDeg を 5→3 に
-const fillerOpts = { s: 0.06, maxDeg: 3, maxChord: 2.5 };
-const stepsSum = edgePath.curves.reduce(
-  (sum, c) => sum + stepsForCurve(c, type==='notch' ? notchOpts : fillerOpts), 0
-);
-const steps = THREE.MathUtils.clamp(stepsSum|0, 6, 200); // 最終クランプ
-//  const steps = edgePath.curves.reduce(
-//    (sum, c) => sum + stepsForCurve(c), 0
-//  );
-//  const clampedSteps =  Math.max(16, Math.min(200, steps));
-  let edgeGeo = null;
-  try {
-    edgeGeo = new THREE.ExtrudeGeometry(profile, {
-      extrudePath  : edgePath,
-      steps        : steps,
-      bevelEnabled : false
-    });
-  } catch (e) {
-    console.warn("ExtrudeGeometry 生成中にエラー:", key, e);
-    edgeGeo?.dispose?.();
-    return null; 
-  }
-  // 空ジオメトリは破棄して null
-  const pos = edgeGeo.getAttribute('position');
-  if (!pos || pos.count === 0) {
-    edgeGeo.dispose();
-    return null;
-  }
-  return edgeGeo;
-}
-
-function notchProfile(code, T) {
+function buildCavityGeometry(code, T, edgePath){
   // マージン
   const m = -0.01;
   const s = new THREE.Shape();
   s.moveTo(0, m);
   switch (code) {
-    case "CHAMF_BTH":  // 上下糸面
-      s.lineTo(T, m).lineTo(T, 1).lineTo(0, 1);
+    case "CHAMF_BTH":
+      s.lineTo(T, m).lineTo(T, 1).lineTo(T - 1, 0).lineTo(1, 0).lineTo(0, 1);
       break;
     case "BULLNOSE":  // ボーズ面
-      s.lineTo(T, m).lineTo(T, T / 2).lineTo(0, T / 2);
+      s.lineTo(T, m).lineTo(T, T / 2);
+      s.absarc(T / 2, T / 2, T / 2, 0, Math.PI, true);
       break;
     case "CHM5MM":  // 上下5mm面
+      s.lineTo(T, m).lineTo(T, 5).lineTo(T - 5, 0).lineTo(5, 0).lineTo(0, 5);
+      break;
     case "R5ROUND": // 上下5R面
-      s.lineTo(T, m).lineTo(T, 5).lineTo(0, 5);
+      s.lineTo(T, m).lineTo(T, 5);
+      s.absarc(T - 5,  5, 5, 0, -Math.PI / 2, true);
+      s.lineTo(5, 0);
+      s.absarc(5,  5, 5, -Math.PI / 2, Math.PI, true);
       break;
     case "CHM10MM": // 上下10mm面
+      s.lineTo(T, m).lineTo(T, 10).lineTo(T - 10, 0).lineTo(10, 0).lineTo(0, 10);
+      break;
     case "R10ROUND":  // 上下10R面
-      s.lineTo(T, m).lineTo(T, 10).lineTo(0, 10);
+      s.lineTo(T, m).lineTo(T, 10);
+      s.absarc(T - 10,  10, 10, 0, -Math.PI / 2, true);
+      s.lineTo(10, 0);
+      s.absarc(10,  10, 10, -Math.PI / 2, Math.PI, true);
       break;
-    case "COVE": { // ギンナン面
-      s.lineTo(9, m).lineTo(9, 9).lineTo(0, 9);
+    case "COVE":  // ギンナン面
+      s.lineTo(9, m).lineTo(9, 3);
+      s.absarc(9, 9, 6, -Math.PI / 2, Math.PI, true);
+      s.lineTo(0, 9);
       break;
-    }
     case "OGEE": { // 船底面
-      s.lineTo(T - 5, m).lineTo(T - 5, T).lineTo(0, T);
+      const l = T - 10 / Math.sqrt(2);
+      s.lineTo(0, 5);
+      s.absarc(5, 5, 5, Math.PI, -Math.PI / 4, false);
+      s.lineTo(T, l).lineTo(T, m);
       break;
     }
   }
   s.closePath();
-  return s;
+  return extrudeAlongPath(s, edgePath);
 }
 
-function fillerProfile(code, T) {
-  // マージン
-  const m = 0.01;
-  const s = new THREE.Shape();
-  //s.moveTo(0, 0);
-  switch (code) {
-//    case "CHAMF_BTH":  // 上下糸面
-//      s.lineTo(T, 0).lineTo(T - 1, 1).lineTo(1, 1);
-//      break;
-    case "BULLNOSE":  // ボーズ面
-//      s.lineTo(T, 0).lineTo(T, T / 2).lineTo(0, T / 2);
-//      break;
-    case "CHM5MM":  // 上下5mm面
-//      s.lineTo(T, 0).lineTo(T - 5, 5).lineTo(5, 5);
-//      break;
-    case "R5ROUND": // 上下5R面
-//      s.lineTo(T, 0).lineTo(T, 5).lineTo(0, 5);
-//      break;
-    case "CHM10MM": // 上下10mm面
-      s.moveTo(10, 0);
-      s.lineTo(T - 10, 0).lineTo(T, 10).lineTo(T, 10 + m).lineTo(0, 10 + m).lineTo(0, 10);
-      break;
-//    case "R10ROUND":  // 上下10R面
-//      s.lineTo(T, 0).lineTo(T, 10).lineTo(0, 10);
-//      break;
-//    case "COVE": { // ギンナン面
-//      s.lineTo(9, 0).lineTo(9, 9).lineTo(0, 9);
-//      break;
-//    }
-//    case "OGEE": { // 船底面
-//      s.lineTo(T - 5, 0).lineTo(T - 5, T).lineTo(0, T);
-//      break;
-//    }
+function extrudeAlongPath(shape, edgePath) {
+  const fillerOpts = { s: 0.1, maxDeg: 3, maxChord: 4 };
+
+  let resultMesh = null;
+  for (const c of edgePath.curves) {
+    const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 400);
+    let geo = null;
+    try {
+      geo = new THREE.ExtrudeGeometry(shape, {
+        extrudePath  : c,
+        steps        : steps,
+        bevelEnabled : false
+      });
+    } catch (e) {
+      console.warn("ExtrudeGeometry 生成中にエラー:", e);
+      geo?.dispose?.();
+      return null; 
+    }
+    const mesh = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
+    if (resultMesh) {
+      unionMesh(resultMesh, mesh);
+    } else {
+      resultMesh = mesh;
+    }
   }
-  s.closePath();
-  return s;
+  return resultMesh.geometry;
 }
 
-function stepsForArcBySagitta(R, theta, s=0.15){
-  if (!Number.isFinite(R) || R <= 0) return 2;
-  const x = 1 - s / R;                     // cos(dθ/2) ≈ 1 - s/R
-  const clamped = Math.max(-1, Math.min(1, x));
-  const dSag = 2 * Math.acos(clamped);     // [rad]
-  return (Number.isFinite(dSag) && dSag > 0) ? Math.ceil(theta / dSag) : 2;
+function stepsForCurve(c, opts){
+  if (c.isLineCurve3) return 6;
+  const hasAngles =
+    ('startAngle' in c || 'aStartAngle' in c) &&
+    ('endAngle'   in c || 'aEndAngle'   in c);
+  if (hasAngles && ('radius' in c || 'xRadius' in c)) {
+    const R = c.radius ?? c.xRadius ?? c.yRadius ?? 50;
+    const θ = Math.abs((c.endAngle ?? c.aEndAngle) - (c.startAngle ?? c.aStartAngle));
+    return stepsForArc(R, θ, opts);
+  }
+  // ベジエ等は長さ基準
+  const len = c.getLength?.() ?? 10;
+  const chordMax = opts?.maxChord ?? 4;
+  return Math.max(6, Math.ceil(len / chordMax));
 }
 
 function stepsForArc(R, theta, { s=0.15, maxDeg=6, maxChord=4 } = {}){
@@ -384,22 +299,6 @@ function stepsForArc(R, theta, { s=0.15, maxDeg=6, maxChord=4 } = {}){
     (Number.isFinite(dChord) && dChord>0 ? dChord : Infinity)
   );
   return Math.max(2, Math.ceil(theta / dθ));
-}
-
-function stepsForCurve(c, opts){
-  if (c.isLineCurve3) return 1;
-  const hasAngles =
-    ('startAngle' in c || 'aStartAngle' in c) &&
-    ('endAngle'   in c || 'aEndAngle'   in c);
-  if (hasAngles && ('radius' in c || 'xRadius' in c)) {
-    const R = c.radius ?? c.xRadius ?? c.yRadius ?? 50;
-    const θ = Math.abs((c.endAngle ?? c.aEndAngle) - (c.startAngle ?? c.aStartAngle));
-    return stepsForArc(R, θ, opts);
-  }
-  // ベジエ等は長さ基準
-  const len = c.getLength?.() ?? 10;
-  const chordMax = opts?.maxChord ?? 4;
-  return Math.max(2, Math.ceil(len / chordMax));
 }
 
 class ArcCurve3 extends THREE.Curve {
