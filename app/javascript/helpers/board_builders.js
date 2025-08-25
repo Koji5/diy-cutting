@@ -7,6 +7,7 @@ import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 
 // ===== 材質キャッシュ（色や共通質感をまとめる） =====
 const materialCache = new Map();
+const SHARED_CSG_MAT = new THREE.MeshBasicMaterial({ visible: false });
 
 function mat(key, fallback) {
   if (!materialCache.has(key)) materialCache.set(key, fallback)
@@ -138,11 +139,11 @@ export function buildMeshesFromCtx(ctx) {
       const notchGeo = cutters[1]
       const fillerGeo = cutters[2]
       const cavityGeo = cutters[3]
-      const shapeMesh = new THREE.Mesh(shapeGeo, getMeshStandardMaterial(0xff0000, 0.8));
+      const shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
       if (notchGeo) {
-        const notchMesh = new THREE.Mesh(notchGeo, getMeshStandardMaterial(0xff0000, 0.8));
-        const fillerMesh = new THREE.Mesh(fillerGeo, getMeshStandardMaterial(0xff0000, 0.8));
-        const cavityMesh = new THREE.Mesh(cavityGeo, getMeshStandardMaterial(0xff0000, 0.8));
+        const notchMesh = new THREE.Mesh(notchGeo, SHARED_CSG_MAT);
+        const fillerMesh = new THREE.Mesh(fillerGeo, SHARED_CSG_MAT);
+        const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
         subtractionMesh(boardMesh, notchMesh);
         unionMesh(boardMesh, fillerMesh);
         unionMesh(shapeMesh, cavityMesh);

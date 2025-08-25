@@ -14,6 +14,9 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
     case "br": CX = L;  CY = 0;  signX = -1; signY = +1; pix = -Math.PI / 2; piy = 0; break;
     default:
   }
+  const m = 0.01;
+  const mx = CX - signX * m;
+  const my = CY - signY * m;
   const h = DX > DY ? DY : DX;
   const l = DX > DY ? DX : DY;
   const r = ((l * 2) ** 2) / (8 * h) + h / 2;
@@ -24,15 +27,15 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
   const cutters = [];
   const p1 = new THREE.Vector3(CX + DX * signX, CY, 0);
   const s = new THREE.Shape();
-  s.moveTo(CX, CY);
+  s.moveTo(mx, my);
   switch(cornerCtx.proc) {
     case "BEVEL":
       {
         const r   = Math.hypot(DX, DY);         // 斜辺
-        s.lineTo(CX + DX * signX, CY)
+        s.lineTo(CX + DX * signX, my)
         .lineTo(CX + (DX + a * DY / r) * signX, CY + (a * DX / r) * signY)
         .lineTo(CX + (a * DY / r) * signX, CY + (DY + a * DX / r) * signY)
-        .lineTo(CX, CY + DY * signY);
+        .lineTo(mx, CY + DY * signY);
         const p2 = new THREE.Vector3(CX, CY + DY * signY, 0);
         if (pos === "tl" || pos === "br"){
           edgePath.add( new THREE.LineCurve3( p1, p2 ));
@@ -43,11 +46,11 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
       break;
     case "CHAMFER":
       {
-        s.lineTo(CX + (DX + a) * signX, CY)
+        s.lineTo(CX + (DX + a) * signX, my)
         .lineTo(CX + (DX + a) * signX, CY + DY * signY)
         .lineTo(CX + DX * signX, CY + DY * signY)
         .lineTo(CX + DX * signX, CY + (DY + a) * signY)
-        .lineTo(CX, CY + (DY + a) * signY);
+        .lineTo(mx, CY + (DY + a) * signY);
         const p2 = new THREE.Vector3(CX + DX * signX, CY + DY * signY, 0);
         const p3 = new THREE.Vector3(CX, CY + DY * signY, 0);
         if (pos === "tl" || pos === "br"){
@@ -67,23 +70,23 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
         let arc3;
 
         if (DX > DY) {
-          s.lineTo(CX + DX * signX, CY)
-          .lineTo(CX + DX * signX, CY + a * signY)//.lineTo(CX + DX * signX, CY)
+          s.lineTo(CX + DX * signX, my)
+          .lineTo(CX + DX * signX, CY + a * signY)
           .absarc(sx, sy, r - a, pix, pix - signX * signY * theta, (signX * signY === 1))
-          .lineTo(CX, CY + DY * signY);
+          .lineTo(mx, CY + DY * signY);
           if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, pix, pix - signX * signY * theta, (signX * signY === 1));
+            arc3 = new ArcCurve3( center, r, pix, pix - signX * signY * theta, false);
           } else {
-            arc3 = new ArcCurve3( center, r, pix - signX * signY * theta, pix, (signX * signY === -1));
+            arc3 = new ArcCurve3( center, r, pix - signX * signY * theta, pix, false);
           }
         } else {
-          s.lineTo(CX, CY + DY * signY)
+          s.lineTo(mx, CY + DY * signY)
           .absarc(sx, sy, r - a, piy , piy + signX * signY * theta, (signX * signY === -1))
-          .lineTo(CX + DX * signX, CY);
+          .lineTo(CX + DX * signX, my);
           if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, piy + signX * signY * theta, piy, (signX * signY === 1));
+            arc3 = new ArcCurve3( center, r, piy + signX * signY * theta, piy, false);
           } else {
-            arc3 = new ArcCurve3( center, r, piy, piy + signX * signY * theta, (signX * signY === -1));
+            arc3 = new ArcCurve3( center, r, piy, piy + signX * signY * theta, false);
           }
         }
         edgePath.add(arc3);
@@ -96,20 +99,22 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
         const center = new THREE.Vector3(sx, sy, 0);
         let arc3;
         if (DX > DY) {
-          s.lineTo(CX + (DX + a) * signX, CY)
-          .absarc(sx, sy, r + a, -pix - signX * signY * theta, -pix, (signX * signY === -1));
+          s.lineTo(CX + (DX + a) * signX, my)
+          .absarc(sx, sy, r + a, -pix - signX * signY * theta, -pix, (signX * signY === -1))
+          .lineTo(mx, sy + (r - a) * Math.sin( pix - (signX * signY) * theta ));
           if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, -pix - signX * signY * theta, -pix, (signX * signY === -1));
+            arc3 = new ArcCurve3( center, r, -pix - signX * signY * theta, -pix, false);
           } else {
-            arc3 = new ArcCurve3( center, r, piy - signX * Math.PI, piy - signX * (Math.PI - signY * theta), (signX * signY === -1));
+            arc3 = new ArcCurve3( center, r, -pix, -pix - signX * signY * theta, false);
           }
         } else {
-          s.lineTo(CX + (DX + a) * signX, CY)
-          .absarc(sx, sy, r + a, piy - signX * Math.PI, piy - signX * (Math.PI - signY * theta) , (signX * signY === -1));
+          s.lineTo(CX + (DX + a) * signX, my)
+          .absarc(sx, sy, r + a, piy - signX * Math.PI, piy - signX * (Math.PI - signY * theta) , (signX * signY === -1))
+          .lineTo(mx, sy + (r + a) * Math.sin(piy - signX * (Math.PI - signY * theta)));
           if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, -pix, -pix - signX * signY * theta, (signX * signY === 1));
+            arc3 = new ArcCurve3( center, r, Math.PI - piy, Math.PI - piy + signX * signY * theta, false);
           } else {
-            arc3 = new ArcCurve3( center, r, piy - signX * (Math.PI - signY * theta), piy - signX * Math.PI, (signX * signY === 1));
+            arc3 = new ArcCurve3( center, r, Math.PI - piy + signX * signY * theta, pix + Math.PI / 2, false);
           }
         }
         edgePath.add(arc3);
@@ -144,7 +149,7 @@ function notchWidthFromCode(code, T){
 
 function buildFillerGeometry(code, T, edgePath) {
   // マージン
-  const m = 0.01;
+  const m = 0.1;
   const s = new THREE.Shape();
   switch (code) {
     case "CHAMF_BTH":
@@ -244,12 +249,13 @@ function buildCavityGeometry(code, T, edgePath){
 }
 
 function extrudeAlongPath(shape, edgePath) {
-  const fillerOpts = { s: 0.1, maxDeg: 3, maxChord: 4 };
+  const fillerOpts = { s: 0.06, maxDeg: 2, maxChord: 2.5 };
 
   let resultMesh = null;
   for (const c of edgePath.curves) {
     const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 400);
     let geo = null;
+    console.log("steps", steps)
     try {
       geo = new THREE.ExtrudeGeometry(shape, {
         extrudePath  : c,
