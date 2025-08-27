@@ -132,6 +132,10 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
   return cutters
 }
 
+export function buildSideEdgeGeometries(sideCtx, pos, L, W, T, DXY) {
+  return null;
+}
+
 /** 帯の幅（mm）：エッジ加工コードから決める（例） */
 function notchWidthFromCode(code, T){
   switch (code) {

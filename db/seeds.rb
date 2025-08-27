@@ -391,5 +391,28 @@ MEdgeProcess.upsert_all([
     description_en: nil
   }
 ])
-
+# === 辺加工マスタ ==================================================
+MSideProcess.upsert_all([
+  {
+    code:  "NONE",
+    name_ja: "加工なし",
+    name_en: "None",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "SQUARE",
+    name_ja: "四角欠き",
+    name_en: "Square",
+    description_ja: nil,
+    description_en: nil
+  },
+  {
+    code:  "ROUND",
+    name_ja: "丸欠き",
+    name_en: "Round",
+    description_ja: nil,
+    description_en: nil
+  }
+])
 end

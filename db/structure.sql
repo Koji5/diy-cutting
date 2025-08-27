@@ -2246,6 +2246,26 @@ CREATE TABLE public.m_shapes (
 
 
 --
+-- Name: m_side_processes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_side_processes (
+    code character varying(10) NOT NULL,
+    name_ja character varying(30) NOT NULL,
+    name_en character varying(30) NOT NULL,
+    description_ja character varying(80),
+    description_en character varying(80),
+    created_by_id bigint,
+    updated_by_id bigint,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: member_details; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4281,6 +4301,14 @@ ALTER TABLE ONLY public.m_shape_types
 
 ALTER TABLE ONLY public.m_shapes
     ADD CONSTRAINT m_shapes_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_side_processes m_side_processes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_side_processes
+    ADD CONSTRAINT m_side_processes_pkey PRIMARY KEY (code);
 
 
 --
@@ -6856,6 +6884,41 @@ CREATE INDEX index_m_shapes_on_updated_by_id ON public.m_shapes USING btree (upd
 
 
 --
+-- Name: index_m_side_processes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_side_processes_on_created_by_id ON public.m_side_processes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_side_processes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_side_processes_on_deleted_by_id ON public.m_side_processes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_side_processes_on_name_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_side_processes_on_name_en ON public.m_side_processes USING btree (name_en);
+
+
+--
+-- Name: index_m_side_processes_on_name_ja; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_side_processes_on_name_ja ON public.m_side_processes USING btree (name_ja);
+
+
+--
+-- Name: index_m_side_processes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_side_processes_on_updated_by_id ON public.m_side_processes USING btree (updated_by_id);
+
+
+--
 -- Name: index_member_details_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8625,6 +8688,30 @@ CREATE TRIGGER trg_h_error_logs_compress BEFORE INSERT ON public.h_error_logs FO
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_affiliate_details_city_code FOREIGN KEY (city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: m_side_processes fk_m_side_processes_created_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_side_processes
+    ADD CONSTRAINT fk_m_side_processes_created_by FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: m_side_processes fk_m_side_processes_deleted_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_side_processes
+    ADD CONSTRAINT fk_m_side_processes_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: m_side_processes fk_m_side_processes_updated_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_side_processes
+    ADD CONSTRAINT fk_m_side_processes_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -10538,6 +10625,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250827073302'),
 ('20250813062758'),
 ('20250813062155'),
 ('20250812062029'),
