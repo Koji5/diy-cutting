@@ -127,8 +127,8 @@ export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
   // 上面Z=0（Z ∈ [-T,0]）
   geo.translate(0, 0, -T)
   cutters.push(geo);
-  cutters.push(buildFillerGeometry(code, T, edgePath));
   cutters.push(buildCavityGeometry(code, T, edgePath));
+  cutters.push(buildFillerGeometry(code, T, edgePath));
   return cutters
 }
 

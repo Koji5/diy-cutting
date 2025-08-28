@@ -32,6 +32,28 @@ function getMeshStandardMaterial(color, opacity) {
         });
 }
 
+// マージ処理
+function margeMesh(boardMesh, cutters){
+  const shapeGeo = cutters[0]
+  const notchGeo = cutters[1]
+  const cavityGeo = cutters[2]
+  const fillerGeo = cutters[3]
+  const shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
+  if (notchGeo) {
+    const notchMesh = new THREE.Mesh(notchGeo, SHARED_CSG_MAT);
+    const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
+    subtractionMesh(boardMesh, notchMesh);
+    unionMesh(shapeMesh, cavityMesh);
+    if (fillerGeo) {
+      const fillerMesh = new THREE.Mesh(fillerGeo, SHARED_CSG_MAT);
+      unionMesh(boardMesh, fillerMesh);
+    }
+  } else {
+    subtractionMesh(boardMesh, shapeMesh);
+  }
+  return shapeMesh;
+}
+
 // ========== メッシュ生成器（葉ノードの具体実装） ==========
 // 板
 function createBoardMesh(L, W, T) {
@@ -203,25 +225,6 @@ function createSideMesh(sideCtx, pos, L, W, T, DXY) {
   return cutters
 }
 
-// マージ処理
-function margeMesh(boardMesh, cutters){
-  const shapeGeo = cutters[0]
-  const notchGeo = cutters[1]
-  const fillerGeo = cutters[2]
-  const cavityGeo = cutters[3]
-  const shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
-  if (notchGeo) {
-    const notchMesh = new THREE.Mesh(notchGeo, SHARED_CSG_MAT);
-    const fillerMesh = new THREE.Mesh(fillerGeo, SHARED_CSG_MAT);
-    const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
-    subtractionMesh(boardMesh, notchMesh);
-    unionMesh(boardMesh, fillerMesh);
-    unionMesh(shapeMesh, cavityMesh);
-  } else {
-    subtractionMesh(boardMesh, shapeMesh);
-  }
-  return shapeMesh;
-}
 
 // =========== ctx -> meshes 変換（階層を揃える） ===========
 export function buildMeshesFromCtx(ctx) {
