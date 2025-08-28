@@ -33,7 +33,7 @@ function getMeshStandardMaterial(color, opacity) {
 }
 
 // マージ処理
-function margeMesh(boardMesh, cutters){
+function margeCornerMesh(boardMesh, cutters){
   const shapeGeo = cutters[0]
   const notchGeo = cutters[1]
   const cavityGeo = cutters[2]
@@ -42,18 +42,29 @@ function margeMesh(boardMesh, cutters){
   if (notchGeo) {
     const notchMesh = new THREE.Mesh(notchGeo, SHARED_CSG_MAT);
     const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
+    const fillerMesh = new THREE.Mesh(fillerGeo, SHARED_CSG_MAT);
     subtractionMesh(boardMesh, notchMesh);
     unionMesh(shapeMesh, cavityMesh);
-    if (fillerGeo) {
-      const fillerMesh = new THREE.Mesh(fillerGeo, SHARED_CSG_MAT);
-      unionMesh(boardMesh, fillerMesh);
-    }
+    unionMesh(boardMesh, fillerMesh);
   } else {
     subtractionMesh(boardMesh, shapeMesh);
   }
   return shapeMesh;
 }
-
+function margeSideMesh(boardMesh, cutters){
+  const shapeGeo = cutters[0]
+  const cavityGeo = cutters[1]
+  const shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
+  if (cavityGeo) {
+    const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
+    subtractionMesh(boardMesh, cavityMesh);
+    subtractionMesh(boardMesh, shapeMesh);
+    unionMesh(shapeMesh, cavityMesh);
+  } else {
+    subtractionMesh(boardMesh, shapeMesh);
+  }
+  return shapeMesh;
+}
 // ========== メッシュ生成器（葉ノードの具体実装） ==========
 // 板
 function createBoardMesh(L, W, T) {
@@ -247,7 +258,7 @@ export function buildMeshesFromCtx(ctx) {
       }
       const cutters = createCornerMesh(ctx.corner_json[pos], pos, L, W, T)
       if (!cutters) continue;
-      const shapeMesh = margeMesh(boardMesh, cutters);
+      const shapeMesh = margeCornerMesh(boardMesh, cutters);
       const m = mat("corner", getMeshStandardMaterial(0xff0000, 0.8))
       const cornerMesh = new THREE.Mesh(shapeMesh.geometry.clone(), m)
       cornerMesh.name = makeName("corner_json", pos)
@@ -261,7 +272,7 @@ export function buildMeshesFromCtx(ctx) {
     for (const pos of Object.keys(ctx.side_json)) {
       const cutters = createSideMesh(ctx.side_json[pos], pos, L, W, T, DXY)
       if (!cutters) continue;
-      const shapeMesh = margeMesh(boardMesh, cutters);
+      const shapeMesh = margeSideMesh(boardMesh, cutters);
       const m = mat("corner", getMeshStandardMaterial(0xff0000, 0.8))
       const sideMesh = new THREE.Mesh(shapeMesh.geometry.clone(), m)
       sideMesh.name = makeName("side_json", pos)
