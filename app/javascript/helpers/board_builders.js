@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { buildCornerEdgeGeometries } from "helpers/board_edge_builders";
+import { buildCornerEdgeGeometries, buildSideEdgeGeometries } from "helpers/board_edge_builders";
 import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 
 //import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -54,15 +54,27 @@ function margeCornerMesh(boardMesh, cutters){
 function margeSideMesh(boardMesh, cutters){
   const shapeGeo = cutters[0]
   const cavityGeo = cutters[1]
-  const shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
+  const allGeo = cutters[2]
+  let shapeMesh = null
+  if (shapeGeo){
+    shapeMesh = new THREE.Mesh(shapeGeo, SHARED_CSG_MAT);
+  }
   if (cavityGeo) {
     const cavityMesh = new THREE.Mesh(cavityGeo, SHARED_CSG_MAT);
-    subtractionMesh(boardMesh, cavityMesh);
-    subtractionMesh(boardMesh, shapeMesh);
-    unionMesh(shapeMesh, cavityMesh);
+//    const allMesh = new THREE.Mesh(allGeo, SHARED_CSG_MAT);
+//    subtractionMesh(boardMesh, allMesh, "[Side]boardMesh - allMesh");
+    const bkCavityMesh = cavityMesh
+    subtractionMesh(boardMesh, bkCavityMesh, "[Side]boardMesh - cavityMesh");
+    if (shapeMesh) {
+      subtractionMesh(boardMesh, shapeMesh, "[Side]boardMesh - shapeMesh");
+      unionMesh(shapeMesh, cavityMesh, "[Side]shapeMesh + cavityMesh");
+    } else {
+      shapeMesh = cavityMesh
+    }
   } else {
-    subtractionMesh(boardMesh, shapeMesh);
+    subtractionMesh(boardMesh, shapeMesh, "[Side]boardMesh - shapeMesh(cavityなし)");
   }
+  console.log("shapeMesh:", shapeMesh)
   return shapeMesh;
 }
 // ========== メッシュ生成器（葉ノードの具体実装） ==========
@@ -153,26 +165,27 @@ function createCornerMesh(cornerCtx, pos, L, W, T) {
 }
 
 // 辺処理
-function createSideMesh(sideCtx, pos, L, W, T, DXY) {
-  if (!sideCtx.proc || sideCtx.proc === "NONE") return null;
-  const SD = Number(sideCtx?.sd);
-  const SW = Number(sideCtx?.sw);
-  const SP = Number(sideCtx?.sp);
-  if (!Number.isFinite(SD) || !Number.isFinite(SW) || SD <= 0 || SW <= 0) return null;
+function createSideMesh(ctx, pos, L, W, T, DXY) {
+  const sideCtx = ctx.side_json[pos];
+  if ((!sideCtx.proc || sideCtx.proc === "NONE") &&
+      (!sideCtx.edge || sideCtx.edge === "NONE")) {
+    return null;
+  }
+  const SD = Number(sideCtx?.sd ?? 0);
+  const SW = Number(sideCtx?.sw ?? 0);
+  const SP = Number(sideCtx?.sp ?? 0);
 
   const r = (SD ** 2) / (8 * SW) + SW / 2;
-  const theta = Math.asin(SD / (2 * r));
+  const theta = r !== 0 ? Math.asin(SD / (2 * r)) : 0;
   const d = r * Math.cos(theta);
 
   let sx1 = 0, sx2 = 0, sx3 = 0, sx4 = 0, pi = 0, sy1 = 0, sy2 = 0, sy3 = 0, sy4 = 0, sx = 0, sy = 0;
   switch (pos) {
     case "t":
-//      startX = DXY.tl.dx;  startY = W;
       sx1 = SP - SD / 2; sy1 = W;
       sx2 = SP - SD / 2; sy2 = W - SW;
       sx3 = SP + SD / 2; sy3 = W - SW;
       sx4 = SP + SD / 2; sy4 = W;
-//      endX = L - DXY.tr.dx; endY = W;
       sx = SP; sy = W + d;
       pi = -Math.PI / 2;
       break;
@@ -205,34 +218,44 @@ function createSideMesh(sideCtx, pos, L, W, T, DXY) {
               "codes=", [...String(pos)].map(c => c.charCodeAt(0)))
       return null;
   }
-  const s = new THREE.Shape();
-  s.moveTo(sx1,  sy1);
-  if (sideCtx.proc === "SQUARE") {
-    s.lineTo(sx2,  sy2).lineTo(sx3,  sy3).lineTo(sx4,  sy4);
-  } else if (sideCtx.proc === "ROUND") {
-    if (SD / 2 < SW){
-      console.warn("SD / 2 < SW pos:", JSON.stringify(pos), "len=", String(pos).length,
+
+  const cutters = [];
+  if ((!sideCtx.proc || sideCtx.proc === "NONE")){
+    cutters.push(null);
+  } else {
+    const s = new THREE.Shape();
+    s.moveTo(sx1,  sy1);
+    if (sideCtx.proc === "SQUARE") {
+      s.lineTo(sx2,  sy2).lineTo(sx3,  sy3).lineTo(sx4,  sy4);
+    } else if (sideCtx.proc === "ROUND") {
+      if (SD / 2 < SW){
+        console.warn("SD / 2 < SW pos:", JSON.stringify(pos), "len=", String(pos).length,
+                "codes=", [...String(pos)].map(c => c.charCodeAt(0))), " proc:", JSON.stringify(sideCtx.proc), "len=", String(sideCtx.proc).length,
+                "codes=", [...String(sideCtx.proc)].map(c => c.charCodeAt(0))
+        return null;
+      }
+      s.absarc(sx, sy, r, pi - theta, pi + theta, false);
+    } else {
+      console.warn("unknown pos:", JSON.stringify(pos), "len=", String(pos).length,
               "codes=", [...String(pos)].map(c => c.charCodeAt(0))), " proc:", JSON.stringify(sideCtx.proc), "len=", String(sideCtx.proc).length,
               "codes=", [...String(sideCtx.proc)].map(c => c.charCodeAt(0))
       return null;
     }
-    s.absarc(sx, sy, r, pi - theta, pi + theta, false);
-  } else {
-    console.warn("unknown pos:", JSON.stringify(pos), "len=", String(pos).length,
-            "codes=", [...String(pos)].map(c => c.charCodeAt(0))), " proc:", JSON.stringify(sideCtx.proc), "len=", String(sideCtx.proc).length,
-            "codes=", [...String(sideCtx.proc)].map(c => c.charCodeAt(0))
-    return null;
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: false })
+    // 上面Z=0（Z ∈ [-T,0]）
+    geo.translate(0, 0, -T)
+    cutters.push(geo);
   }
-  s.closePath();
-  const geo = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: false })
-  // 上面Z=0（Z ∈ [-T,0]）
-  geo.translate(0, 0, -T)
-  const cutters = [];
-  cutters.push(geo);
   // エッジ加工
-  //const edgeGeos = buildSideEdgeGeometries(sideCtx, pos, L, W, T, DXY);
-  //if (edgeGeos) cutters.push(...edgeGeos);
-
+  const edgeGeos = buildSideEdgeGeometries(ctx, pos, L, W, T, DXY);
+//  const edgeGeos = buildSideEdgeGeometries(sideCtx.edge, startPoint, endPoint, startAll, endAll, T);
+//  const edgeGeos = buildSideEdgeGeometries(sideCtx.edge, startX, startY, endX, endY, T);
+//      startPoint = new THREE.Vector3(startX, startY, 0);
+//      endPoint = new THREE.Vector3(endX, endY, 0);
+//      startAll = new THREE.Vector3(0, 0, 0);
+//      endAll = new THREE.Vector3(0, W, 0);
+  if (edgeGeos) cutters.push(...edgeGeos);
   return cutters
 }
 
@@ -252,11 +275,14 @@ export function buildMeshesFromCtx(ctx) {
   if (ctx.corner_json && typeof ctx.corner_json === "object") {
     meshes.corner_json = {}
     for (const pos of Object.keys(ctx.corner_json)) {
-      DXY[pos] = {
-        dx: Number(ctx.corner_json[pos]?.dx ?? 0),
-        dy: Number(ctx.corner_json[pos]?.dy ?? 0),
+      const cornerCtx = ctx.corner_json[pos];
+      let posX = 0, posY = 0;
+      if (cornerCtx.proc && cornerCtx.proc !== "NONE") {
+        posX = Number(cornerCtx?.dx ?? 0);
+        posY = Number(cornerCtx?.dy ?? 0);
       }
-      const cutters = createCornerMesh(ctx.corner_json[pos], pos, L, W, T)
+      DXY[pos] = { dx: posX, dy: posY };
+      const cutters = createCornerMesh(cornerCtx, pos, L, W, T)
       if (!cutters) continue;
       const shapeMesh = margeCornerMesh(boardMesh, cutters);
       const m = mat("corner", getMeshStandardMaterial(0xff0000, 0.8))
@@ -270,7 +296,7 @@ export function buildMeshesFromCtx(ctx) {
   if (ctx.side_json && typeof ctx.side_json === "object") {
     meshes.side_json = {}
     for (const pos of Object.keys(ctx.side_json)) {
-      const cutters = createSideMesh(ctx.side_json[pos], pos, L, W, T, DXY)
+      const cutters = createSideMesh(ctx, pos, L, W, T, DXY)
       if (!cutters) continue;
       const shapeMesh = margeSideMesh(boardMesh, cutters);
       const m = mat("corner", getMeshStandardMaterial(0xff0000, 0.8))
@@ -279,7 +305,26 @@ export function buildMeshesFromCtx(ctx) {
       meshes.side_json[pos] = sideMesh
     }
   }
-
+  // corner（オブジェクト：tl,tr,bl,brなど）
+//  if (ctx.corner_json && typeof ctx.corner_json === "object") {
+//    meshes.corner_json = {}
+//    for (const pos of Object.keys(ctx.corner_json)) {
+//      const cornerCtx = ctx.corner_json[pos];
+//      let posX = 0, posY = 0;
+//      if (cornerCtx.proc && cornerCtx.proc !== "NONE") {
+//        posX = Number(cornerCtx?.dx ?? 0);
+//        posY = Number(cornerCtx?.dy ?? 0);
+//      }
+//      DXY[pos] = { dx: posX, dy: posY };
+//      const cutters = createCornerMesh(cornerCtx, pos, L, W, T)
+//      if (!cutters) continue;
+//      const shapeMesh = margeCornerMesh(boardMesh, cutters);
+//      const m = mat("corner", getMeshStandardMaterial(0xff0000, 0.8))
+//      const cornerMesh = new THREE.Mesh(shapeMesh.geometry.clone(), m)
+//      cornerMesh.name = makeName("corner_json", pos)
+//      meshes.corner_json[pos] = cornerMesh
+//    }
+//  }
   // 最終的な board.geometry が確定した後に
   boardMesh.geometry.computeVertexNormals()
   boardMesh.geometry.computeBoundingSphere()

@@ -123,24 +123,24 @@ export default class extends Controller {
   }
 
   /*====================== モデル更新 ====================*/
-  updateModel (ctx) {
+  updateModel (formJSON) {
     if (!this.camera) return
-    const boardCtx = ctx.part.board_part
-    boardCtx.width_mm     = Number(boardCtx.width_mm)
-    boardCtx.length_mm    = Number(boardCtx.length_mm)
-    boardCtx.thickness_mm = Number(boardCtx.thickness_mm)
+    const boardJSON = formJSON.part.board_part
+    boardJSON.width_mm     = Number(boardJSON.width_mm)
+    boardJSON.length_mm    = Number(boardJSON.length_mm)
+    boardJSON.thickness_mm = Number(boardJSON.thickness_mm)
     /* 入力不足 → メッシュを消して終わり */
-    if (!boardCtx.length_mm || !boardCtx.thickness_mm || !boardCtx.width_mm) {
+    if (!boardJSON.length_mm || !boardJSON.thickness_mm || !boardJSON.width_mm) {
       this._replaceMesh(null);
       return;
     }
     /* Geometry 生成 */
-    this.boardMeshes = buildMeshesFromCtx(boardCtx);
+    this.boardMeshes = buildMeshesFromCtx(boardJSON);
     this._replaceMesh(this.boardMeshes.board);
     this.boardMeshes.board.material = this.boardMat;
     this._forEachMesh(this.boardMeshes, (mesh, path) => {
       const dispPath = [...path, "disp"]
-      const isBoardTop = (path.length === 1 && path[0] === "board") || this._getValueByPath(boardCtx, dispPath) === true;
+      const isBoardTop = (path.length === 1 && path[0] === "board") || this._getValueByPath(boardJSON, dispPath) === true;
       mesh.visible = isBoardTop;   // board だけ true、他は false
       this.scene.add(mesh)
     });
@@ -148,7 +148,7 @@ export default class extends Controller {
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
 
-      const cameraReset = this.lastL !== boardCtx.length_mm || this.lastW !== boardCtx.width_mm || this.lastT !== boardCtx.thickness_mm
+      const cameraReset = this.lastL !== boardJSON.length_mm || this.lastW !== boardJSON.width_mm || this.lastT !== boardJSON.thickness_mm
       /* ★ 初回だけ固定アングルにセット */
       if (!this.cameraInitialized || cameraReset) {
         /* ① モデル中心から “斜め前上” 方向へ伸ばす距離を計算  */
@@ -160,9 +160,9 @@ export default class extends Controller {
         this.controls.target.copy(center);    // ← ② モデル中心を見る
         this.controls.update();               // ← ③ 行列を同期
         this.cameraInitialized = true;        // フラグを立てる
-        this.lastL = boardCtx.length_mm
-        this.lastW = boardCtx.width_mm
-        this.lastT = boardCtx.thickness_mm
+        this.lastL = boardJSON.length_mm
+        this.lastW = boardJSON.width_mm
+        this.lastT = boardJSON.thickness_mm
       }
       this._buildAxesAndLabels(box);
 

@@ -5,10 +5,11 @@ let _csgSeq = 0;
 let _csgBusy = false;                  // 再入ガード（任意）
 
 // 共通処理： meshA を直接書き換える（geometry だけ差し替え）
-function csgReplaceGeometry(meshA, meshB, OP) {
+function csgReplaceGeometry(meshA, meshB, OP, debug) {
+  const test = OP === 1 ? "subtraction" : "union"
   if (_csgBusy) { console.warn('CSG busy - skipped'); return; }
   _csgBusy = true;
-  const label = `CSG.evaluate#${++_csgSeq}:${OP}`;
+  const label = `CSG.evaluate#${++_csgSeq}:${test}:${debug}`;
 
   const evaluator = sharedEvaluator;   // ※毎回 new しない（後述）
   // ここで console.time 開始
@@ -60,16 +61,16 @@ function csgReplaceGeometry(meshA, meshB, OP) {
 }
 
 // A ∪ B（足し算：和）
-export function unionMesh(meshA, meshB) {
-  csgReplaceGeometry(meshA, meshB, ADDITION)
+export function unionMesh(meshA, meshB, debug = "") {
+  csgReplaceGeometry(meshA, meshB, ADDITION, debug)
 }
 
 // A − B（引き算：差）
-export function subtractionMesh(meshA, meshB) {
-  csgReplaceGeometry(meshA, meshB, SUBTRACTION)
+export function subtractionMesh(meshA, meshB, debug = "") {
+  csgReplaceGeometry(meshA, meshB, SUBTRACTION, debug)
 }
 
 // A ∩ B（共通部分）
-export function intersectionMesh(meshA, meshB) {
-  csgReplaceGeometry(meshA, meshB, INTERSECTION)
+export function intersectionMesh(meshA, meshB, debug = "") {
+  csgReplaceGeometry(meshA, meshB, INTERSECTION, debug)
 }
