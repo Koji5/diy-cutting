@@ -1,321 +1,22 @@
 import * as THREE from "three";
 import { unionMesh } from "helpers/bvh_csg_utils";
 
-export function buildCornerEdgeGeometries(cornerCtx, pos, L, W, T) {
-  const code = cornerCtx.edge;
-  if (!code || code === "NONE") return null;
-  const DX = Number(cornerCtx?.dx);
-  const DY = Number(cornerCtx?.dy);
-  let CX = 0, CY = 0, signX = 1, signY = 1, pix = 0, piy = 0;
-  switch (pos) {
-    case "tl": CX = 0;  CY = W;  signX = +1; signY = -1; pix = Math.PI / 2; piy = Math.PI; break;
-    case "tr": CX = L;  CY = W;  signX = -1; signY = -1; pix = Math.PI / 2; piy = 0; break;
-    case "bl": CX = 0;  CY = 0;  signX = +1; signY = +1; pix = -Math.PI / 2; piy = Math.PI; break;
-    case "br": CX = L;  CY = 0;  signX = -1; signY = +1; pix = -Math.PI / 2; piy = 0; break;
-    default:
-  }
-  const m = 0.01;
-  const mx = CX - signX * m;
-  const my = CY - signY * m;
-  const h = DX > DY ? DY : DX;
-  const l = DX > DY ? DX : DY;
-  const r = ((l * 2) ** 2) / (8 * h) + h / 2;
-  const theta = Math.asin(l / r);
-  //const theta = Math.asin(l / r);
-  const a = notchWidthFromCode(code, T);
-  if (!a) return null;
-  const edgePath = new THREE.CurvePath();
-  const cutters = [];
-  const p1 = new THREE.Vector3(CX + DX * signX, CY, 0);
-  const s = new THREE.Shape();
-  s.moveTo(mx, my);
-  switch(cornerCtx.proc) {
-    case "BEVEL":
-      {
-        const r   = Math.hypot(DX, DY);         // 斜辺
-        s.lineTo(CX + DX * signX, my)
-        .lineTo(CX + (DX + a * DY / r) * signX, CY + (a * DX / r) * signY)
-        .lineTo(CX + (a * DY / r) * signX, CY + (DY + a * DX / r) * signY)
-        .lineTo(mx, CY + DY * signY);
-        const p2 = new THREE.Vector3(CX, CY + DY * signY, 0);
-        if (pos === "tl" || pos === "br"){
-          edgePath.add( new THREE.LineCurve3( p1, p2 ));
-        } else {
-          edgePath.add( new THREE.LineCurve3( p2, p1));
-        }
-      }
-      break;
-    case "CHAMFER":
-      {
-        s.lineTo(CX + (DX + a) * signX, my)
-        .lineTo(CX + (DX + a) * signX, CY + DY * signY)
-        .lineTo(CX + DX * signX, CY + DY * signY)
-        .lineTo(CX + DX * signX, CY + (DY + a) * signY)
-        .lineTo(mx, CY + (DY + a) * signY);
-        const p2 = new THREE.Vector3(CX + DX * signX, CY + DY * signY, 0);
-        const p3 = new THREE.Vector3(CX, CY + DY * signY, 0);
-        if (pos === "tl" || pos === "br"){
-          edgePath.add( new THREE.LineCurve3( p1, p2 ));
-          edgePath.add( new THREE.LineCurve3( p2, p3 ));
-        } else {
-          edgePath.add( new THREE.LineCurve3( p3, p2 ));
-          edgePath.add( new THREE.LineCurve3( p2, p1 ));
-        }
-      }
-      break;
-    case "ROUND_R":
-      {
-        const sx = DX > DY ? CX + signX * DX : CX + signX * r;
-        const sy = DX > DY ? CY + signY * r : CY + signY * DY;
-        const center = new THREE.Vector3(sx, sy, 0);
-        let arc3;
+const SHARED_CSG_MAT = new THREE.MeshBasicMaterial({ visible: false });
 
-        if (DX > DY) {
-          s.lineTo(CX + DX * signX, my)
-          .lineTo(CX + DX * signX, CY + a * signY)
-          .absarc(sx, sy, r - a, pix, pix - signX * signY * theta, (signX * signY === 1))
-          .lineTo(mx, CY + DY * signY);
-          if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, pix, pix - signX * signY * theta, false);
-          } else {
-            arc3 = new ArcCurve3( center, r, pix - signX * signY * theta, pix, false);
-          }
-        } else {
-          s.lineTo(mx, CY + DY * signY)
-          .lineTo(CX + a * signX, CY + DY * signY)
-          .absarc(sx, sy, r - a, piy , piy + signX * signY * theta, (signX * signY === -1))
-          .lineTo(CX + DX * signX, my);
-          if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, piy + signX * signY * theta, piy, false);
-          } else {
-            arc3 = new ArcCurve3( center, r, piy, piy + signX * signY * theta, false);
-          }
-        }
-        edgePath.add(arc3);
-      }
-      break;
-    case "INROUND":
-      {
-        const sx = DX > DY ? CX : CX + signX * (DX - r);
-        const sy = DX > DY ? CY + signY * (DY - r) : CY;
-        const center = new THREE.Vector3(sx, sy, 0);
-        let arc3;
-        if (DX > DY) {
-          s.lineTo(CX + DX * signX, my)
-          .lineTo(CX + (a + r) * DX * signX / r, CY + a * (r - DY) * signY / r)
-          .absarc(sx, sy, r + a, -pix - signX * signY * theta, -pix, (signX * signY === -1))
-          if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, -pix - signX * signY * theta, -pix, false);
-          } else {
-            arc3 = new ArcCurve3( center, r, -pix, -pix - signX * signY * theta, false);
-          }
-        } else {
-          s.lineTo(CX + (DX + a) * signX, my)
-          .absarc(sx, sy, r + a, piy - signX * Math.PI, piy - signX * (Math.PI - signY * theta) , (signX * signY === -1))
-          .lineTo(mx, sy + r * Math.sin(piy - signX * (Math.PI - signY * theta)))
-          if (pos === "tl" || pos === "br"){
-            arc3 = new ArcCurve3( center, r, Math.PI - piy, Math.PI - piy + signX * signY * theta, false);
-          } else {
-            arc3 = new ArcCurve3( center, r, Math.PI - piy + signX * signY * theta, pix + Math.PI / 2, false);
-          }
-        }
-        edgePath.add(arc3);
-      }
-      break;
-    default:
-  }
-  s.closePath();
-  console.log("s:", s)
-  const geo = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: false })
-  // 上面Z=0（Z ∈ [-T,0]）
-  geo.translate(0, 0, -T)
-  cutters.push(geo);
-  cutters.push(buildCavityGeometry(code, T, edgePath));
-  cutters.push(buildFillerGeometry(code, T, edgePath));
-  return cutters
-}
-
-export function buildSideEdgeGeometries(ctx, pos, L, W, T, DXY) {
-  const sideCtx = ctx.side_json[pos];
-  const code = sideCtx.edge;
-  if (!code || code === "NONE") return null;
-  const a = notchWidthFromCode(code, T);
-  if (!a) return null;
-  const SD = Number(sideCtx?.sd ?? 0);
-  const SW = Number(sideCtx?.sw ?? 0);
-  const SP = Number(sideCtx?.sp ?? 0);
-
-  const r = (SD ** 2) / (8 * SW) + SW / 2;
-  const theta = r !== 0 ? Math.asin(SD / (2 * r)) : 0;
-  const d = r * Math.cos(theta);
-  const m = 0.01
-
-  let CX = 0,  CY = 0, signX = 0, signY = 0, pix = 0, piy = 0, DX = 0, DY = 0;
-  let startPoint1, startPoint2, endPoint1, endPoint2;
-  let x1 = 0, x2 = 0;
-  switch (pos) {
-    case "t":
-      const cornerTl = ctx.corner_json["tl"];
-      CX = 0;  CY = W; 
-      signX = +1; signY = -1; pix = Math.PI / 2; piy = Math.PI;
-      DX = Number(cornerTl?.dx);
-      DY = Number(cornerTl?.dy);
-      //const signX = 1;
-      switch(cornerTl.proc) {
-        case "BEVEL":
-          {
-            const h = DX > DY ? DY : DX;
-            const l = DX > DY ? DX : DY;
-            const r = ((l * 2) ** 2) / (8 * h) + h / 2;
-            x1 = CX + DX * signX;
-            x2 = CX + (DX + a * DY / r) * signX;
-          }
-          break;
-        case "CHAMFER":
-          x1 = CX + DX * signX;
-          x2 = CX + (DX + a) * signX;
-          break;
-        case "ROUND_R":
-          {
-            const h = DX > DY ? DY : DX;
-            const l = DX > DY ? DX : DY;
-            const r = ((l * 2) ** 2) / (8 * h) + h / 2;
-            if (DX > DY) {
-              x1 = CX + DX * signX;
-              x2 = CX + DX * signX;
-            } else {
-              //s.lineTo(mx, CY + DY * signY)
-              //.lineTo(CX + a * signX, CY + DY * signY)
-              x1 = CX + DX * signX
-              x2 = CX + signX * a * (r - DX) / r;
-            }
-          }
-          break;
-        case "INROUND":
-          {
-            const h = DX > DY ? DY : DX;
-            const l = DX > DY ? DX : DY;
-            const r = ((l * 2) ** 2) / (8 * h) + h / 2;
-            const theta = Math.asin(l / r);
-            if (DX > DY) {
-              x1 = CX + DX * signX;
-              x2 = CX + (a + r) * DX * signX / r;
-            //s.lineTo(CX + DX * signX, my)
-            //.lineTo(CX + (a + r) * DX * signX / r, CY + a * (r - DY) * signY / r)
-            //.absarc(sx, sy, r + a, -pix - signX * signY * theta, -pix, (signX * signY === -1))
-            } else {
-              x1 = CX + DX * signX;
-              x2 = CX + (DX + a) * signX;
-
-            }
-          }
-          break;
-      }
-      startPoint1 = new THREE.Vector3(x1, CY, 0);
-      endPoint1 = new THREE.Vector3(x2, CY, 0);
-      const cornerTr = ctx.corner_json["tr"];
-      break;
-    case "r":
-      break;
-    case "b":
-      break;
-    case "l":
-      break;
-    default:
-  }
-//  const SD = Number(sideCtx?.sd ?? 0);
-//  const SW = Number(sideCtx?.sw ?? 0);
-//  const SP = Number(sideCtx?.sp ?? 0);
-//  const r = (SD ** 2) / (8 * SW) + SW / 2;
-//  const theta = r !== 0 ? Math.asin(SD / (2 * r)) : 0;
-//  const d = r * Math.cos(theta);
-//  const m = 0
-  if (x2 - x1 <= 0) {
-    return null;
-  }
-  const cutters = [];
-//  const startPoint = new THREE.Vector3(startX, startY, 0);
-//  const endPoint = new THREE.Vector3(endX, endY, 0);
-  const edgePath = new THREE.CurvePath();
-  edgePath.add( new THREE.LineCurve3( endPoint1, startPoint1));
-  cutters.push(buildCavityGeometry(code, T, edgePath));
-  //const allEdgePath = new THREE.CurvePath();
-  //allEdgePath.add( new THREE.LineCurve3( endAll, startAll));
-  //cutters.push(buildCavityGeometry(code, T, allEdgePath));
-  return cutters;
-}
-
-/** 帯の幅（mm）：エッジ加工コードから決める（例） */
-function notchWidthFromCode(code, T){
-  switch (code) {
-    case "CHAMF_BTH": return 1;
-    case "BULLNOSE":return T / 2;
-    case "CHM5MM" : return 5;
-    case "R5ROUND": return 5;
-    case "CHM10MM": return 10;
-    case "R10ROUND": return 10;
-    case "COVE": return 9;
-    case "OGEE": return T - 10 / Math.sqrt(2);
-    default: return null;
-  }
-}
-
-function buildFillerGeometry(code, T, edgePath) {
-  // マージン
-  const m = 0.1;
-  const s = new THREE.Shape();
-  switch (code) {
-    case "CHAMF_BTH":
-      s.moveTo(1, 0);
-      s.lineTo(T - 1, 0).lineTo(T, 1).lineTo(T, 1 + m).lineTo(0, 1 + m).lineTo(0, 1);
-      break;
-    case "BULLNOSE":  // ボーズ面
-      s.moveTo(0, T / 2);
-      s.absarc(T / 2, T / 2, T / 2, Math.PI, 0, false);
-      s.lineTo(T, T / 2 + m).lineTo(0, T / 2 + m);
-      break;
-    case "CHM5MM":  // 上下5mm面
-      s.moveTo(5, 0);
-      s.lineTo(T - 5, 0).lineTo(T, 5).lineTo(T, 5 + m).lineTo(0, 5 + m).lineTo(0, 5);
-      break;
-    case "R5ROUND": // 上下5R面
-      s.moveTo(5, 0);
-      s.absarc(5,  5, 5, Math.PI, -Math.PI / 2, false);
-      s.lineTo(T - 5, 0);
-      s.absarc(T - 5,  5, 5, -Math.PI / 2, 0, false);
-      s.lineTo(T, 5 + m);
-      break;
-    case "CHM10MM": // 上下10mm面
-      s.moveTo(10, 0);
-      s.lineTo(T - 10, 0).lineTo(T, 10).lineTo(T, 10 + m).lineTo(0, 10 + m).lineTo(0, 10);
-      break;
-    case "R10ROUND":  // 上下10R面
-      s.moveTo(10, 0);
-      s.absarc(10,  10, 10, Math.PI, -Math.PI / 2, false);
-      s.lineTo(T - 10, 0);
-      s.absarc(T - 10,  10, 10, -Math.PI / 2, 0, false);
-      s.lineTo(T, 10 + m);
-      break;
-    case "COVE":  // ギンナン面
-      s.moveTo(0, 9).lineTo(3, 9);
-      s.absarc(9, 9, 6, Math.PI, -Math.PI / 2, false);
-      s.lineTo(9, 0).lineTo(T, 0).lineTo(T, 9 + m).lineTo(0, 9 + m);
-      break;
-    case "OGEE": { // 船底面
-      const l = T - 10 / Math.sqrt(2);
-      s.moveTo(0, 5);
-      s.absarc(5, 5, 5, Math.PI, -Math.PI / 4, false);
-      s.lineTo(T, l).lineTo(T, l + m).lineTo(0, l + m);
-      break;
+export function createEdgeMesh(code, T, edgePath){
+  const geo = buildCavityGeometry(code, T, edgePath);
+  if (geo) {
+    if (!geo.attributes.normal) {
+      geo.computeVertexNormals();
     }
+    return new THREE.Mesh(geo, SHARED_CSG_MAT);
   }
-  s.closePath();
-  return extrudeAlongPath(s, edgePath);
+  return null;
 }
 
 function buildCavityGeometry(code, T, edgePath){
   // マージン
-  const m = -0.1;
+  const m = -0.08;
   const s = new THREE.Shape();
   s.moveTo(0, m);
   switch (code) {
@@ -323,8 +24,8 @@ function buildCavityGeometry(code, T, edgePath){
       s.lineTo(T, m).lineTo(T, 1).lineTo(T - 1, 0).lineTo(1, 0).lineTo(0, 1);
       break;
     case "BULLNOSE":  // ボーズ面
-      s.lineTo(T, m).lineTo(T, T / 2);
-      s.absarc(T / 2, T / 2, T / 2, 0, Math.PI, true);
+      s.lineTo(T, m).lineTo(T, T / 2 - m);
+      s.absarc(T / 2, T / 2 - m, T / 2, 0, Math.PI, true);
       break;
     case "CHM5MM":  // 上下5mm面
       s.lineTo(T, m).lineTo(T, 5).lineTo(T - 5, 0).lineTo(5, 0).lineTo(0, 5);
@@ -349,24 +50,37 @@ function buildCavityGeometry(code, T, edgePath){
       s.absarc(9, 9, 6, -Math.PI / 2, Math.PI, true);
       s.lineTo(0, 9);
       break;
-    case "OGEE": { // 船底面
-      const l = T - 10 / Math.sqrt(2);
-      s.lineTo(0, 5);
-      s.absarc(5, 5, 5, Math.PI, -Math.PI / 4, false);
-      s.lineTo(T, l).lineTo(T, m);
+    case "OGEE":
+      { // 船底面
+        const l = T - 10 / Math.sqrt(2);
+        s.lineTo(0, 5);
+        s.absarc(5, 5, 5, Math.PI, -Math.PI / 4, false);
+        s.lineTo(T, l).lineTo(T, m);
+      }
       break;
-    }
+    default:
+      return null;
   }
   s.closePath();
   return extrudeAlongPath(s, edgePath);
 }
 
 function extrudeAlongPath(shape, edgePath) {
-  const fillerOpts = { s: 0.06, maxDeg: 2, maxChord: 2.5 };
+  // ───────────────────────────────────────────────────────────────
+  // 曲線離散化パラメータ（※単位はシーンのワールド単位。mm 系なら mm）
+  //   - s:       サジッタ（弦と弧の最大ふくらみ）許容値。小さいほど滑らか・重い
+  //   - maxDeg:  1 セグメントあたりの中心角の上限（度）。小さいほど滑らか・重い
+  //   - maxChord:1 セグメントの弦長の上限。小さいほど滑らか・重い
+  //
+  // 実際の分割角 dθ は「dSag（サジッタ制約）・dDeg（角度制約）・dChord（弦長制約）」の最小を採用。
+  // つまり 3 つの条件すべてを満たすように刻みを決定します。
+  // ───────────────────────────────────────────────────────────────
+  // const fillerOpts = { s: 0.06, maxDeg: 2, maxChord: 2.5 };
+  const fillerOpts = { s:0.15, maxDeg:2, maxChord:2.5 };
 
   let resultMesh = null;
   for (const c of edgePath.curves) {
-    const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 400);
+    const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 100);
     let geo = null;
     console.log("steps", steps)
     try {
@@ -389,7 +103,6 @@ function extrudeAlongPath(shape, edgePath) {
   }
   return resultMesh.geometry;
 }
-
 function stepsForCurve(c, opts){
   if (c.isLineCurve3) return 6;
   const hasAngles =
@@ -418,28 +131,4 @@ function stepsForArc(R, theta, { s=0.15, maxDeg=6, maxChord=4 } = {}){
     (Number.isFinite(dChord) && dChord>0 ? dChord : Infinity)
   );
   return Math.max(2, Math.ceil(theta / dθ));
-}
-
-class ArcCurve3 extends THREE.Curve {
-  constructor( center, radius, startAngle, endAngle, clockwise = false ) {
-    super();
-    this.center = center.clone();
-    this.radius = radius;
-    this.startAngle = startAngle;
-    this.endAngle   = endAngle;
-    this.clockwise  = clockwise;
-  }
-  getPoint( t, target = new THREE.Vector3() ) {
-    // t = 0 → startAngle, t = 1 → endAngle
-    const angle = this.clockwise
-      ? this.startAngle - t * ( this.startAngle - this.endAngle )
-      : this.startAngle + t * ( this.endAngle - this.startAngle );
-
-    target.set(
-      this.center.x + this.radius * Math.cos( angle ),
-      this.center.y + this.radius * Math.sin( angle ),
-      0
-    );
-    return target;
-  }
 }

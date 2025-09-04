@@ -122,6 +122,20 @@ export default class extends Controller {
     this.renderer.render(this.scene, this.camera);
   }
 
+  setMeshVisibilityAtPath(path, visible) {
+    const mesh = this._getAtPath(this.boardMeshes, path);
+    if (mesh?.isMesh || mesh instanceof THREE.Mesh) {
+      mesh.visible = !!visible;
+      return true;                 // 成功
+    }
+    return false;                  // 見つからず/非Mesh
+  }
+  _getAtPath(obj, path) {
+    return path.reduce((cur, key) => {
+      if (cur == null) return cur;
+      return cur[/^\d+$/.test(key) ? Number(key) : key];
+    }, obj);
+  }
   /*====================== モデル更新 ====================*/
   updateModel (formJSON) {
     if (!this.camera) return
@@ -180,7 +194,7 @@ export default class extends Controller {
     if (node instanceof THREE.Mesh) {
       fn(node, path);
     } else if (Array.isArray(node)) {
-      node.forEach((child, i) => forEachMesh(child, fn, path.concat(String(i))));
+      node.forEach((child, i) => this._forEachMesh(child, fn, path.concat(String(i))));
     } else if (typeof node === "object") {
       for (const key in node) {
         this._forEachMesh(node[key], fn, path.concat(key));

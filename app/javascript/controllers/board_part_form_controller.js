@@ -9,8 +9,8 @@ export default class extends Controller {
       : null
     this.form = this.element.closest("form") || document.forms[0]
     // 解除用にハンドラを束ねておく
-    this._onInput = () => this._updateForm()
-    this.form.addEventListener("input", this._onInput)
+    this._onChange = (e) => this._updateForm(e);
+    this.form.addEventListener("change", this._onChange);
     this._onResize = () => {
       cancelAnimationFrame(this._rafId)
       this._rafId = requestAnimationFrame(() => this._resizeWork())
@@ -21,18 +21,71 @@ export default class extends Controller {
   }
 
   disconnect() {
-    this.form?.removeEventListener("input", this._onInput)
+    this.form?.removeEventListener("change", this._onChange)
     window.removeEventListener("resize", this._onResize)
     cancelAnimationFrame(this._rafId)
   }
 
-  _updateForm(){
+  _updateForm(e){
     // ✨ 相手が未初期化の可能性に備える
     if (!this.boardPart3dCtrl && this.boardEl) {
       this.boardPart3dCtrl =
-        this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d")
+        this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d");
     }
-    const formJSON = formToJSON(this.form)
+    const el = e.target;
+    if (!el.name) return;
+    let formJSON = formToJSON(this.form);
+    const rawPath = this._parseName(el.name);
+    const path = this._normalizePathForFoldAttributes(rawPath);
+    const basePath = path.slice(0, -1);
+    if (path.at(-1) === "disp") {
+      const dispVal = this._getAtPath(formJSON, [...basePath, "disp"]);
+      this.boardPart3dCtrl?.setMeshVisibilityAtPath?.(path.slice(2, 4), dispVal);
+      return;
+    }
+    const type = path[2];
+    const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
+    const baseRaw = rawPath.slice(0, -1);
+    const disable = (procVal === "NONE");
+    switch(type) {
+      case "corner_json":
+        {
+          if (path.at(-1) === "proc") {
+            const dxEl = this._getElement(baseRaw, "dx");
+            dxEl.disabled = disable;
+            const dyEl = this._getElement(baseRaw, "dy");
+            dyEl.disabled = disable;
+            const edgeEl = this._getElement(baseRaw, "edge");
+            edgeEl.disabled = disable;
+          }
+          // formJSON更新
+          formJSON = formToJSON(this.form);
+          const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
+          const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
+          if (procVal !== "NONE" && (!dxVal || !dyVal)) return;
+        }
+        break;
+      case "side_json":
+        {
+          if (path.at(-1) === "proc") {
+            const sdEl = this._getElement(baseRaw, "sd");
+            sdEl.disabled = disable;
+            const swEl = this._getElement(baseRaw, "sw");
+            swEl.disabled = disable;
+            const spEl = this._getElement(baseRaw, "sp");
+            spEl.disabled = disable;
+          }
+          // formJSON更新
+          formJSON = formToJSON(this.form);
+          const edgeVal = this._getAtPath(formJSON, [...basePath, "edge"]);
+          const sdVal = this._getAtPath(formJSON, [...basePath, "sd"]);
+          const swVal = this._getAtPath(formJSON, [...basePath, "sw"]);
+          const spVal = this._getAtPath(formJSON, [...basePath, "sp"]);
+          if ((procVal !== "NONE" && (!sdVal || !swVal || !spVal)) && (edgeVal === "NONE")) return
+        }
+        break;
+      default:
+    }
     this.boardPart3dCtrl?.updateModel?.(formJSON)
   }
 
@@ -57,5 +110,33 @@ export default class extends Controller {
     const targetH = Math.max(0, Math.round(window.innerHeight - canvasH - headerH - bottomH -10))
     const el = document.querySelector(".carousel-inner")
     if (el) el.style.height = `${targetH}px`
+  }
+
+  _getElement(baseRaw, name){
+    const elName = this._buildNameFromPath([...baseRaw, name]);
+    let el = this.form?.elements?.namedItem(elName);
+    if (!el) {
+      const sel = `[name="${CSS.escape(elName)}"]`;
+      el = this.form?.querySelector(sel);
+    }
+    return el;
+  }
+
+  _parseName(name) {
+    return name.match(/^[^\[]+|\[(.*?)\]/g).map(s => s[0] === "[" ? s.slice(1, -1) : s);
+  }
+
+  _buildNameFromPath(path) {
+    return path.reduce((acc, key, i) => {
+      return acc + (i === 0 ? key : `[${key}]`);
+    }, "");
+  }
+
+  _normalizePathForFoldAttributes(path) {
+    return path.map((k) => k.endsWith("_attributes") ? k.slice(0, -"_attributes".length) : k);
+  }
+
+  _getAtPath(obj, path) {
+    return path.reduce((cur, k) => cur?.[k], obj);
   }
 }

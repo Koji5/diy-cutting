@@ -1,6 +1,10 @@
 export function boardBuildCtx(boardJSON){
-  if (!boardJSON) return;
-  const ctx = { L: boardJSON.length_mm, W: boardJSON.width_mm, T: boardJSON.thickness_mm }
+  const ctx = { L: boardJSON.length_mm, W: boardJSON.width_mm, T: boardJSON.thickness_mm };
+  const { L, W } = ctx;
+
+  const cornerJSON = boardJSON.corner_json || {};
+  const sideJSON   = boardJSON.side_json   || {};
+
   ["tl","tr","bl","br"].forEach(pos=>{
     let CX = 0, CY = 0;
     switch (pos) {
@@ -10,20 +14,22 @@ export function boardBuildCtx(boardJSON){
       case "br": CX = ctx.L; CY = 0; break;
       default:
     }
-    const posJSON = boardJSON.corner_json[pos]
+    const posJSON = cornerJSON[pos] || null;
     if (!posJSON) {
       console.warn("CORNER JSON Not Found:", JSON.stringify(pos), "len=", String(pos).length,
               "codes=", [...String(pos)].map(c => c.charCodeAt(0)));
       ctx[pos] = {
         type: "corner",
-        cx: CX,
-        cy: CY
+        corner: [CX, CY],
+        start: [CX, CY],
+        end: [CX, CY]
       }
+      if (pos === "bl") ctx.moveTo = [0, 0];
       return;
     }
     const DX = Number(posJSON?.dx ?? 0);
     const DY = Number(posJSON?.dy ?? 0);
-    let signX = 1, signY = 1, pix = 0, piy = 0, startX = 0, startY = 0, endX = 0, endY = 0, posAxis = "";
+    let signX = 1, signY = 1, pix = 0, piy = 0, startX = 0, startY = 0, endX = 0, endY = 0, posAxis = "", moveTo = [];
     switch (pos) {
       case "tl":
         signX = +1; signY = -1;
@@ -41,6 +47,7 @@ export function boardBuildCtx(boardJSON){
         signX = +1; signY = +1; pix = -Math.PI / 2; piy = Math.PI;
         startX = 0; startY = DY; endX = DX; endY = 0;
         posAxis = "X";
+        ctx.moveTo = [startX, startY];
         break;
       case "br":
         signX = -1; signY = +1; pix = -Math.PI / 2; piy = 0;
@@ -58,9 +65,7 @@ export function boardBuildCtx(boardJSON){
       case "BEVEL":
         process = {
           type: "line",
-          line: [
-            [startX, startY], [endX, endY]
-          ]
+          line: [[startX, startY], [endX, endY] ]
         }
         break;
       case "CHAMFER":
@@ -68,9 +73,7 @@ export function boardBuildCtx(boardJSON){
           const point = (posAxis === "X") ? [endX, startY] : [startX, endY];
           process = {
             type: "line",
-            line: [
-              [startX, startY], [...point], [endX, endY]
-            ]
+            line: [ [startX, startY], [...point], [endX, endY] ]
           }
         }
         break;
@@ -102,7 +105,8 @@ export function boardBuildCtx(boardJSON){
               center: [sx, sy],
               r: r,
               startAngle: startAngle,
-              endAngle: endAngle
+              endAngle: endAngle,
+              wise: false
             }
           }
         }
@@ -135,7 +139,8 @@ export function boardBuildCtx(boardJSON){
               center: [sx, sy],
               r: r,
               startAngle: startAngle,
-              endAngle: endAngle
+              endAngle: endAngle,
+              wise: true
             }
           }
         }
@@ -149,8 +154,7 @@ export function boardBuildCtx(boardJSON){
       dx: DX,
       dy: DY,
       longerAxis: DY - DX > 0 ? "DY" : "DX",
-      cx: CX,
-      cy: CY,
+      corner: [CX, CY],
       start: [startX, startY],
       end: [endX, endY]
     }
@@ -161,20 +165,114 @@ export function boardBuildCtx(boardJSON){
     r: {start: "br", end: "tr"},
     t: {start: "tr", end: "tl"},
     l: {start: "tl", end: "bl"},
-  }
+  };
   ["b","r","t","l"].forEach(pos=>{
-    const posJSON = boardJSON.side_json[pos];
-    if (!posJSON) {
-      console.warn("SIDE JSON Not Found:", JSON.stringify(pos), "len=", String(pos).length,
-              "codes=", [...String(pos)].map(c => c.charCodeAt(0)));
+    const posJSON = sideJSON[pos] || null;
+    const proc = posJSON?.proc ?? "NONE";
+    const startSide = ctx[sideCorner[pos].start].end;
+    const endSide = ctx[sideCorner[pos].end].start;
+    const SD = Number(posJSON?.sd ?? 0);
+    const SW = Number(posJSON?.sw ?? 0);
+    const SP = Number(posJSON?.sp ?? 0);
+    if (SD === 0 || SW === 0 || SP === 0){
       ctx[pos] = {
-        type: "side"
+        type: "side",
+        proc: proc,
+        edge: posJSON?.edge ?? "NONE",
+        start: startSide,
+        end: endSide
       }
       return;
     }
-    const startCorner= sideCorner[pos].start;
-    const endCorner = sideCorner[pos].end;
-    let startX, startY, endX, endY; 
-
+    const r = (SD ** 2) / (8 * SW) + SW / 2;
+    const theta = Math.asin(SD / (2 * r));
+    const d = r * Math.cos(theta);
+    let sx1 = 0, sx2 = 0, sx3 = 0, sx4 = 0, pi = 0, sy1 = 0, sy2 = 0, sy3 = 0, sy4 = 0, sx = 0, sy = 0;
+    switch (pos) {
+      case "t":
+        sx4 = SP - SD / 2; sy4 = W;
+        sx3 = SP - SD / 2; sy3 = W - SW;
+        sx2 = SP + SD / 2; sy2 = W - SW;
+        sx1 = SP + SD / 2; sy1 = W;
+        sx = SP; sy = W + d;
+        pi = -Math.PI / 2;
+        break;
+      case "r":
+        sx4 = L; sy4 = SP + SD / 2;
+        sx3 = L - SW; sy3 = SP + SD / 2;
+        sx2 = L - SW; sy2 = SP - SD / 2;
+        sx1 = L; sy1 = SP - SD / 2;
+        sx = L + d; sy = SP;
+        pi = Math.PI;
+        break;
+      case "b":
+        sx4 = SP + SD / 2; sy4 = 0;
+        sx3 = SP + SD / 2; sy3 = SW;
+        sx2 = SP - SD / 2; sy2 = SW;
+        sx1 = SP - SD / 2; sy1 = 0;
+        sx = SP; sy = -d;
+        pi = Math.PI / 2;
+        break;
+      case "l":
+        sx4 = 0; sy4 = SP - SD / 2;
+        sx3 = SW; sy3 = SP - SD / 2;
+        sx2 = SW; sy2 = SP + SD / 2;
+        sx1 = 0; sy1 = SP + SD / 2;
+        sx = -d; sy = SP;
+        pi = 0;
+        break;
+      default:
+    }
+    let process = null
+    switch(proc) {
+      case "SQUARE":
+        {
+          if (SD !== 0 && SW !== 0 && SP !== 0){
+            process = {
+              type: "line",
+              line: [ 
+                [sx1,  sy1],
+                [sx2,  sy2],
+                [sx3,  sy3],
+                [sx4,  sy4]
+              ]
+            }
+          }
+        }
+        break;
+      case "ROUND":
+        {
+          if (SD / 2 < SW){
+            console.warn("SD / 2 < SW pos:", JSON.stringify(pos), "len=", String(pos).length,
+                    "codes=", [...String(pos)].map(c => c.charCodeAt(0))), " proc:", JSON.stringify(posJSON.proc), "len=", String(posJSON.proc).length,
+                    "codes=", [...String(posJSON.proc)].map(c => c.charCodeAt(0))
+          } else {
+            process = {
+              type: "arc",
+              arc: {
+                center: [sx, sy],
+                r: r,
+                startAngle: pi + theta,
+                endAngle: pi - theta
+              },
+              startPoint: [sx1,  sy1],
+              endPoint: [sx4,  sy4]
+            }
+          }
+        }
+        break;
+      case "NONE":
+      default:
+    }
+    ctx[pos] = {
+      type: "side",
+      proc: proc,
+      edge: posJSON?.edge ?? null,
+      start: startSide,
+      end: endSide
+    }
+    if (process) ctx[pos].process = process;
   });
+
+  return ctx;
 }
