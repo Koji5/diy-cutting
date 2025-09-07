@@ -10,6 +10,12 @@
 }
 .carousel-item {
   height: 100%;                 /* 親の高さを埋める */
+}
+.carousel-padding {
+  max-width: 35px;
+}
+.scroll-area{
+  height: 100%;                 /* 親の高さを埋める */
   overflow-y: auto;             /* 縦スクロール許可 */
   -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
   overscroll-behavior: contain; /* 端でのページスクロール連鎖を防ぐ */

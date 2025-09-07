@@ -17,13 +17,48 @@ export default class extends Controller {
     }
 
     window.addEventListener("resize", this._onResize)
-    this._resizeWork()
+    this._resizeWork();
+    this._initForm();
   }
 
   disconnect() {
     this.form?.removeEventListener("change", this._onChange)
     window.removeEventListener("resize", this._onResize)
     cancelAnimationFrame(this._rafId)
+  }
+
+  _initForm() {
+    const procNames = this._collectProcNames(this.form);
+    for (const procName of procNames) {
+      const rawPath = this._parseName(procName);
+      const baseRaw = rawPath.slice(0, -1);
+      const procEl = this._getElement(baseRaw, "proc");
+      const procVal = procEl.value;
+      const disable = (procVal === "NONE");
+      switch(rawPath[2]) {
+        case "corner_json":
+          {
+            const dxEl = this._getElement(baseRaw, "dx");
+            dxEl.disabled = disable;
+            const dyEl = this._getElement(baseRaw, "dy");
+            dyEl.disabled = disable;
+            const edgeEl = this._getElement(baseRaw, "edge");
+            edgeEl.disabled = disable;
+          }
+          break;
+        case "side_json":
+          {
+            const sdEl = this._getElement(baseRaw, "sd");
+            sdEl.disabled = disable;
+            const swEl = this._getElement(baseRaw, "sw");
+            swEl.disabled = disable;
+            const spEl = this._getElement(baseRaw, "sp");
+            spEl.disabled = disable;
+          }
+          break;
+          default:
+      }
+    }
   }
 
   _updateForm(e){
@@ -108,8 +143,9 @@ export default class extends Controller {
         ? canvas.getBoundingClientRect().height
         : 0
     const targetH = Math.max(0, Math.round(window.innerHeight - canvasH - headerH - bottomH -10))
-    const el = document.querySelector(".carousel-inner")
-    if (el) el.style.height = `${targetH}px`
+    document.querySelectorAll(".carousel-row").forEach(el => {
+      el.style.height = `${targetH}px`
+    })
   }
 
   _getElement(baseRaw, name){
@@ -139,4 +175,12 @@ export default class extends Controller {
   _getAtPath(obj, path) {
     return path.reduce((cur, k) => cur?.[k], obj);
   }
+
+  _collectProcNames(form) {
+    // [name$="[proc]"] … name 属性が "[proc]" で終わる要素を全部取得
+    const els = form.querySelectorAll('[name$="[proc]"]');
+    // name を配列で返す（重複はユニーク化）
+    return [...new Set([...els].map(el => el.name))];
+  }
+
 }

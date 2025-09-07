@@ -2,160 +2,178 @@
     <%= f.fields_for :board_part do |bf| %>
       <%= bf.hidden_field :camera_state_json, id: "camera_state_json" %>
       <div class="carousel-item active px-4">
-        <div class="d-block w-100 px-5">
-          <div class="ProcessingHeader fw-bold fs-4 mb-2">基本形状</div>
-          <div class="input-group">
-            <span class="input-group-text">板の横巾 (mm)</span>
-            <%= bf.number_field :length_mm, step: 0.1, class: "form-control", required: true %>
-            <div class="invalid-feedback">
-              板の横巾 は必須です
+        <div class="container">
+          <div class="row carousel-row">
+            <div class="col carousel-padding"></div>
+            <div class="d-block w-100 scroll-area col">
+              <div class="ProcessingHeader fw-bold fs-4 mb-2">基本形状</div>
+              <div class="input-group">
+                <span class="input-group-text">板の横巾 (mm)</span>
+                <%= bf.number_field :length_mm, step: 0.1, class: "form-control", required: true %>
+                <div class="invalid-feedback">
+                  板の横巾 は必須です
+                </div>
+              </div>
+              <div class="form-text mb-2">
+                板の横巾は2000mm以内で入力してください。
+              </div>
+              <div class="input-group">
+                <span class="input-group-text">板の縦巾 (mm)</span>
+                <%= bf.number_field :width_mm, step: 0.1, class: "form-control", required: true %>
+                <div class="invalid-feedback">
+                  板の縦巾 は必須です
+                </div>
+              </div>
+              <div class="form-text mb-2">
+                板の縦巾は1000mm以内で入力してください。
+              </div>
+              <div class="input-group">
+                <span class="input-group-text">板の厚み</span>
+                <%= bf.collection_select :thickness_mm, @board_thickness, :thickness_mm, :name_en,
+                                      { prompt: "選択…" },
+                                      class: "form-select", required: true %>
+                <div class="invalid-feedback">
+                  板の厚みは必須です
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="form-text mb-2">
-            板の横巾は2000mm以内で入力してください。
-          </div>
-          <div class="input-group">
-            <span class="input-group-text">板の縦巾 (mm)</span>
-            <%= bf.number_field :width_mm, step: 0.1, class: "form-control", required: true %>
-            <div class="invalid-feedback">
-              板の縦巾 は必須です
-            </div>
-          </div>
-          <div class="form-text mb-2">
-            板の縦巾は1000mm以内で入力してください。
-          </div>
-          <div class="input-group">
-            <span class="input-group-text">板の厚み</span>
-            <%= bf.collection_select :thickness_mm, @board_thickness, :thickness_mm, :name_en,
-                                  { prompt: "選択…" },
-                                  class: "form-select", required: true %>
-            <div class="invalid-feedback">
-              板の厚みは必須です
-            </div>
+            <div class="col carousel-padding"></div>
           </div>
         </div>
       </div>
       <%# コーナー加工 %>
       <div class="carousel-item px-4">
-        <div class="d-block w-100 px-5">
-          <div class="ProcessingHeader fw-bold fs-4 mb-2">コーナー加工</div>
-          <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
-          <% corners.each do |key, label| %>
-            <% h = (bf.object.corner_json || {}).dig(key.to_s) || {} %>
-            <% sel = h["proc"].presence || "NONE" %>
-            <% formName = "part[board_part_attributes][corner_json][#{key}][disp]" %>
-            <div class="d-flex flex-row flex-grow-1">
-              <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %></div>
-              <div class="d-flex form-check form-switch pt-1">
-                <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
-              </div>
-              <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+        <div class="container">
+          <div class="row carousel-row">
+            <div class="col carousel-padding"></div>
+            <div class="d-block w-100 col scroll-area">
+              <div class="ProcessingHeader fw-bold fs-4 mb-2">コーナー加工</div>
+              <% corners = { tl: "左上", tr: "右上", bl: "左下", br: "右下" } %>
+              <% corners.each do |key, label| %>
+                <% h = (bf.object.corner_json || {}).dig(key.to_s) || {} %>
+                <% sel = h["proc"].presence || "NONE" %>
+                <% formName = "part[board_part_attributes][corner_json][#{key}][disp]" %>
+                <div class="d-flex flex-row flex-grow-1">
+                  <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2" id="corner_<%= "#{key}" %>"><%= "#{label}" %></div>
+                  <div class="d-flex form-check form-switch pt-1">
+                    <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
+                  </div>
+                  <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">加工方法</span>
+                  <%= select_tag "part[board_part_attributes][corner_json][#{key}][proc]",
+                                  options_from_collection_for_select(@corner_processes, :code, :name_ja, sel),
+                                  class: "form-select" %>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">加工範囲X (mm)</span>
+                  <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dx]",
+                                        h["dx"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    加工範囲X は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-2">
+                  <%= "#{label}" %>角からのX軸の加工範囲を入力してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">加工範囲Y (mm)</span>
+                  <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dy]",
+                                        h["dy"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    加工範囲Y は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-3">
+                  <%= "#{label}" %>角からのY軸の加工範囲を入力してください。
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">エッジ加工</span>
+                  <%= select_tag "part[board_part_attributes][corner_json][#{key}][edge]",
+                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
+                                  class: "form-select" %>
+                </div>
+              <% end %>
             </div>
-            <div class="input-group mb-2">
-              <span class="input-group-text">加工方法</span>
-              <%= select_tag "part[board_part_attributes][corner_json][#{key}][proc]",
-                              options_from_collection_for_select(@corner_processes, :code, :name_ja, sel),
-                              class: "form-select" %>
-            </div>
-            <div class="input-group">
-              <span class="input-group-text">加工範囲X (mm)</span>
-              <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dx]",
-                                    h["dx"],
-                                    step: 0.1, class: "form-control" %>
-              <div class="invalid-feedback">
-                加工範囲X は必須です
-              </div>
-            </div>
-            <div class="form-text mb-2">
-              <%= "#{label}" %>角からのX軸の加工範囲を入力してください。
-            </div>
-            <div class="input-group">
-              <span class="input-group-text">加工範囲Y (mm)</span>
-              <%= number_field_tag "part[board_part_attributes][corner_json][#{key}][dy]",
-                                    h["dy"],
-                                    step: 0.1, class: "form-control" %>
-              <div class="invalid-feedback">
-                加工範囲Y は必須です
-              </div>
-            </div>
-            <div class="form-text mb-3">
-              <%= "#{label}" %>角からのY軸の加工範囲を入力してください。
-            </div>
-            <div class="input-group mb-2">
-              <span class="input-group-text">エッジ加工</span>
-              <%= select_tag "part[board_part_attributes][corner_json][#{key}][edge]",
-                              options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
-                              class: "form-select" %>
-            </div>
-          <% end %>
+            <div class="col carousel-padding"></div>
+          </div>
         </div>
       </div>
 
       <%# 辺加工 %>
       <div class="carousel-item px-4">
-        <div class="d-block w-100 px-5">
-          <div class="ProcessingHeader fw-bold fs-4 mb-2">辺加工</div>
-          <% corners = { l: "左", t: "上", r: "右", b: "下" } %>
-          <% corners.each do |key, label| %>
-            <% h = (bf.object.side_json || {}).dig(key.to_s) || {} %>
-            <% sel = h["proc"].presence || "NONE" %>
-            <% formName = "part[board_part_attributes][side_json][#{key}][disp]" %>
-            <div class="d-flex flex-row flex-grow-1">
-              <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %>辺加工</div>
-              <div class="d-flex form-check form-switch pt-1">
-                <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
-              </div>
-              <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+        <div class="container">
+          <div class="row carousel-row">
+            <div class="col carousel-padding"></div>
+            <div class="d-block w-100 col scroll-area">
+              <div class="ProcessingHeader fw-bold fs-4 mb-2">辺加工</div>
+              <% corners = { l: "左", t: "上", r: "右", b: "下" } %>
+              <% corners.each do |key, label| %>
+                <% h = (bf.object.side_json || {}).dig(key.to_s) || {} %>
+                <% sel = h["proc"].presence || "NONE" %>
+                <% formName = "part[board_part_attributes][side_json][#{key}][disp]" %>
+                <div class="d-flex flex-row flex-grow-1">
+                  <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %>辺加工</div>
+                  <div class="d-flex form-check form-switch pt-1">
+                    <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
+                  </div>
+                  <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">加工方法</span>
+                  <%= select_tag "part[board_part_attributes][side_json][#{key}][proc]",
+                                  options_from_collection_for_select(@side_processes, :code, :name_ja, sel),
+                                  class: "form-select" %>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">巾 (mm)</span>
+                  <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sd]",
+                                        h["sd"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    加工巾 は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-2">
+                  <%= "#{label}" %>辺の加工巾を入力してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">深さ (mm)</span>
+                  <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sw]",
+                                        h["sw"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    加工深さ は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-3">
+                  <%= "#{label}" %>辺の加工深さを入力してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">加工位置 (mm)</span>
+                  <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sp]",
+                                        h["sp"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    加工位置 は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-2">
+                  <%= "#{label}" %>辺の加工位置を入力してください。
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">エッジ加工</span>
+                  <%= select_tag "part[board_part_attributes][side_json][#{key}][edge]",
+                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
+                                  class: "form-select" %>
+                </div>
+              <% end %>
             </div>
-            <div class="input-group mb-2">
-              <span class="input-group-text">加工方法</span>
-              <%= select_tag "part[board_part_attributes][side_json][#{key}][proc]",
-                              options_from_collection_for_select(@side_processes, :code, :name_ja, sel),
-                              class: "form-select" %>
-            </div>
-            <div class="input-group">
-              <span class="input-group-text">巾 (mm)</span>
-              <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sd]",
-                                    h["sd"],
-                                    step: 0.1, class: "form-control" %>
-              <div class="invalid-feedback">
-                加工巾 は必須です
-              </div>
-            </div>
-            <div class="form-text mb-2">
-              <%= "#{label}" %>辺の加工巾を入力してください。
-            </div>
-            <div class="input-group">
-              <span class="input-group-text">深さ (mm)</span>
-              <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sw]",
-                                    h["sw"],
-                                    step: 0.1, class: "form-control" %>
-              <div class="invalid-feedback">
-                加工深さ は必須です
-              </div>
-            </div>
-            <div class="form-text mb-3">
-              <%= "#{label}" %>辺の加工深さを入力してください。
-            </div>
-            <div class="input-group">
-              <span class="input-group-text">加工位置 (mm)</span>
-              <%= number_field_tag "part[board_part_attributes][side_json][#{key}][sp]",
-                                    h["sp"],
-                                    step: 0.1, class: "form-control" %>
-              <div class="invalid-feedback">
-                加工位置 は必須です
-              </div>
-            </div>
-            <div class="form-text mb-2">
-              <%= "#{label}" %>辺の加工位置を入力してください。
-            </div>
-            <div class="input-group mb-2">
-              <span class="input-group-text">エッジ加工</span>
-              <%= select_tag "part[board_part_attributes][side_json][#{key}][edge]",
-                              options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
-                              class: "form-select" %>
-            </div>
-          <% end %>
+            <div class="col carousel-padding"></div>
+          </div>
         </div>
       </div>
 
@@ -201,6 +219,7 @@
         </div>
       </div>
     </div>
+  </div>
 
   <button class="carousel-control-prev" type="button" data-bs-target="#boardPartForm" data-bs-slide="prev" data-bs-theme="dark">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
