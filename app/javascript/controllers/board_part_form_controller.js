@@ -35,29 +35,7 @@ export default class extends Controller {
       const procEl = this._getElement(baseRaw, "proc");
       const procVal = procEl.value;
       const disable = (procVal === "NONE");
-      switch(rawPath[2]) {
-        case "corner_json":
-          {
-            const dxEl = this._getElement(baseRaw, "dx");
-            dxEl.disabled = disable;
-            const dyEl = this._getElement(baseRaw, "dy");
-            dyEl.disabled = disable;
-            const edgeEl = this._getElement(baseRaw, "edge");
-            edgeEl.disabled = disable;
-          }
-          break;
-        case "side_json":
-          {
-            const sdEl = this._getElement(baseRaw, "sd");
-            sdEl.disabled = disable;
-            const swEl = this._getElement(baseRaw, "sw");
-            swEl.disabled = disable;
-            const spEl = this._getElement(baseRaw, "sp");
-            spEl.disabled = disable;
-          }
-          break;
-          default:
-      }
+      this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
     }
   }
 
@@ -82,17 +60,10 @@ export default class extends Controller {
     const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
     const baseRaw = rawPath.slice(0, -1);
     const disable = (procVal === "NONE");
+    this._changeDisabled(type, baseRaw, path.at(-1), disable);
     switch(type) {
       case "corner_json":
         {
-          if (path.at(-1) === "proc") {
-            const dxEl = this._getElement(baseRaw, "dx");
-            dxEl.disabled = disable;
-            const dyEl = this._getElement(baseRaw, "dy");
-            dyEl.disabled = disable;
-            const edgeEl = this._getElement(baseRaw, "edge");
-            edgeEl.disabled = disable;
-          }
           // formJSON更新
           formJSON = formToJSON(this.form);
           const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
@@ -102,14 +73,6 @@ export default class extends Controller {
         break;
       case "side_json":
         {
-          if (path.at(-1) === "proc") {
-            const sdEl = this._getElement(baseRaw, "sd");
-            sdEl.disabled = disable;
-            const swEl = this._getElement(baseRaw, "sw");
-            swEl.disabled = disable;
-            const spEl = this._getElement(baseRaw, "sp");
-            spEl.disabled = disable;
-          }
           // formJSON更新
           formJSON = formToJSON(this.form);
           const edgeVal = this._getAtPath(formJSON, [...basePath, "edge"]);
@@ -122,6 +85,36 @@ export default class extends Controller {
       default:
     }
     this.boardPart3dCtrl?.updateModel?.(formJSON)
+  }
+
+  _changeDisabled(type, baseRaw, lastPath, disable) {
+    switch(type) {
+      case "corner_json":
+        {
+          if (lastPath === "proc") {
+            const dxEl = this._getElement(baseRaw, "dx");
+            dxEl.disabled = disable;
+            const dyEl = this._getElement(baseRaw, "dy");
+            dyEl.disabled = disable;
+            const edgeEl = this._getElement(baseRaw, "edge");
+            edgeEl.disabled = disable;
+          }
+        }
+        break;
+      case "side_json":
+        {
+          if (lastPath === "proc") {
+            const sdEl = this._getElement(baseRaw, "sd");
+            sdEl.disabled = disable;
+            const swEl = this._getElement(baseRaw, "sw");
+            swEl.disabled = disable;
+            const spEl = this._getElement(baseRaw, "sp");
+            spEl.disabled = disable;
+          }
+        }
+        break;
+      default:
+    }
   }
 
   _resizeWork() {
