@@ -2009,6 +2009,42 @@ CREATE TABLE public.m_hole_diameters (
 
 
 --
+-- Name: m_hole_specs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_hole_specs (
+    code character varying NOT NULL,
+    name_ja character varying NOT NULL,
+    name_en character varying NOT NULL,
+    category_code character varying NOT NULL,
+    nominal_mm numeric(8,2) NOT NULL,
+    pilot_mm numeric(8,2) NOT NULL,
+    countersink_mm numeric(8,2),
+    min_center_center_mm numeric(8,2) NOT NULL,
+    min_edge_distance_mm numeric(8,2) NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT chk_m_hole_specs_category CHECK (((category_code)::text = ANY ((ARRAY['BOLT_METRIC'::character varying, 'DOWEL'::character varying])::text[]))),
+    CONSTRAINT chk_m_hole_specs_positive CHECK (((nominal_mm > (0)::numeric) AND (pilot_mm > (0)::numeric) AND (min_center_center_mm > (0)::numeric) AND (min_edge_distance_mm > (0)::numeric)))
+);
+
+
+--
+-- Name: m_hole_surfaces; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_hole_surfaces (
+    code character varying NOT NULL,
+    name_ja character varying NOT NULL,
+    name_en character varying NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: m_materials; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4229,6 +4265,22 @@ ALTER TABLE ONLY public.m_edge_processes
 
 ALTER TABLE ONLY public.m_hole_diameters
     ADD CONSTRAINT m_hole_diameters_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_hole_specs m_hole_specs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_specs
+    ADD CONSTRAINT m_hole_specs_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_hole_surfaces m_hole_surfaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_hole_surfaces
+    ADD CONSTRAINT m_hole_surfaces_pkey PRIMARY KEY (code);
 
 
 --
@@ -6496,6 +6548,13 @@ CREATE INDEX index_m_hole_diameters_on_deleted_by_id ON public.m_hole_diameters 
 --
 
 CREATE INDEX index_m_hole_diameters_on_updated_by_id ON public.m_hole_diameters USING btree (updated_by_id);
+
+
+--
+-- Name: index_m_hole_specs_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_hole_specs_on_sort_order ON public.m_hole_specs USING btree (sort_order);
 
 
 --
@@ -10625,6 +10684,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250908050420'),
+('20250908040809'),
 ('20250827073302'),
 ('20250813062758'),
 ('20250813062155'),

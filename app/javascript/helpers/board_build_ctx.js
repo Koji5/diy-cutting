@@ -1,17 +1,19 @@
 export function boardBuildCtx(boardJSON){
   const ctx = { L: boardJSON.length_mm, W: boardJSON.width_mm, T: boardJSON.thickness_mm };
-  const { L, W } = ctx;
+  const { L, W, T } = ctx;
 
   const cornerJSON = boardJSON.corner_json || {};
   const sideJSON   = boardJSON.side_json   || {};
+  const holeJSON   = boardJSON.hole_json   || {};
+  console.log("holeJSON:", holeJSON);
 
   ["tl","tr","bl","br"].forEach(pos=>{
     let CX = 0, CY = 0;
     switch (pos) {
-      case "tl": CX = 0; CY = ctx.W; break;
-      case "tr": CX = ctx.L; CY = ctx.W; break;
+      case "tl": CX = 0; CY = W; break;
+      case "tr": CX = L; CY = W; break;
       case "bl": CX = 0;  CY = 0; break;
-      case "br": CX = ctx.L; CY = 0; break;
+      case "br": CX = L; CY = 0; break;
       default:
     }
     const posJSON = cornerJSON[pos] || null;
@@ -272,6 +274,33 @@ export function boardBuildCtx(boardJSON){
       end: endSide
     }
     if (process) ctx[pos].process = process;
+  });
+
+  // ネジ・ダボ穴
+  ctx["hole"] = {};
+  Object.keys(holeJSON).forEach(key => {
+    const hole = holeJSON[key];
+    const surface =  hole?.surface ?? "";
+    const dx = Number(hole?.dx ?? 0);
+    const dy = Number(hole?.dy ?? 0);
+    let rad = [0, 0, 0], trans = [0, 0, 0];
+    switch(surface) {
+      case "LEFT": rad = [0, -Math.PI / 2, 0]; trans = [0, dy, -T / 2]; break;
+      case "RIGHT": rad = [0, Math.PI / 2, 0]; trans = [L, dy, -T / 2]; break;
+      case "TOP": rad = [-Math.PI / 2, 0, 0]; trans = [dx, W, -T / 2]; break;
+      case "BOTTOM": rad = [Math.PI / 2, 0, 0]; trans = [dx, 0, -T / 2]; break;
+      case "FRONT": rad = [0, 0, 0]; trans = [dx, dy, 0]; break;
+      case "BACK": rad = [Math.PI, 0, 0]; trans = [dx, dy, -T]; break;
+      default:
+    }
+    ctx["hole"][key] = {
+      surface: surface,
+      dx: dx, dy: dy,
+      spec_code: hole?.spec_code ?? "",
+      countersink: hole?.countersink ?? false,
+      depth: Number(hole?.depth ?? 0),
+      rad: rad, trans: trans
+    };
   });
 
   return ctx;

@@ -52,13 +52,14 @@
               <% corners.each do |key, label| %>
                 <% h = (bf.object.corner_json || {}).dig(key.to_s) || {} %>
                 <% sel = h["proc"].presence || "NONE" %>
+                <% edge_sel = h["edge"].presence || "NONE" %>
                 <% formName = "part[board_part_attributes][corner_json][#{key}][disp]" %>
                 <div class="d-flex flex-row flex-grow-1">
                   <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2" id="corner_<%= "#{key}" %>"><%= "#{label}" %></div>
                   <div class="d-flex form-check form-switch pt-1">
-                    <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
+                    <input class="form-check-input" type="checkbox" id="corner_<%= "#{key}" %>_disp" name=<%= formName %>>
                   </div>
-                  <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+                  <label class="form-check-label form-text" for="corner_<%= "#{key}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
                 </div>
                 <div class="input-group mb-2">
                   <span class="input-group-text">加工方法</span>
@@ -93,7 +94,7 @@
                 <div class="input-group mb-2">
                   <span class="input-group-text">エッジ加工</span>
                   <%= select_tag "part[board_part_attributes][corner_json][#{key}][edge]",
-                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
+                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, edge_sel),
                                   class: "form-select" %>
                 </div>
               <% end %>
@@ -114,13 +115,14 @@
               <% corners.each do |key, label| %>
                 <% h = (bf.object.side_json || {}).dig(key.to_s) || {} %>
                 <% sel = h["proc"].presence || "NONE" %>
+                <% edge_sel = h["edge"].presence || "NONE" %>
                 <% formName = "part[board_part_attributes][side_json][#{key}][disp]" %>
                 <div class="d-flex flex-row flex-grow-1">
                   <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %>辺加工</div>
                   <div class="d-flex form-check form-switch pt-1">
-                    <input class="form-check-input" type="checkbox" id=<%= formName %> name=<%= formName %>>
+                    <input class="form-check-input" type="checkbox" id="side_<%= "#{key}" %>_disp" name=<%= formName %>>
                   </div>
-                  <label class="form-check-label form-text" for=<%= formName %>>非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+                  <label class="form-check-label form-text" for="side_<%= "#{key}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
                 </div>
                 <div class="input-group mb-2">
                   <span class="input-group-text">加工方法</span>
@@ -167,7 +169,7 @@
                 <div class="input-group mb-2">
                   <span class="input-group-text">エッジ加工</span>
                   <%= select_tag "part[board_part_attributes][side_json][#{key}][edge]",
-                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, sel),
+                                  options_from_collection_for_select(@edge_processes, :code, :name_ja, edge_sel),
                                   class: "form-select" %>
                 </div>
               <% end %>
@@ -176,6 +178,101 @@
           </div>
         </div>
       </div>
+
+      <%# ネジ・ダボ穴加工 %>
+      <div class="carousel-item px-4">
+        <div class="container">
+          <div class="row carousel-row">
+            <div class="col carousel-padding"></div>
+            <div class="d-block w-100 col scroll-area">
+              <div class="ProcessingHeader fw-bold fs-4 mb-2">ネジ・ダボ穴加工</div>
+              <% raw_holes = bf.object.hole_json.presence || {} %>
+              <% holes = raw_holes.is_a?(Hash) ? raw_holes.deep_stringify_keys : {} %>
+              <%# new で空なら 1 行だけ空欄を出す（キーは h1） %>
+              <% holes = { "h1" => {} } if holes.empty? %>
+              <%# キー順は h1, h2, ... の数値順に並べる（数字が無い場合も安定化） %>
+              <% ordered_keys = holes.keys.sort_by { |k| [k[/\d+/].to_i, k] } %>
+              <% ordered_keys.each do |hid| %>
+                <% h = holes[hid] || {} %>
+                <% surface_sel = h["surface"].presence || "LEFT" %>
+                <% base = "part[board_part_attributes][hole_json][#{hid}]" %>
+                <div class="d-flex flex-row flex-grow-1">
+                  <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2">穴 <%= hid.sub(/^h/, '') %></div>
+                  <div class="d-flex form-check form-switch pt-1">
+                    <input class="form-check-input" type="checkbox" id="hole_<%= "#{hid}" %>_disp" name="<%= "#{base}[disp]" %>">
+                  </div>
+                  <label class="form-check-label form-text" for="hole_<%= "#{hid}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">加工面</span>
+                  <%= select_tag "#{base}[surface]",
+                                  options_from_collection_for_select(@hole_surfaces, :code, :name_ja, surface_sel),
+                                  class: "form-select" %>
+                </div>
+                <div class="form-text mb-2">
+                  穴加工を行う面を選択してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">穴位置X (mm)</span>
+                  <%= number_field_tag "#{base}[dx]",
+                                        h["dx"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    穴位置X は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-2">
+                  X軸（左から）の穴位置を入力してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">穴位置Y (mm)</span>
+                  <%= number_field_tag "#{base}[dy]",
+                                        h["dy"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    穴位置Y は必須です
+                  </div>
+                </div>
+                <div class="form-text mb-3">
+                  Y軸（下から）の穴位置を入力してください。
+                </div>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">穴径</span>
+                  <%= select_tag "#{base}[spec_code]",
+                                  options_from_collection_for_select(@hole_specs, :code, :name_ja, h["spec_code"]),
+                                  class: "form-select" %>
+                  <div class="input-group-text">
+                    <input class="form-check-input" type="checkbox" value=true id="hole_<%= "#{hid}" %>_countersink" name="<%= "#{base}[countersink]" %>">
+                    <label class="form-check-label mx-2" for="hole_<%= "#{hid}" %>_countersink">
+                      皿取り加工
+                    </label>
+                  </div>
+                </div>
+                <div class="form-text mb-3">
+                  穴径、皿取り加工の有無を入力してください。
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">穴の深さ(mm)</span>
+                  <%= number_field_tag "#{base}[depth]",
+                                        h["depth"],
+                                        step: 0.1, class: "form-control" %>
+                  <div class="invalid-feedback">
+                    穴の深さは必須です
+                  </div>
+                </div>
+                <div class="form-text mb-3">
+                  加工面からの穴の深さを入力してください。
+                </div>
+              <% end %>
+            </div>
+            <div class="col carousel-padding"></div>
+          </div>
+        </div>
+      </div>
+
+
+
+
 
       <%# DEBUG %>
       <div class="carousel-item px-4 pt-2">

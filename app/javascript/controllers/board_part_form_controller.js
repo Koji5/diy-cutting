@@ -49,6 +49,7 @@ export default class extends Controller {
     if (!el.name) return;
     let formJSON = formToJSON(this.form);
     const rawPath = this._parseName(el.name);
+    const baseRaw = rawPath.slice(0, -1);
     const path = this._normalizePathForFoldAttributes(rawPath);
     const basePath = path.slice(0, -1);
     if (path.at(-1) === "disp") {
@@ -57,13 +58,12 @@ export default class extends Controller {
       return;
     }
     const type = path[2];
-    const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
-    const baseRaw = rawPath.slice(0, -1);
-    const disable = (procVal === "NONE");
-    this._changeDisabled(type, baseRaw, path.at(-1), disable);
     switch(type) {
       case "corner_json":
         {
+          const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
+          const disable = (procVal === "NONE");
+          this._changeDisabled(type, baseRaw, path.at(-1), disable);
           // formJSON更新
           formJSON = formToJSON(this.form);
           const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
@@ -73,13 +73,24 @@ export default class extends Controller {
         break;
       case "side_json":
         {
+          const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
+          const disable = (procVal === "NONE");
+          this._changeDisabled(type, baseRaw, path.at(-1), disable);
           // formJSON更新
           formJSON = formToJSON(this.form);
           const edgeVal = this._getAtPath(formJSON, [...basePath, "edge"]);
           const sdVal = this._getAtPath(formJSON, [...basePath, "sd"]);
           const swVal = this._getAtPath(formJSON, [...basePath, "sw"]);
           const spVal = this._getAtPath(formJSON, [...basePath, "sp"]);
-          if ((procVal !== "NONE" && (!sdVal || !swVal || !spVal)) && (edgeVal === "NONE")) return
+          if ((procVal !== "NONE" && (!sdVal || !swVal || !spVal)) && (edgeVal === "NONE")) return;
+        }
+        break;
+      case "hole_json":
+        {
+          const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
+          const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
+          const depthVal = this._getAtPath(formJSON, [...basePath, "depth"]);
+          if (!dxVal || !dyVal ||!depthVal) return;
         }
         break;
       default:

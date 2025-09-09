@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 import { createEdgeMesh } from "helpers/board_edge_builders";
+import { createHoleMesh } from "helpers/board_hole_builders";
 import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 import { boardBuildCtx } from "helpers/board_build_ctx";
 
@@ -49,11 +50,11 @@ function createCutOutMesh(cutOutShape, T, type, name, pos){
 export function buildMeshesFromCtx(boardJSON) {
   if (!boardJSON) return;
   const ctx = boardBuildCtx(boardJSON);
-  console.log(ctx);
   const edgeCutters = [];
   const meshes = {};
   meshes.side_json = {};
   meshes.corner_json = {};
+  meshes.hole_json = {};
   const boardShape = new THREE.Shape();
   boardShape.moveTo(...ctx.moveTo);
   ["bl", "b", "br", "r", "tr", "t", "tl", "l"].forEach(pos=>{
@@ -81,7 +82,7 @@ export function buildMeshesFromCtx(boardJSON) {
           edgePath.add(new ArcCurve3(new THREE.Vector3(...arc.center, 0), arc.r, arc.startAngle, arc.endAngle, arc.wise));
         }
         cutOutShape.closePath();
-        const cutOutMesh = createCutOutMesh(cutOutShape, ctx.T, posCtx.type, "corner_json", pos);
+        const cutOutMesh = createCutOutMesh(cutOutShape, ctx.T, "cutOut", "corner_json", pos);
         const edgeMesh = createEdgeMesh(posCtx.edge, ctx.T, edgePath);
         if (edgeMesh){
           edgeCutters.push(edgeMesh);
@@ -120,13 +121,13 @@ export function buildMeshesFromCtx(boardJSON) {
           cutOutShape.absarc(...arc.center, arc.r, arc.startAngle, arc.endAngle, true);
         }
         cutOutShape.closePath();
-        cutOutMesh = createCutOutMesh(cutOutShape, ctx.T, posCtx.type, "side_json", pos);
+        cutOutMesh = createCutOutMesh(cutOutShape, ctx.T, "cutOut", "side_json", pos);
       }
       if (edgeMesh){
         if (cutOutMesh){
           unionMesh(cutOutMesh, edgeMesh);
         } else {
-          const m = mat(posCtx.type, getMeshStandardMaterial(0xff0000, 0.8))
+          const m = mat("cutOut", getMeshStandardMaterial(0xff0000, 0.8))
           cutOutMesh = new THREE.Mesh(edgeMesh.geometry, m);
           cutOutMesh.name = makeName("side_json", pos);
         }
@@ -148,6 +149,31 @@ export function buildMeshesFromCtx(boardJSON) {
       subtractionMesh(boardMesh, edgeCutter, debug);
     });
   }
+
+  // ネジ・ダボ穴
+  const holeCtx = ctx["hole"];
+  Object.keys(holeCtx).forEach(key => {
+    const hole = holeCtx[key];
+    if (hole.dx === 0 || hole.dy === 0 || hole.depth === 0) return;
+    const geos = createHoleMesh(hole, ctx.T);
+    const holeGeo = geos[0];
+    const countersinkGeo = geos[1];
+
+    //if (!holeCutter) {
+    //  console.warn("ネジ・ダボ穴作成失敗 skip key:", key);
+    //  return;
+    //} 
+    const m = mat("cutOut", getMeshStandardMaterial(0xff0000, 0.8));
+    const holeMesh = new THREE.Mesh(holeGeo, m);
+    if (countersinkGeo) {
+      const countersinkMesh = new THREE.Mesh(countersinkGeo, m);
+      unionMesh(holeMesh, countersinkMesh);
+    }
+    holeMesh.name = makeName("hole_json", key);
+    if (holeMesh) meshes.hole_json[key] = holeMesh;
+    const debug = ":hole: key:" + key;
+    subtractionMesh(boardMesh, holeMesh, debug);
+  });
 
   // 最終的な board.geometry が確定した後に
   boardMesh.geometry.computeVertexNormals()
