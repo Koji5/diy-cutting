@@ -23,9 +23,9 @@ function buildHoleGeometry(spec_code, depth, countersink, m) {
     case "M6": r = 6; R = 12; d = 3; break;
     case "M8": r = 8; R = 16; d = 4; break;
     case "M10": r = 10; R = 20; d = 5; break;
-    case "Dowel 6mm": r = 6; break;
-    case "Dowel 8mm": r = 8; break;
-    case "Dowel 10mm": r = 10; break;
+    case "DOWEL6": r = 6; break;
+    case "DOWEL8": r = 8; break;
+    case "DOWEL10": r = 10; break;
     default:
   }
   if (!countersink) d = 0;

@@ -80,7 +80,7 @@ function extrudeAlongPath(shape, edgePath) {
 
   let resultMesh = null;
   for (const c of edgePath.curves) {
-    const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 100);
+    const steps = THREE.MathUtils.clamp(stepsForCurve(c, fillerOpts), 6, 80);
     let geo = null;
     console.log("steps", steps)
     try {
