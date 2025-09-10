@@ -16,7 +16,7 @@ export function createEdgeMesh(code, T, edgePath){
 
 function buildCavityGeometry(code, T, edgePath){
   // マージン
-  const m = -0.08;
+  const m = -0.3;
   const s = new THREE.Shape();
   s.moveTo(0, m);
   switch (code) {
@@ -24,8 +24,8 @@ function buildCavityGeometry(code, T, edgePath){
       s.lineTo(T, m).lineTo(T, 1).lineTo(T - 1, 0).lineTo(1, 0).lineTo(0, 1);
       break;
     case "BULLNOSE":  // ボーズ面
-      s.lineTo(T, m).lineTo(T, T / 2 - m);
-      s.absarc(T / 2, T / 2 - m, T / 2, 0, Math.PI, true);
+      s.lineTo(T, m).lineTo(T, T / 2);
+      s.absarc(T / 2, T / 2, T / 2, 0, Math.PI, true);
       break;
     case "CHM5MM":  // 上下5mm面
       s.lineTo(T, m).lineTo(T, 5).lineTo(T - 5, 0).lineTo(5, 0).lineTo(0, 5);
@@ -75,8 +75,8 @@ function extrudeAlongPath(shape, edgePath) {
   // 実際の分割角 dθ は「dSag（サジッタ制約）・dDeg（角度制約）・dChord（弦長制約）」の最小を採用。
   // つまり 3 つの条件すべてを満たすように刻みを決定します。
   // ───────────────────────────────────────────────────────────────
-  // const fillerOpts = { s: 0.06, maxDeg: 2, maxChord: 2.5 };
-  const fillerOpts = { s:0.15, maxDeg:2, maxChord:2.5 };
+  // const fillerOpts = { s: 0.15, maxDeg: 2, maxChord: 2.5 };
+  const fillerOpts = { s:3, maxDeg:1.5, maxChord:50 };
 
   let resultMesh = null;
   for (const c of edgePath.curves) {

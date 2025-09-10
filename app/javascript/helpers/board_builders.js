@@ -50,7 +50,7 @@ function createCutOutMesh(cutOutShape, T, type, name, pos){
 export function buildMeshesFromCtx(boardJSON) {
   if (!boardJSON) return;
   const ctx = boardBuildCtx(boardJSON);
-  const edgeCutters = [];
+  const edgeJson = {};
   const meshes = {};
   meshes.side_json = {};
   meshes.corner_json = {};
@@ -79,13 +79,16 @@ export function buildMeshesFromCtx(boardJSON) {
           const arc = process.arc;
           boardShape.absarc(...arc.center, arc.r, arc.startAngle, arc.endAngle, arc.wise);
           cutOutShape.absarc(...arc.center, arc.r, arc.startAngle, arc.endAngle, arc.wise);
-          edgePath.add(new ArcCurve3(new THREE.Vector3(...arc.center, 0), arc.r, arc.startAngle, arc.endAngle, arc.wise));
+          const EPS = 1e-6;  
+          const startAngle = arc.startAngle - EPS;
+          const endAngle = arc.endAngle + EPS;
+          edgePath.add(new ArcCurve3(new THREE.Vector3(...arc.center, 0), arc.r, startAngle, endAngle, arc.wise));
         }
         cutOutShape.closePath();
         const cutOutMesh = createCutOutMesh(cutOutShape, ctx.T, "cutOut", "corner_json", pos);
         const edgeMesh = createEdgeMesh(posCtx.edge, ctx.T, edgePath);
         if (edgeMesh){
-          edgeCutters.push(edgeMesh);
+          edgeJson[pos] = { mesh: edgeMesh };
           const debug = pos + ":corner:" + process.type;
           unionMesh(cutOutMesh, edgeMesh, debug);
         }
@@ -103,7 +106,9 @@ export function buildMeshesFromCtx(boardJSON) {
         console.log("posCtx.start:", posCtx.start, " posCtx.end:", posCtx.end);
         edgePath.add(new THREE.LineCurve3( p1, p2 ))
         edgeMesh = createEdgeMesh(posCtx.edge, ctx.T, edgePath);
-        edgeCutters.push(edgeMesh);
+        if (edgeMesh){
+          edgeJson[pos] = { mesh: edgeMesh };
+        }
       }
       if (process) {
         const cutOutShape = new THREE.Shape();
@@ -130,6 +135,8 @@ export function buildMeshesFromCtx(boardJSON) {
           const m = mat("cutOut", getMeshStandardMaterial(0xff0000, 0.8))
           cutOutMesh = new THREE.Mesh(edgeMesh.geometry, m);
           cutOutMesh.name = makeName("side_json", pos);
+          edgeMesh.geometry?.dispose?.();
+          edgeMesh.material?.dispose?.();
         }
       }
       if (cutOutMesh) meshes.side_json[pos] = cutOutMesh;
@@ -143,12 +150,12 @@ export function buildMeshesFromCtx(boardJSON) {
   const boardMesh = new THREE.Mesh(boardGeo, boardMaterial);
 
   // エッジを削る
-  if (edgeCutters.length) {
-    edgeCutters.forEach(edgeCutter => {
-      const debug = ":edge:";
-      subtractionMesh(boardMesh, edgeCutter, debug);
-    });
-  }
+  ["b", "r", "t", "l", "bl", "br", "tr", "tl"].forEach(pos=>{
+    if (!edgeJson[pos]) return;
+    const edge = edgeJson[pos]["mesh"];
+    const debug = ":edge:" + pos + ":";
+    subtractionMesh(boardMesh, edge, debug);
+  });
 
   // ネジ・ダボ穴
   const holeCtx = ctx["hole"];
