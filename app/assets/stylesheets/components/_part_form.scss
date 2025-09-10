@@ -28,3 +28,26 @@
   backdrop-filter:blur(12px);
   z-index:1025;
 }
+.row-flash { animation: rowFlash 0.6s ease-out; }
+@keyframes rowFlash {
+  from { background-color: rgba(13,110,253,.15); }
+  to   { background-color: transparent; }
+}
+
+/* 行コンテナに付けるクラス。高さ収縮アニメ用 */
+.row-collapsible {
+  overflow: hidden; /* 中身がはみ出さないように */
+  transition:
+    height .28s ease,
+    padding-block .28s ease, /* padding-top/bottom のまとめ指定 */
+    margin-block  .28s ease,
+    opacity .18s linear;
+}
+
+/* 収縮中の最終状態（0へ） */
+.row-collapsing {
+  height: 0 !important;
+  padding-block: 0 !important;
+  margin-block: 0 !important;
+  opacity: 0;
+}

@@ -2,7 +2,18 @@ import { Controller } from "@hotwired/stimulus"
 import { formToJSON } from "lib/serialize_form";
 
 export default class extends Controller {
+
+  static targets = ["list", "template", "row", "empty", "scroller"];
+  static values = {
+    basePath: String,      // "part[board_part_attributes][hole_json]"
+    nextIndex: Number,      // サーバ側で初期化した次の番号
+    scrollDuration: Number
+  };
+
+  get _scrollEl() { return this.hasScrollerTarget ? this.scrollerTarget : this.listTarget; }
+
   connect() {
+    this._updateEmptyState();
     this.boardEl = document.querySelector('[data-controller~="board-part3d"]')
     this.boardPart3dCtrl = this.boardEl
       ? this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d")
@@ -25,6 +36,63 @@ export default class extends Controller {
     this.form?.removeEventListener("change", this._onChange)
     window.removeEventListener("resize", this._onResize)
     cancelAnimationFrame(this._rafId)
+  }
+
+  add() {
+    const n = this._nextNumber();
+    const hid = `h${n}`;
+    const frag = this.templateTarget.content.cloneNode(true);
+    const root = frag.firstElementChild;
+    root.innerHTML = root.innerHTML
+      .replaceAll("__HID__", hid)
+      .replaceAll("__HNUM__", String(n));
+    // ← root 自身の data-hid は明示的に更新
+    root.dataset.hid = hid;
+    this.listTarget.appendChild(root);
+    this.nextIndexValue = n + 1;
+
+    // 1件増えたので空表示を消す
+    this._updateEmptyState();
+
+    // 初期フォーカス
+    root.querySelector(`input[name="${this.basePathValue}[${hid}][dx]"]`)?.focus();
+    // ★ 一番下へスムーススクロール（次フレームで高さが確定してから）
+    requestAnimationFrame(() => this._scrollToBottom());
+  }
+
+  remove(event) {
+    const row = event.currentTarget.closest("[data-board-part-form-target='row']");
+    if (!row) return;
+
+    // 1) いまの高さをpxで固定（auto→数値へ）
+    const h = row.offsetHeight; // padding/border込み
+    row.style.height = `${h}px`;
+    row.style.boxSizing = 'border-box'; // 念のため
+
+    // 2) リフローを挟んでトランジション開始
+    //    （reflow: heightを確定させる）
+    void row.offsetHeight;
+
+    // 3) 収縮クラスを付与（CSS側で height:0 等へ遷移）
+    row.classList.add('row-collapsing');
+
+    // 4) 終了イベントでDOMから削除
+    const onEnd = (e) => {
+      if (e.propertyName !== 'height') return; // heightの遷移だけ拾う
+      row.removeEventListener('transitionend', onEnd);
+      row.remove();
+      this._updateEmptyState?.();
+    };
+    row.addEventListener('transitionend', onEnd);
+
+    // 5) 念のためのフォールバック（環境依存でtransitionendが来ない時）
+    setTimeout(() => {
+      if (row.isConnected) {
+        row.removeEventListener('transitionend', onEnd);
+        row.remove();
+        this._updateEmptyState?.();
+      }
+    }, 600); // transition合計より少し長め
   }
 
   _initForm() {
@@ -187,4 +255,48 @@ export default class extends Controller {
     return [...new Set([...els].map(el => el.name))];
   }
 
+  // ===== スクロール系ヘルパ =====
+  _scrollToBottom() {
+    const padding = 170;
+    const el = this._scrollEl;
+    const to = el.scrollHeight - el.clientHeight - padding;
+    this._smoothScroll(el, Math.max(0, to));
+  }
+
+  _smoothScroll(el, top) {
+    // 1) モダンブラウザ：ネイティブ smooth
+    try {
+      el.scrollTo({ top, behavior: "smooth" });
+      return;
+    } catch (_) { /* fallthrough */ }
+
+    // 2) フォールバック：requestAnimationFrame で自前アニメ
+    const start = el.scrollTop;
+    const dist  = top - start;
+    const dur   = this.hasScrollDurationValue ? this.scrollDurationValue : 300;
+    if (dur <= 0 || Math.abs(dist) < 1) { el.scrollTop = top; return; }
+
+    const ease = t => (t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2); // easeInOutCubic
+    const t0 = performance.now();
+    const tick = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      el.scrollTop = start + dist * ease(p);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  _nextNumber() {
+    let max = 0;
+    this.rowTargets.forEach(r => {
+      const m = String(r.dataset.hid || "").match(/\d+/);
+      if (m) max = Math.max(max, parseInt(m[0], 10));
+    });
+    return Math.max(max + 1, this.nextIndexValue || 1);
+  }
+
+  _updateEmptyState() {
+    if (!this.hasEmptyTarget) return;
+    this.emptyTarget.classList.toggle("d-none", this.rowTargets.length > 0);
+  }
 }

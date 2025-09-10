@@ -1,0 +1,51 @@
+/* Callout: 左だけボーダー＋淡色背景＋Bootstrap風テキスト色 */
+.callout {
+  /* デフォルト（必要に応じてバリアントで上書き） */
+  --bs-callout-bg: var(--bs-secondary-bg-subtle, rgba(var(--bs-secondary-rgb), .075));
+  --bs-callout-border: var(--bs-secondary);
+  --bs-callout-color: var(--bs-secondary-text-emphasis, var(--bs-body-color));
+
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  background-color: var(--bs-callout-bg);
+  color: var(--bs-callout-color);
+
+  border: 0;
+  border-inline-start: .35rem solid var(--bs-callout-border); /* 左だけ */
+  border-radius: 0rem; // 丸みをつけるなら
+}
+
+.callout-title { font-weight: 600; margin-bottom: .25rem; }
+
+/* バリアント：BootstrapのCSS変数をそのまま使用（モード対応も◎） */
+.callout-primary  { --bs-callout-bg: var(--bs-primary-bg-subtle);  --bs-callout-border: var(--bs-primary);  --bs-callout-color: var(--bs-primary-text-emphasis); }
+.callout-success  { --bs-callout-bg: var(--bs-success-bg-subtle);  --bs-callout-border: var(--bs-success);  --bs-callout-color: var(--bs-success-text-emphasis); }
+.callout-info     { --bs-callout-bg: var(--bs-info-bg-subtle);     --bs-callout-border: var(--bs-info);     --bs-callout-color: var(--bs-info-text-emphasis); }
+.callout-warning  { --bs-callout-bg: var(--bs-warning-bg-subtle);  --bs-callout-border: var(--bs-warning);  --bs-callout-color: var(--bs-warning-text-emphasis); }
+.callout-danger   { --bs-callout-bg: var(--bs-danger-bg-subtle);   --bs-callout-border: var(--bs-danger);   --bs-callout-color: var(--bs-danger-text-emphasis); }
+.callout-secondary{ --bs-callout-bg: var(--bs-secondary-bg-subtle);--bs-callout-border: var(--bs-secondary);--bs-callout-color: var(--bs-secondary-text-emphasis); }
+
+/* もっと淡くしたい時はオプションで */
+.callout--soft { --bs-callout-bg: color-mix(in srgb, var(--bs-callout-bg), transparent 40%); }
+/* 枠線も“サブトル”に寄せたい場合（任意） */
+.callout--subtle-border { --bs-callout-border: var(--bs-border-color); }
+
+/*
+使い方
+
+<div class="callout callout-info">
+  <div class="callout-title"><i class="bi bi-lightbulb me-1"></i>ヒント</div>
+  <p class="mb-0">このテキスト色は Bootstrap の info 強調色に準拠します。</p>
+</div>
+
+<div class="callout callout-warning callout--soft">
+  <div class="callout-title"><i class="bi bi-exclamation-triangle me-1"></i>注意</div>
+  <p class="mb-0">背景をさらに淡くした例（文字色は警告の強調色）。</p>
+</div>
+
+ポイント
+
+--bs-*-text-emphasis / --bs-*-bg-subtle を使うと、ライト/ダーク切替やテーマ変更にも自然に追従します。
+
+「左だけ濃い線」は border-inline-start、その他は border: 0。RTLでも自然に動きます。
+*/
