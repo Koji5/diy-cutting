@@ -2063,7 +2063,8 @@ CREATE TABLE public.m_materials (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2084,7 +2085,8 @@ CREATE TABLE public.m_paint_colors (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2126,7 +2128,8 @@ CREATE TABLE public.m_paint_glosses (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2147,7 +2150,8 @@ CREATE TABLE public.m_paint_types (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    allow_paint_json jsonb DEFAULT '{}'::jsonb NOT NULL
+    allow_paint_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL
 );
 
 
@@ -6565,6 +6569,13 @@ CREATE INDEX index_m_materials_on_category_code ON public.m_materials USING btre
 
 
 --
+-- Name: index_m_materials_on_category_sort; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_materials_on_category_sort ON public.m_materials USING btree (category_code, sort_order);
+
+
+--
 -- Name: index_m_materials_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6632,6 +6643,13 @@ CREATE UNIQUE INDEX index_m_paint_colors_on_name_en ON public.m_paint_colors USI
 --
 
 CREATE UNIQUE INDEX index_m_paint_colors_on_name_ja ON public.m_paint_colors USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_colors_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_colors_on_sort_order ON public.m_paint_colors USING btree (sort_order);
 
 
 --
@@ -6719,6 +6737,13 @@ CREATE UNIQUE INDEX index_m_paint_glosses_on_name_ja ON public.m_paint_glosses U
 
 
 --
+-- Name: index_m_paint_glosses_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_glosses_on_sort_order ON public.m_paint_glosses USING btree (sort_order);
+
+
+--
 -- Name: index_m_paint_glosses_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6751,6 +6776,13 @@ CREATE UNIQUE INDEX index_m_paint_types_on_name_en ON public.m_paint_types USING
 --
 
 CREATE UNIQUE INDEX index_m_paint_types_on_name_ja ON public.m_paint_types USING btree (name_ja);
+
+
+--
+-- Name: index_m_paint_types_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_types_on_sort_order ON public.m_paint_types USING btree (sort_order);
 
 
 --
@@ -8750,6 +8782,30 @@ ALTER TABLE ONLY public.affiliate_details
 
 
 --
+-- Name: m_materials fk_m_materials_created_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_m_materials_created_by FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: m_materials fk_m_materials_deleted_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_m_materials_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: m_materials fk_m_materials_updated_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_materials
+    ADD CONSTRAINT fk_m_materials_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: m_side_processes fk_m_side_processes_created_by; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8982,14 +9038,6 @@ ALTER TABLE ONLY public.article_likes
 
 
 --
--- Name: m_materials fk_rails_2486576561; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_materials
-    ADD CONSTRAINT fk_rails_2486576561 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: vendor_materials fk_rails_24b9aa6af6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9219,14 +9267,6 @@ ALTER TABLE ONLY public.admin_details
 
 ALTER TABLE ONLY public.stripe_payments
     ADD CONSTRAINT fk_rails_47bb1f7459 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
--- Name: m_materials fk_rails_48223032c7; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_materials
-    ADD CONSTRAINT fk_rails_48223032c7 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -9990,14 +10030,6 @@ ALTER TABLE ONLY public.m_paint_colors
 
 
 --
--- Name: m_materials fk_rails_9fd91eeecc; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.m_materials
-    ADD CONSTRAINT fk_rails_9fd91eeecc FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
-
-
---
 -- Name: vendor_capabilities fk_rails_a23e589077; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10684,6 +10716,9 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250912015535'),
+('20250912014734'),
+('20250912014340'),
 ('20250908050420'),
 ('20250908040809'),
 ('20250827073302'),

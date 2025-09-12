@@ -3,17 +3,20 @@ import { formToJSON } from "lib/serialize_form";
 
 export default class extends Controller {
 
-  static targets = ["list", "template", "row", "empty", "scroller"];
+  static targets = ["list", "template", "row", "empty", "scroller", "type", "color", "gloss"];
   static values = {
     basePath: String,      // "part[board_part_attributes][hole_json]"
     nextIndex: Number,      // サーバ側で初期化した次の番号
-    scrollDuration: Number
+    scrollDuration: Number,
+    colors: Array,   // [{code, name, sort, allow:{ ... }}]
+    glosses: Array
   };
 
   get _scrollEl() { return this.hasScrollerTarget ? this.scrollerTarget : this.listTarget; }
 
   connect() {
     this._updateEmptyState();
+    this.onTypeChange();
     this.boardEl = document.querySelector('[data-controller~="board-part3d"]')
     this.boardPart3dCtrl = this.boardEl
       ? this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d")
@@ -38,6 +41,7 @@ export default class extends Controller {
     cancelAnimationFrame(this._rafId)
   }
 
+  // ネジ・ダボ穴追加
   add() {
     const n = this._nextNumber();
     const hid = `h${n}`;
@@ -54,12 +58,13 @@ export default class extends Controller {
     // 1件増えたので空表示を消す
     this._updateEmptyState();
 
-    // 初期フォーカス
-    root.querySelector(`input[name="${this.basePathValue}[${hid}][dx]"]`)?.focus();
     // ★ 一番下へスムーススクロール（次フレームで高さが確定してから）
     requestAnimationFrame(() => this._scrollToBottom());
+    // 初期フォーカス
+    //root.querySelector(`input[name="${this.basePathValue}[${hid}][dx]"]`)?.focus();
   }
 
+  // ネジ・ダボ穴削除
   remove(event) {
     const row = event.currentTarget.closest("[data-board-part-form-target='row']");
     if (!row) return;
@@ -93,6 +98,14 @@ export default class extends Controller {
         this._updateEmptyState?.();
       }
     }, 600); // transition合計より少し長め
+  }
+
+  // 塗装タイプセレクトボックス変更イベント
+  onTypeChange() {
+    const typeCode = this.typeTarget.value || null;
+    console.log("this.colorsValue:", this.colorsValue, " this.glossesValue:", this.glossesValue);
+    this._rebuildSelect(this.colorTarget, this.colorsValue, typeCode, "カラー");
+    this._rebuildSelect(this.glossTarget, this.glossesValue, typeCode, "艶");
   }
 
   _initForm() {
@@ -298,5 +311,52 @@ export default class extends Controller {
   _updateEmptyState() {
     if (!this.hasEmptyTarget) return;
     this.emptyTarget.classList.toggle("d-none", this.rowTargets.length > 0);
+  }
+
+  // 塗装系セレクトボックス書き換え
+  _rebuildSelect(selectEl, allItems, typeCode, placeholderLabel) {
+    const prev = selectEl.value;
+
+    // 許可フィルタ（allow[typeCode] が true のものだけ）
+    let items = [];
+    if (typeCode) {
+      items = allItems.filter(i => i.allow && i.allow[typeCode]);
+    }
+
+    // 並び順: sort_order => name
+    items.sort((a, b) => {
+      if ((a.sort ?? 0) !== (b.sort ?? 0)) return (a.sort ?? 0) - (b.sort ?? 0);
+      return (a.name || "").localeCompare(b.name || ""); // 日本語でもそこそこ自然
+    });
+
+    // 一旦クリア
+    while (selectEl.options.length) selectEl.remove(0);
+
+    // 先頭にプレースホルダ
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = typeCode ? `選択してください（${placeholderLabel}）` : "先に塗装タイプを選択してください";
+    selectEl.appendChild(ph);
+
+    // 候補を追加
+    for (const i of items) {
+      const opt = document.createElement("option");
+      opt.value = i.code;
+      opt.textContent = i.name;
+      selectEl.appendChild(opt);
+    }
+
+    // 以前の選択がまだ有効なら維持
+    if (prev && items.some(i => i.code === prev)) {
+      selectEl.value = prev;
+    } else {
+      selectEl.value = "";
+    }
+
+    // 有効/無効
+    selectEl.disabled = items.length === 0 || !typeCode;
+
+    // 連動先の変更イベントを発火（必要に応じて）
+    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
   }
 }
