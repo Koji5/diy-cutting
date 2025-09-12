@@ -1,11 +1,11 @@
 class Part < ApplicationRecord
   belongs_to :account
 
-  has_one :board_part, dependent: :destroy
-  has_one :lumber_part, dependent: :destroy
+  has_one :board_part, dependent: :destroy, inverse_of: :part
+  has_one :lumber_part, dependent: :destroy, inverse_of: :part
 
-  accepts_nested_attributes_for :board_part
-  accepts_nested_attributes_for :lumber_part
+  accepts_nested_attributes_for :board_part, update_only: true
+  accepts_nested_attributes_for :lumber_part, update_only: true
 
   enum :shape_type_code, { board: "board", lumber: "lumber" }
 
@@ -17,9 +17,16 @@ class Part < ApplicationRecord
   private
 
   def only_one_subtype
-    count = [board_part&.changed? || board_part&.persisted?,
-             lumber_part&.changed? || lumber_part&.persisted?].count(true)
-    errors.add(:base, "板材か角材のどちらか一方のみを指定してください") if count > 1
+    # テーブルが無い間はスキップ（本番でも冗長ではない程度のコスト）
+    return unless BoardPart.table_exists?
+    return unless defined?(LumberPart) && LumberPart.table_exists?
+
+    bp = association(:board_part).loaded? ? association(:board_part).target.present? : association(:board_part).exists?
+    lp = association(:lumber_part).loaded? ? association(:lumber_part).target.present? : association(:lumber_part).exists?
+
+    if bp && lp
+      errors.add(:base, "b板材か角材のどちらか一方のみを指定してください")
+    end
   end
 
 end

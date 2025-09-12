@@ -118,6 +118,12 @@ export default class extends Controller {
       const disable = (procVal === "NONE");
       this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
     }
+    if (!this.boardPart3dCtrl && this.boardEl) {
+      this.boardPart3dCtrl =
+        this.application.getControllerForElementAndIdentifier(this.boardEl, "board-part3d");
+    }
+    const formJSON = formToJSON(this.form);
+    this.boardPart3dCtrl?.updateModel?.(formJSON)
   }
 
   _updateForm(e){
@@ -128,12 +134,16 @@ export default class extends Controller {
     }
     const el = e.target;
     if (!el.name) return;
+
     let formJSON = formToJSON(this.form);
     const rawPath = this._parseName(el.name);
     const baseRaw = rawPath.slice(0, -1);
     const path = this._normalizePathForFoldAttributes(rawPath);
     const basePath = path.slice(0, -1);
-    if (path.at(-1) === "disp") {
+    const ignoreList = ["material_code", "paint_type_code", "paint_color_code", "paint_gloss_code", "name", "note"];
+    if (ignoreList.includes(path.at(-1))){
+      return;
+    } else if (path.at(-1) === "disp") {
       const dispVal = this._getAtPath(formJSON, [...basePath, "disp"]);
       this.boardPart3dCtrl?.setMeshVisibilityAtPath?.(path.slice(2, 4), dispVal);
       return;
@@ -346,12 +356,15 @@ export default class extends Controller {
       selectEl.appendChild(opt);
     }
 
-    // 以前の選択がまだ有効なら維持
-    if (prev && items.some(i => i.code === prev)) {
-      selectEl.value = prev;
+    // 既存値（data-current-value）を優先、なければ直前値
+    const desired = selectEl.dataset.currentValue || prev;
+    if (desired && items.some(i => i.code === desired)) {
+      selectEl.value = desired;
     } else {
       selectEl.value = "";
     }
+    // 一度使ったら邪魔しないように消しておく
+    delete selectEl.dataset.currentValue;
 
     // 有効/無効
     selectEl.disabled = items.length === 0 || !typeCode;

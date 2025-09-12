@@ -1,3 +1,4 @@
+  <% current_mode = (local_assigns[:mode] || :new).to_sym %>
   <% board_part = f.object.board_part || BoardPart.new %>
   <% raw_holes = board_part.hole_json.presence || {} %>
   <% holes = raw_holes.is_a?(Hash) ? raw_holes.deep_stringify_keys : {} %>
@@ -69,10 +70,11 @@
                 <% sel = h["proc"].presence || "NONE" %>
                 <% edge_sel = h["edge"].presence || "NONE" %>
                 <% formName = "part[board_part_attributes][corner_json][#{key}][disp]" %>
+                <% checked_attr = (h["disp"].to_s == "true") ? 'checked="checked"' : '' %>
                 <div class="d-flex flex-row flex-grow-1">
                   <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2" id="corner_<%= "#{key}" %>"><%= "#{label}" %></div>
                   <div class="d-flex form-check form-switch pt-1">
-                    <input class="form-check-input" type="checkbox" id="corner_<%= "#{key}" %>_disp" name=<%= formName %>>
+                    <input class="form-check-input" type="checkbox" id="corner_<%= "#{key}" %>_disp" name="<%= formName %>" <%= checked_attr %>>
                   </div>
                   <label class="form-check-label form-text" for="corner_<%= "#{key}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
                 </div>
@@ -131,11 +133,12 @@
                 <% h = (bf.object.side_json || {}).dig(key.to_s) || {} %>
                 <% sel = h["proc"].presence || "NONE" %>
                 <% edge_sel = h["edge"].presence || "NONE" %>
+                <% checked_attr = (h["disp"].to_s == "true") ? 'checked="checked"' : '' %>
                 <% formName = "part[board_part_attributes][side_json][#{key}][disp]" %>
                 <div class="d-flex flex-row flex-grow-1">
                   <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2"><%= "#{label}" %>辺加工</div>
                   <div class="d-flex form-check form-switch pt-1">
-                    <input class="form-check-input" type="checkbox" id="side_<%= "#{key}" %>_disp" name=<%= formName %>>
+                    <input class="form-check-input" type="checkbox" id="side_<%= "#{key}" %>_disp" name="<%= formName %>" <%= checked_attr %>>
                   </div>
                   <label class="form-check-label form-text" for="side_<%= "#{key}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
                 </div>
@@ -202,7 +205,6 @@
             <div class="d-block w-100 col scroll-area"
                   data-board-part-form-target="scroller">
               <div class="ProcessingHeader fw-bold fs-4 mb-2">ネジ・ダボ穴加工</div>
-
               <%# 行リスト %>
               <div data-board-part-form-target="list">
                 <%# キー順は h1, h2, ... の数値順に並べる（数字が無い場合も安定化） %>
@@ -212,14 +214,18 @@
                     <% h = holes[hid] || {} %>
                     <% surface_sel = h["surface"].presence || "LEFT" %>
                     <% base = "part[board_part_attributes][hole_json][#{hid}]" %>
+                    <% checked_attr = (h["disp"].to_s == "true") ? 'checked="checked"' : '' %>
+                    <% checked_attr_countersink = (h["countersink"].to_s == "true") ? 'checked="checked"' : '' %>
                     <div class="d-flex flex-row flex-grow-1">
                       <div class="d-flex flex-grow-1 fw-bold fs-5 mb-2 ps-2">穴 <%= hid.sub(/^h/, '') %></div>
-                      <button type="button" class="btn btn-outline-danger btn-sm"
-                              data-action="board-part-form#remove" aria-label="この穴行を削除">
-                        <i class="bi bi-trash"></i>
-                      </button>
+                      <div class="px-3">
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                data-action="board-part-form#remove" aria-label="この穴行を削除">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
                       <div class="d-flex form-check form-switch pt-1">
-                        <input class="form-check-input" type="checkbox" id="hole_<%= "#{hid}" %>_disp" name="<%= "#{base}[disp]" %>">
+                        <input class="form-check-input" type="checkbox" id="hole_<%= "#{hid}" %>_disp" name="<%= "#{base}[disp]" %>" <%= checked_attr %>>
                       </div>
                       <label class="form-check-label form-text" for="hole_<%= "#{hid}" %>_disp">非表示 <i class="bi bi-arrow-left-right"></i> 表示</label>
                     </div>
@@ -256,7 +262,7 @@
                                       options_from_collection_for_select(@hole_specs, :code, :name_ja, h["spec_code"]),
                                       class: "form-select" %>
                       <div class="input-group-text">
-                        <input class="form-check-input" type="checkbox" value=true id="hole_<%= "#{hid}" %>_countersink" name="<%= "#{base}[countersink]" %>">
+                        <input class="form-check-input" type="checkbox" value=true id="hole_<%= "#{hid}" %>_countersink" name="<%= "#{base}[countersink]" %>" <%= checked_attr_countersink %>>
                         <label class="form-check-label mx-2" for="hole_<%= "#{hid}" %>_countersink">皿取り加工</label>
                       </div>
                     </div>
@@ -399,19 +405,25 @@
               </div>
 
               <div class="input-group">
-                <span class="input-group-text">艶</span>
+                <span class="input-group-text">カラー</span>
                 <%= bf.select :paint_color_code, [],
                                       { include_blank: "先に塗装タイプを選択してください" },
                                       class: "form-select",
-                                      data: { board_part_form_target: "color" } %>
+                                      data: {
+                                        board_part_form_target: "color",
+                                        current_value: bf.object.paint_color_code
+                                      } %>
               </div>
 
               <div class="input-group">
-                <span class="input-group-text">カラー</span>
+                <span class="input-group-text">艶</span>
                 <%= bf.select :paint_gloss_code, [],
                                       { include_blank: "先に塗装タイプを選択してください" },
                                       class: "form-select",
-                                      data: { board_part_form_target: "gloss" } %>
+                                      data: {
+                                        board_part_form_target: "gloss",
+                                        current_value: bf.object.paint_gloss_code
+                                      } %>
               </div>
 
             </div>
@@ -421,44 +433,59 @@
       </div>
 
       <%# DEBUG %>
-      <div class="carousel-item px-4 pt-2">
-        <div class="d-block w-100 px-5">
-          <pre><%= raw json_escape(
-            JSON.pretty_generate(
-              @part.as_json(
-                only: [:id, :name, :shape_type_code],
-                include: {
-                  board_part:  { except: [:created_at, :updated_at] },
-                  lumber_part: { except: [:created_at, :updated_at] }
-                }
-              )
-            )
-          ) %></pre>
+      <div class="carousel-item px-4">
+        <div class="container">
+          <div class="row carousel-row">
+            <div class="col carousel-padding"></div>
+            <div class="d-block w-100 col scroll-area">
+              <div class="ProcessingHeader fw-bold fs-4 mb-2">DEBUG</div>
+              <pre><%= raw json_escape(
+                JSON.pretty_generate(
+                  @part.as_json(
+                    only: [:id, :name, :note, :shape_type_code],
+                    include: {
+                      board_part:  { except: [:created_at, :updated_at] }
+                    }
+                  )
+                )
+              ) %></pre>
+            </div>
+            <div class="col carousel-padding"></div>
+          </div>
         </div>
       </div>
 
     <% end %>
-    <div class="carousel-item px-4 pt-2">
-      <div class="d-block w-100 px-5">
-        <div class="input-group mb-3">
-          <span class="input-group-text">部品名称</span>
-          <%= f.text_field :name, class: "form-control", maxlength: 50, required: true %>
-          <div class="invalid-feedback">
-            部品名称は必須です（50文字以内）
+    <div class="carousel-item px-4">
+      <div class="container">
+        <div class="row carousel-row">
+          <div class="col carousel-padding"></div>
+          <div class="d-block w-100 col scroll-area">
+            <div class="ProcessingHeader fw-bold fs-4 mb-2">パーツ情報</div>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text">部品名称</span>
+              <%= f.text_field :name, class: "form-control", maxlength: 50, required: true %>
+              <div class="invalid-feedback">
+                部品名称は必須です（50文字以内）
+              </div>
+            </div>
+            <div class="card mb-3">
+              <div class="card-header">
+                説明文
+              </div>
+              <%= f.text_area :note,
+                      class: "form-control",
+                      rows: 2,
+                      maxlength: 1000,
+                      placeholder: "説明文などをご記入ください" %>
+            </div>
+            <div class="d-flex flex-grow-1">
+              <%= f.submit (current_mode == :edit ? "マイパーツを更新する" : "マイパーツを登録する"),
+                          class: "btn btn-primary flex-grow-1" %>
+            </div>
           </div>
-        </div>
-        <div class="card mb-3">
-          <div class="card-header">
-            説明文
-          </div>
-          <%= f.text_area :note,
-                  class: "form-control",
-                  rows: 2,
-                  maxlength: 1000,
-                  placeholder: "説明文などをご記入ください" %>
-        </div>
-        <div class="d-flex flex-grow-1">
-          <%= f.submit "登録する", class: "btn btn-primary flex-grow-1" %>
+          <div class="col carousel-padding"></div>
         </div>
       </div>
     </div>
