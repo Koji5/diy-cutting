@@ -1,1 +1,17 @@
 <%= render "parts/link_part" %>
+<section class="px-3">
+  <% @parts.each do |part| %>
+    <div class="card">
+      <% if part.thumbnail.attached? %>
+        <%= image_tag part.thumbnail.variant(resize_to_limit: [320, 180]) %>
+      <% end %>
+      <div class="card-body">
+        <div class="fw-bold"><%= part.id %></div>
+        <div class="text-muted">更新: <%= l(part.updated_at) %></div>
+        <div>パーツ名: <%= part.name %></div>
+        <div>パーツ説明: <%= part.note %></div>
+        <div>パーツ種類: <%= part.shape_type_code %></div>
+      </div>
+    </div>
+  <% end %>
+</section>

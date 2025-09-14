@@ -40,25 +40,30 @@ class BoardPartsController < ApplicationController
   end
 
   def update
-    # 形状種別カラムを運用しているなら保険でセット（空のときのみ）
-    @part.shape_type_code = "board" if @part.respond_to?(:shape_type_code) && @part.shape_type_code.blank?
-    begin
-      ActiveRecord::Base.transaction do
-        @part.update!(part_params_for_board)
-      end
-      flash[:success] = "更新しました"
-      render_flash_and_replace(flash: flash)
-    rescue ActiveRecord::RecordInvalid => e
-      flash[:alert] = e.record.errors.full_messages
-      render_flash_and_replace(flash: flash)
+    replacing_thumb = part_params_for_board[:thumbnail].present?
+    # 旧 blob を退避（新規ファイルが来るときのみ）
+    old_blob = (replacing_thumb && @part.thumbnail.attached?) ? @part.thumbnail.blob : nil
+
+    ActiveRecord::Base.transaction do
+      # 形状種別カラムを運用しているなら保険でセット（空のときのみ）
+      @part.shape_type_code = "board" if @part.respond_to?(:shape_type_code) && @part.shape_type_code.blank?
+      @part.update!(part_params_for_board)
     end
+    if replacing_thumb && old_blob && old_blob != @part.thumbnail.blob
+      old_blob.purge_later   # すぐ消すなら purge、通常は purge_later 推奨
+    end
+    flash[:success] = "更新しました"
+    render_flash_and_replace(flash: flash)
+  rescue ActiveRecord::RecordInvalid => e
+    flash[:alert] = e.record.errors.full_messages
+    render_flash_and_replace(flash: flash)
   end
 
   private
 
   def part_params_for_board
     p = params.require(:part).permit(
-      :name, :note, # ← Part側
+      :name, :note, :thumbnail, # ← Part側
       board_part_attributes: [
         :id, :material_code,
         :paint_type_code, :paint_color_code, :paint_finish_code, :paint_gloss_code,

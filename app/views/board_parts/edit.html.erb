@@ -14,7 +14,8 @@
                 },
                 html: {
                   class: "needs-validation",
-                  novalidate: true
+                  novalidate: true,
+                  multipart: true
                 } do |f| %>
     <div id="boardPartForm" class="carousel slide mt-2">
       <%= render "form_fields", f:, mode: :edit %>

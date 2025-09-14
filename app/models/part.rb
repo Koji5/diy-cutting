@@ -3,6 +3,7 @@ class Part < ApplicationRecord
 
   has_one :board_part, dependent: :destroy, inverse_of: :part
   has_one :lumber_part, dependent: :destroy, inverse_of: :part
+  has_one_attached :thumbnail
 
   accepts_nested_attributes_for :board_part, update_only: true
   accepts_nested_attributes_for :lumber_part, update_only: true

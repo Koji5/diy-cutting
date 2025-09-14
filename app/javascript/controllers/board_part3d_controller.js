@@ -10,11 +10,13 @@ export default class extends Controller {
   lastW = 0;
   lastT = 0;
   boardMeshes = {};
+  _restoringCamera = false;
+  _cameraSyncEnabled = false;
+  _restoredCameraOnce = false;
 
   connect () {
     /* Three.js --------------------------------- */
     this._initThree()
-    this.controls.addEventListener("change", () => this._syncCameraState());
     /* === ResizeObserver でキャンバスサイズを監視 === */
     this.resizeObs = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect
@@ -25,6 +27,10 @@ export default class extends Controller {
       this.render()                          // 1 フレームだけ描画
     })
     this.resizeObs.observe(this.element)
+    this._restoreCameraState();
+
+    this.controls.addEventListener("change", () => this._syncCameraState());
+    this._cameraSyncEnabled = true;
     this.start()
   }
 
@@ -161,10 +167,9 @@ export default class extends Controller {
     const box = new THREE.Box3().setFromObject(this.boardMeshes.board);
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
-
       const cameraReset = this.lastL !== boardJSON.length_mm || this.lastW !== boardJSON.width_mm || this.lastT !== boardJSON.thickness_mm
-      /* ★ 初回だけ固定アングルにセット */
-      if (!this.cameraInitialized || cameraReset) {
+      /* ★ 初回だけ固定アングルにセット（ただし復元済みならスキップ） */
+      if ((!this.cameraInitialized || cameraReset) && !this._restoredCameraOnce) {
         /* ① モデル中心から “斜め前上” 方向へ伸ばす距離を計算  */
         const dir = new THREE.Vector3(0, 1, 5).normalize();  // 視線方向 (縦-横比同じ)
 
@@ -202,19 +207,8 @@ export default class extends Controller {
     }
   }
 
-  _syncCameraState() {
-    const cam  = this.camera;
-    const json = JSON.stringify({
-      pos:  [cam.position.x, cam.position.y, cam.position.z],
-      tgt:  [this.controls.target.x, this.controls.target.y, this.controls.target.z],
-      zoom: cam.zoom
-    });
-    document.getElementById("camera_state_json").value = json;
-  }
-
   /*====================== メッシュ差し替え ======================*/
   _replaceMesh (mesh) {
-
     // 旧メッシュと旧エッジを撤去＆破棄
     if (this.mesh) {
       const targets = []
@@ -320,4 +314,101 @@ export default class extends Controller {
   _getValueByPath(obj, path) {
     return path.reduce((acc, key) => acc?.[key], obj)
   }
+
+  // サムネイル
+  async captureBlob({ maxWidth = 640, quality = 0.85, mime = "image/jpeg" } = {}) {
+    const src = this.renderer?.domElement;
+    if (!src || src.width === 0 || src.height === 0) return null;
+
+    // 最新フレームを描画
+    this.controls?.update?.();
+    this.renderer.render(this.scene, this.camera);
+
+    const scale = Math.min(1, maxWidth / src.width);
+    if (scale < 1) {
+      const off = document.createElement("canvas");
+      off.width = Math.round(src.width * scale);
+      off.height = Math.round(src.height * scale);
+      off.getContext("2d").drawImage(src, 0, 0, off.width, off.height);
+      return await new Promise(resolve => off.toBlob(b => resolve(b), mime, quality));
+    } else {
+      return await new Promise(resolve => src.toBlob(b => resolve(b), mime, quality));
+    }
+  }
+
+  // 保存済みのカメラ状態を hidden に入れておく想定
+  // <input type="hidden" id="camera_state_json" ...>
+  _getCameraStateInput() {
+    return (
+      document.getElementById("camera_state_json") ||
+      document.querySelector('input[name="part[board_part_attributes][camera_state_json]"]') ||
+      document.querySelector('input[name$="[camera_state_json]"]')
+    );
+  }
+  _syncCameraState() {
+    if (!this._cameraSyncEnabled || this._restoringCamera) return;
+    const cam  = this.camera;
+    const el  = this._getCameraStateInput();
+    if (!cam || !el) return;
+    const json = JSON.stringify({
+      pos:  [cam.position.x, cam.position.y, cam.position.z],
+      tgt:  [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      zoom: cam.zoom
+    });
+    el.value = json;
+  }
+  _restoreCameraState() {
+    const el = this._getCameraStateInput();
+    if (!el) return;
+
+    const raw = (el.value || "").trim();
+    if (!raw) return;
+
+    let st;
+    try {
+      st = JSON.parse(raw);
+    } catch (e) {
+      console.warn("camera_state_json の JSON パースに失敗:", e);
+      return;
+    }
+
+    const isVec3 = (a) =>
+      Array.isArray(a) && a.length === 3 && a.every((x) => Number.isFinite(+x));
+
+    // pos / tgt / zoom の妥当性チェック
+    if (!isVec3(st.pos) || !isVec3(st.tgt)) {
+      console.warn("camera_state_json の pos/tgt が不正:", st);
+      return;
+    }
+
+    const [px, py, pz] = st.pos.map(Number);
+    const [tx, ty, tz] = st.tgt.map(Number);
+    const zm = Number(st.zoom);
+
+    // 反映（※ controls 初期化済みであること）
+    const cam = this.camera;
+    const ctr = this.controls;
+    if (!cam || !ctr) {
+      console.warn("camera/controls 未初期化のため復元スキップ");
+      return;
+    }
+    this._restoringCamera = true;
+
+    cam.position.set(px, py, pz);
+    ctr.target.set(tx, ty, tz);
+
+    if (Number.isFinite(zm) && zm > 0) {
+      cam.zoom = zm;               // Perspective でも zoom 反映可
+      cam.updateProjectionMatrix();
+    }
+
+    ctr.update();
+    this._restoringCamera = false;
+    // ★ 復元できたので、以後は初期アングル当てない
+    this._restoredCameraOnce = true;
+    this.cameraInitialized = true;   // 既存ロジックとの互換のため
+    this._cameraSyncEnabled = true;
+    this._syncCameraState();
+  }
+
 }

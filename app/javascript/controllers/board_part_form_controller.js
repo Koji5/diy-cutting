@@ -30,6 +30,8 @@ export default class extends Controller {
       cancelAnimationFrame(this._rafId)
       this._rafId = requestAnimationFrame(() => this._resizeWork())
     }
+    this._onSubmit = (e) => this._handleSubmit(e);           // 参照を保持
+    this.form.addEventListener("submit", this._onSubmit, { once: true }); // 一度だけ
 
     window.addEventListener("resize", this._onResize)
     this._resizeWork();
@@ -38,9 +40,39 @@ export default class extends Controller {
 
   disconnect() {
     this.form?.removeEventListener("change", this._onChange)
+    this.form?.removeEventListener("submit", this._onSubmit);
     window.removeEventListener("resize", this._onResize)
     cancelAnimationFrame(this._rafId)
   }
+
+  _handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 3Dからサムネを Blob で取得（なければそのまま送る）
+    const blob = await this.boardPart3dCtrl?.captureBlob?.({ maxWidth: 640, quality: 0.85, mime: "image/jpeg" });
+
+    if (blob) {
+      // Blob → File にして hidden の file input に入れる
+      const ext = (blob.type.split("/")[1] || "jpg");
+      const file = new File([blob], `thumbnail.${ext}`, { type: blob.type });
+
+      const input = this.form.querySelector("#thumbnail_file");
+      if (input) {
+        try {
+          const dt = new DataTransfer();    // FileList を作る
+          dt.items.add(file);
+          input.files = dt.files;           // ← ここでファイルを「選択」状態にできる
+        } catch (err) {
+          console.warn("DataTransfer 代入に失敗。fallbackを検討:", err);
+        }
+      }
+    }
+
+    // 再送信（once:true なのでループしない）
+    setTimeout(() => {
+      this.form.requestSubmit();
+    }, 0);
+  };
 
   // ネジ・ダボ穴追加
   add() {
