@@ -161,7 +161,7 @@ export function buildMeshesFromCtx(boardJSON) {
   const holeCtx = ctx["hole"];
   Object.keys(holeCtx).forEach(key => {
     const hole = holeCtx[key];
-    if (hole.dx === 0 || hole.dy === 0 || hole.depth === 0) return;
+    if (hole.depth === 0) return;
     const geos = createHoleMesh(hole, ctx.T);
     const holeGeo = geos[0];
     const countersinkGeo = geos[1];

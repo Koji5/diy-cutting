@@ -2107,7 +2107,8 @@ CREATE TABLE public.m_paint_finishes (
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL
+    allow_paint_types jsonb DEFAULT '{}'::jsonb NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL
 );
 
 
@@ -6695,6 +6696,13 @@ CREATE UNIQUE INDEX index_m_paint_finishes_on_name_ja ON public.m_paint_finishes
 
 
 --
+-- Name: index_m_paint_finishes_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_paint_finishes_on_sort_order ON public.m_paint_finishes USING btree (sort_order);
+
+
+--
 -- Name: index_m_paint_finishes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -10716,6 +10724,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250914050240'),
 ('20250912015535'),
 ('20250912014734'),
 ('20250912014340'),

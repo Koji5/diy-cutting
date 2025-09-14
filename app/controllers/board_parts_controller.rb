@@ -118,6 +118,7 @@ class BoardPartsController < ApplicationController
       paint_types:      MPaintType.order(:sort_order),
       paint_colors:     MPaintColor.order(:sort_order),
       paint_glosses:    MPaintGloss.order(:sort_order),
+      paint_finishes:   MPaintFinish.order(:sort_order),
       edge_processes:   MEdgeProcess.order(Arel.sql("CASE WHEN code = 'NONE' THEN 0 ELSE 1 END"), :code),
       corner_processes: MCornerProcess.order(Arel.sql("CASE WHEN code = 'NONE' THEN 0 ELSE 1 END"), :code),
       side_processes:   MSideProcess.order(Arel.sql("CASE WHEN code = 'NONE' THEN 0 ELSE 1 END"), :code),

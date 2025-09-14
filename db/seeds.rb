@@ -276,7 +276,7 @@ MShape.upsert_all([
 MCornerProcess.upsert_all([
   {
     code:  "NONE",
-    name_ja: "加工しない",
+    name_ja: "加工なし",
     name_en: "None",
     description_ja: nil,
     description_en: nil,
@@ -329,7 +329,7 @@ MHoleDiameter.upsert_all([
 MEdgeProcess.upsert_all([
   {
     code:  "NONE",
-    name_ja: "断面加工なし",
+    name_ja: "加工なし",
     name_en: "None",
     description_ja: nil,
     description_en: nil

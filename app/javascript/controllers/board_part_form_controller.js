@@ -3,13 +3,14 @@ import { formToJSON } from "lib/serialize_form";
 
 export default class extends Controller {
 
-  static targets = ["list", "template", "row", "empty", "scroller", "type", "color", "gloss"];
+  static targets = ["list", "template", "row", "empty", "scroller", "type", "color", "gloss", "finish"];
   static values = {
     basePath: String,      // "part[board_part_attributes][hole_json]"
     nextIndex: Number,      // サーバ側で初期化した次の番号
     scrollDuration: Number,
     colors: Array,   // [{code, name, sort, allow:{ ... }}]
-    glosses: Array
+    glosses: Array,
+    finishes: Array
   };
 
   get _scrollEl() { return this.hasScrollerTarget ? this.scrollerTarget : this.listTarget; }
@@ -103,9 +104,9 @@ export default class extends Controller {
   // 塗装タイプセレクトボックス変更イベント
   onTypeChange() {
     const typeCode = this.typeTarget.value || null;
-    console.log("this.colorsValue:", this.colorsValue, " this.glossesValue:", this.glossesValue);
-    this._rebuildSelect(this.colorTarget, this.colorsValue, typeCode, "カラー");
-    this._rebuildSelect(this.glossTarget, this.glossesValue, typeCode, "艶");
+    this._rebuildSelect(this.colorTarget, this.colorsValue, typeCode);
+    this._rebuildSelect(this.glossTarget, this.glossesValue, typeCode);
+    this._rebuildSelect(this.finishTarget, this.finishesValue, typeCode);
   }
 
   _initForm() {
@@ -117,6 +118,14 @@ export default class extends Controller {
       const procVal = procEl.value;
       const disable = (procVal === "NONE");
       this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
+    }
+    const surfaceNames = this._collectSurfaceNames(this.form);;
+    for (const surfaceName of surfaceNames) {
+      const rawPath = this._parseName(surfaceName);
+      const baseRaw = rawPath.slice(0, -1);
+      const surfaceEl = this._getElement(baseRaw, "surface");
+      const surfaceVal = surfaceEl.value;
+      this._changeDisabled(rawPath[2], baseRaw, "surface", true, surfaceVal);
     }
     if (!this.boardPart3dCtrl && this.boardEl) {
       this.boardPart3dCtrl =
@@ -178,10 +187,18 @@ export default class extends Controller {
         break;
       case "hole_json":
         {
+          const surfaceVal = this._getAtPath(formJSON, [...basePath, "surface"]);
           const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
           const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
           const depthVal = this._getAtPath(formJSON, [...basePath, "depth"]);
-          if (!dxVal || !dyVal ||!depthVal) return;
+          this._changeDisabled(type, baseRaw, path.at(-1), true, surfaceVal);
+          if (surfaceVal === "FRONT" || surfaceVal === "BACK") {
+            if (!dxVal || !dyVal ||!depthVal) return;
+          } else if (surfaceVal === "LEFT" || surfaceVal === "RIGHT") {
+            if (!dyVal ||!depthVal) return;
+          } else if (surfaceVal === "TOP" || surfaceVal === "BOTTOM") {
+            if (!dxVal ||!depthVal) return;
+          }
         }
         break;
       default:
@@ -189,7 +206,7 @@ export default class extends Controller {
     this.boardPart3dCtrl?.updateModel?.(formJSON)
   }
 
-  _changeDisabled(type, baseRaw, lastPath, disable) {
+  _changeDisabled(type, baseRaw, lastPath, disable, val = null) {
     switch(type) {
       case "corner_json":
         {
@@ -212,6 +229,24 @@ export default class extends Controller {
             swEl.disabled = disable;
             const spEl = this._getElement(baseRaw, "sp");
             spEl.disabled = disable;
+          }
+        }
+        break;
+      case "hole_json":
+        {
+          if (lastPath === "surface") {
+            const dxEl = this._getElement(baseRaw, "dx");
+            const dyEl = this._getElement(baseRaw, "dy");
+            if (val === "FRONT" || val === "BACK") {
+              dxEl.disabled = false;
+              dyEl.disabled = false;
+            } else if (val === "LEFT" || val === "RIGHT") {
+              dxEl.disabled = true;
+              dyEl.disabled = false;
+            } else if (val === "TOP" || val === "BOTTOM") {
+              dxEl.disabled = false;
+              dyEl.disabled = true;
+            }
           }
         }
         break;
@@ -278,6 +313,12 @@ export default class extends Controller {
     return [...new Set([...els].map(el => el.name))];
   }
 
+  _collectSurfaceNames(form) {
+     const els = form.querySelectorAll('[name$="[surface]"]');
+    // name を配列で返す（重複はユニーク化）
+    return [...new Set([...els].map(el => el.name))];
+  }
+
   // ===== スクロール系ヘルパ =====
   _scrollToBottom() {
     const padding = 170;
@@ -324,7 +365,7 @@ export default class extends Controller {
   }
 
   // 塗装系セレクトボックス書き換え
-  _rebuildSelect(selectEl, allItems, typeCode, placeholderLabel) {
+  _rebuildSelect(selectEl, allItems, typeCode) {
     const prev = selectEl.value;
 
     // 許可フィルタ（allow[typeCode] が true のものだけ）
@@ -345,7 +386,7 @@ export default class extends Controller {
     // 先頭にプレースホルダ
     const ph = document.createElement("option");
     ph.value = "";
-    ph.textContent = typeCode ? `選択してください（${placeholderLabel}）` : "先に塗装タイプを選択してください";
+    ph.textContent = typeCode ? `選択...` : "先に塗装タイプを選択してください";
     selectEl.appendChild(ph);
 
     // 候補を追加
