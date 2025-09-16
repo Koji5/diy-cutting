@@ -1,16 +1,67 @@
 <%= render "parts/link_part" %>
 <section class="px-3">
   <% @parts.each do |part| %>
-    <div class="card">
-      <% if part.thumbnail.attached? %>
-        <%= image_tag part.thumbnail.variant(resize_to_limit: [320, 180]) %>
-      <% end %>
-      <div class="card-body">
-        <div class="fw-bold"><%= part.id %></div>
-        <div class="text-muted">更新: <%= l(part.updated_at) %></div>
-        <div>パーツ名: <%= part.name %></div>
-        <div>パーツ説明: <%= part.note %></div>
-        <div>パーツ種類: <%= part.shape_type_code %></div>
+    <div class="card mb-3">
+      <div class="row g-0">
+        <div class="col-4">
+          <div class="ratio ratio-1x1 rounded-start overflow-hidden">
+            <% if part.thumbnail.attached? %>
+              <%= image_tag part.thumbnail,
+                  class: "w-100 h-100 object-fit-cover",
+                  alt: "サムネイル",
+                  loading: "lazy",
+                  decoding: "async"
+               %>
+            <% else %>
+              <div class="w-100 h-100 d-flex align-items-center justify-content-center
+                          bg-body-tertiary text-body-secondary">
+                No image
+              </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="card-body">
+            <h5 class="card-title"><%= part.name %></h5>
+            <p class="card-text"> <%= part.note %></p>
+            <p class="card-text"><small class="text-body-secondary">Last updated <%= l(part.updated_at) %></small></p>
+            <div class="card-text">
+              <div class="row justify-content-end">
+                <% if part.shape_type_code == "board" %>
+                  <%= link_to edit_part_board_part_path(part),
+                        data: { turbo_frame: "main" },
+                        class: "btn btn-outline-primary btn-icon me-2" do %>
+                    <i class="bi bi-pencil"></i>
+                  <% end %>
+                  <%= link_to part_board_part_path(part),
+                        data: {
+                          turbo_method: :delete,
+                          turbo_confirm: "#{part.name.presence || 'このパーツ'}を削除します。よろしいですか？",
+                          turbo_frame: "main"
+                        },
+                        class: "btn btn-outline-danger btn-icon" do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                <% elsif part.shape_type_code == "lumber" %>
+                  <%= link_to edit_part_lumber_part_path(part),
+                        data: { turbo_frame: "main" },
+                        class: "btn btn-outline-primary btn-icon me-2" do %>
+                    <i class="bi bi-pencil"></i>
+                  <% end %>
+                  <%= link_to part_lumber_part_path(part),
+                        data: {
+                          turbo_method: :delete,
+                          turbo_confirm: "#{part.name.presence || 'このパーツ'}を削除します。よろしいですか？",
+                          turbo_frame: "main"
+                        },
+                        class: "btn btn-outline-danger btn-icon" do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   <% end %>

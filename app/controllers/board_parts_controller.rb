@@ -1,6 +1,6 @@
 class BoardPartsController < ApplicationController
 
-  before_action :set_part, only: [:edit, :update]
+  before_action :set_part, only: [:edit, :update, :destroy]
 
   def new
     @part = Part.new
@@ -34,9 +34,12 @@ class BoardPartsController < ApplicationController
   end
 
   def edit
-    @part = Current.account.parts.includes(:board_part).find(params[:id])
     raise ActiveRecord::RecordNotFound unless @part.board?
     @part.build_board_part unless @part.board_part  # 念のため
+    render_flash_and_replace_main(
+        template: "board_parts/edit",
+        assigns: board_masters_assigns.merge(part: @part)
+    )
   end
 
   def update
@@ -55,6 +58,23 @@ class BoardPartsController < ApplicationController
     flash[:success] = "更新しました"
     render_flash_and_replace(flash: flash)
   rescue ActiveRecord::RecordInvalid => e
+    flash[:alert] = e.record.errors.full_messages
+    render_flash_and_replace(flash: flash)
+  end
+
+  def destroy
+    part_name = @part.name
+    @part.board_part&.destroy!
+    @parts = Current.account.parts
+                    .with_attached_thumbnail
+                    .order(created_at: :desc)
+    render_flash_and_replace_main(
+      template: "parts/index",
+      assigns: { parts: @parts },
+      message: "#{part_name} を削除しました",
+      type: :notice
+    )
+  rescue ActiveRecord::RecordNotDestroyed => e
     flash[:alert] = e.record.errors.full_messages
     render_flash_and_replace(flash: flash)
   end
@@ -112,9 +132,10 @@ class BoardPartsController < ApplicationController
     end
   end
 
-
   def set_part
-    @part = Current.account.parts.find(params[:part_id])
+    @part = Current.account.parts
+                   .includes(:board_part)
+                   .find(params[:part_id] || params[:id])  # ← どちらでも拾えるよう保険
   end
 
   def board_masters_assigns
