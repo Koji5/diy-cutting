@@ -2045,6 +2045,28 @@ CREATE TABLE public.m_hole_surfaces (
 
 
 --
+-- Name: m_lumber_sizes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.m_lumber_sizes (
+    width_mm numeric(5,1) NOT NULL,
+    thickness_mm numeric(5,1) NOT NULL,
+    industry_name character varying(50),
+    hc_name character varying(50),
+    feature text,
+    sort_order integer DEFAULT 0 NOT NULL,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    code character varying(32) NOT NULL
+);
+
+
+--
 -- Name: m_materials; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4286,6 +4308,14 @@ ALTER TABLE ONLY public.m_hole_specs
 
 ALTER TABLE ONLY public.m_hole_surfaces
     ADD CONSTRAINT m_hole_surfaces_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: m_lumber_sizes m_lumber_sizes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_lumber_sizes
+    ADD CONSTRAINT m_lumber_sizes_pkey PRIMARY KEY (code);
 
 
 --
@@ -6560,6 +6590,34 @@ CREATE INDEX index_m_hole_diameters_on_updated_by_id ON public.m_hole_diameters 
 --
 
 CREATE INDEX index_m_hole_specs_on_sort_order ON public.m_hole_specs USING btree (sort_order);
+
+
+--
+-- Name: index_m_lumber_sizes_on_code_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_m_lumber_sizes_on_code_unique ON public.m_lumber_sizes USING btree (code);
+
+
+--
+-- Name: index_m_lumber_sizes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_lumber_sizes_on_created_by_id ON public.m_lumber_sizes USING btree (created_by_id);
+
+
+--
+-- Name: index_m_lumber_sizes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_lumber_sizes_on_deleted_by_id ON public.m_lumber_sizes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_lumber_sizes_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_lumber_sizes_on_updated_by_id ON public.m_lumber_sizes USING btree (updated_by_id);
 
 
 --
@@ -9174,6 +9232,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: m_lumber_sizes fk_rails_3e41afaeb9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_lumber_sizes
+    ADD CONSTRAINT fk_rails_3e41afaeb9 FOREIGN KEY (deleted_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_signups fk_rails_3ef6352d1f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9838,6 +9904,14 @@ ALTER TABLE ONLY public.m_postal_codes
 
 
 --
+-- Name: m_lumber_sizes fk_rails_8f93993dc0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_lumber_sizes
+    ADD CONSTRAINT fk_rails_8f93993dc0 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: affiliate_commissions fk_rails_8fd375453d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9995,6 +10069,14 @@ ALTER TABLE ONLY public.m_process_types
 
 ALTER TABLE ONLY public.m_cities
     ADD CONSTRAINT fk_rails_9bbab727a4 FOREIGN KEY (updated_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: m_lumber_sizes fk_rails_9c06cfc851; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.m_lumber_sizes
+    ADD CONSTRAINT fk_rails_9c06cfc851 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
 
 
 --
@@ -10724,6 +10806,8 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250917071415'),
+('20250917070611'),
 ('20250914050240'),
 ('20250912015535'),
 ('20250912014734'),
