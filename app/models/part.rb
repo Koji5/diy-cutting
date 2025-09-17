@@ -2,11 +2,11 @@ class Part < ApplicationRecord
   belongs_to :account
 
   has_one :board_part, dependent: :destroy, inverse_of: :part
-  has_one :lumber_part, dependent: :destroy, inverse_of: :part
-  has_one_attached :thumbnail
+#  has_one :lumber_part, dependent: :destroy, inverse_of: :part
+  has_one_attached :thumbnail, dependent: :purge_later
 
   accepts_nested_attributes_for :board_part, update_only: true
-  accepts_nested_attributes_for :lumber_part, update_only: true
+#  accepts_nested_attributes_for :lumber_part, update_only: true
 
   enum :shape_type_code, { board: "board", lumber: "lumber" }
 

@@ -1,6 +1,6 @@
 class BoardPartsController < ApplicationController
 
-  before_action :set_part, only: [:edit, :update, :destroy]
+  before_action :set_part, only: [:edit, :update]
 
   def new
     @part = Part.new
@@ -58,23 +58,6 @@ class BoardPartsController < ApplicationController
     flash[:success] = "更新しました"
     render_flash_and_replace(flash: flash)
   rescue ActiveRecord::RecordInvalid => e
-    flash[:alert] = e.record.errors.full_messages
-    render_flash_and_replace(flash: flash)
-  end
-
-  def destroy
-    part_name = @part.name
-    @part.board_part&.destroy!
-    @parts = Current.account.parts
-                    .with_attached_thumbnail
-                    .order(created_at: :desc)
-    render_flash_and_replace_main(
-      template: "parts/index",
-      assigns: { parts: @parts },
-      message: "#{part_name} を削除しました",
-      type: :notice
-    )
-  rescue ActiveRecord::RecordNotDestroyed => e
     flash[:alert] = e.record.errors.full_messages
     render_flash_and_replace(flash: flash)
   end
