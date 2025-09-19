@@ -1,7 +1,7 @@
 import { Controller }    from "@hotwired/stimulus";
 import * as THREE        from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { buildMeshesFromCtx } from "helpers/board_builders"
+import { buildMeshesFromCtx } from "helpers/lumber_builders"
 
 export default class extends Controller {
 
@@ -9,7 +9,7 @@ export default class extends Controller {
   lastL = 0;
   lastW = 0;
   lastT = 0;
-  boardMeshes = {};
+  lumberMeshes = {};
   _restoringCamera = false;
   _cameraSyncEnabled = false;
   _restoredCameraOnce = false;
@@ -57,7 +57,7 @@ export default class extends Controller {
 
     /* シーン */
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xfafaea);
+    this.scene.background = new THREE.Color(0xecfeff);
 
     /* カメラ */
     this.camera = new THREE.PerspectiveCamera(45, 1, 1, 5000);
@@ -79,7 +79,7 @@ export default class extends Controller {
     this.dirLight.shadow.bias = -0.0005;      // アクネ対策
     this.dirLight.shadow.normalBias = 0.02;   // モデルが厚い/スケールが大きい時に有効
     /* マテリアル */
-    this.boardMat = new THREE.MeshStandardMaterial({
+    this.lumberMat = new THREE.MeshStandardMaterial({
           color: 0x7d4712,
           transparent: true,   // ← 必須
           opacity: 0.5,       // 0(完全透明)〜1(不透明)
@@ -89,7 +89,7 @@ export default class extends Controller {
           side: THREE.FrontSide, // 両面にしたいなら DoubleSide。ただし透過はアーティファクトが増えやすい
           flatShading: true
         });
-    this.boardMat.needsUpdate = true;
+    this.lumberMat.needsUpdate = true;
     // 環境光は弱めに（影が見えやすい）
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.1));
     // 背面光
@@ -109,7 +109,7 @@ export default class extends Controller {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 柔らかい影
     // ① プレースホルダを本物キャンバスに置き換え
-    const ph = this.element.querySelector("canvas[data-board-part3d-target='canvas']");
+    const ph = this.element.querySelector("canvas[data-lumber-part3d-target='canvas']");
     ph?.replaceWith(this.renderer.domElement);
     // 置き換えた canvas に 100% 指定を必ず付与
     Object.assign(this.renderer.domElement.style, {
@@ -118,7 +118,7 @@ export default class extends Controller {
       display: "block"
     });
     // ② data-attribute を付け直し (thumb_capture が拾いやすいように)
-    this.renderer.domElement.dataset.boardPart3dTarget = "canvas";
+    this.renderer.domElement.dataset.lumberPart3dTarget = "canvas";
 
     /* Controls */
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -129,7 +129,7 @@ export default class extends Controller {
   }
 
   setMeshVisibilityAtPath(path, visible) {
-    const mesh = this._getAtPath(this.boardMeshes, path);
+    const mesh = this._getAtPath(this.lumberMeshes, path);
     if (mesh?.isMesh || mesh instanceof THREE.Mesh) {
       mesh.visible = !!visible;
       return true;                 // 成功
@@ -142,32 +142,35 @@ export default class extends Controller {
       return cur[/^\d+$/.test(key) ? Number(key) : key];
     }, obj);
   }
+
   /*====================== モデル更新 ====================*/
   updateModel (formJSON) {
     if (!this.camera) return
-    const boardJSON = formJSON.part.board_part
-    boardJSON.width_mm     = Number(boardJSON.width_mm)
-    boardJSON.length_mm    = Number(boardJSON.length_mm)
-    boardJSON.thickness_mm = Number(boardJSON.thickness_mm)
+    const lumberJSON = formJSON.part.lumber_part
+    lumberJSON.length_mm    = Number(lumberJSON.length_mm)
+    const [w, t] = lumberJSON.length_mm.split(/[x×]/).map(s => Number(s.trim()));
+    lumberJSON.width_mm     = w
+    lumberJSON.thickness_mm = t
+
     /* 入力不足 → メッシュを消して終わり */
-    if (!boardJSON.length_mm || !boardJSON.thickness_mm || !boardJSON.width_mm) {
+    if (!lumberJSON.length_mm || !lumberJSON.thickness_mm || !lumberJSON.width_mm) {
       this._replaceMesh(null);
       return;
     }
     /* Geometry 生成 */
-    this.boardMeshes = buildMeshesFromCtx(boardJSON);
-    this._replaceMesh(this.boardMeshes.board);
-    this.boardMeshes.board.material = this.boardMat;
-    this._forEachMesh(this.boardMeshes, (mesh, path) => {
+    this.lumberMeshes = buildMeshesFromCtx(lumberJSON);
+    this._replaceMesh(this.lumberMeshes.lumber);
+    this.lumberMeshes.lumber.material = this.lumberMat;
+    this._forEachMesh(this.lumberMeshes, (mesh, path) => {
       const dispPath = [...path, "disp"]
-      const isBoardTop = (path.length === 1 && path[0] === "board") || this._getValueByPath(boardJSON, dispPath) === true;
-      mesh.visible = isBoardTop;   // board だけ true、他は false
+      const isBoardTop = (path.length === 1 && path[0] === "lumber") || this._getValueByPath(lumberJSON, dispPath) === true;
+      mesh.visible = isBoardTop;   // lumber だけ true、他は false
       this.scene.add(mesh)
     });
-    const box = new THREE.Box3().setFromObject(this.boardMeshes.board);
+    const box = new THREE.Box3().setFromObject(this.lumberMeshes.lumber);
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
-      const cameraReset = this.lastL !== boardJSON.length_mm || this.lastW !== boardJSON.width_mm || this.lastT !== boardJSON.thickness_mm
+      const cameraReset = this.lastL !== lumberJSON.length_mm || this.lastW !== lumberJSON.width_mm || this.lastT !== lumberJSON.thickness_mm
       /* ★ 初回だけ固定アングルにセット（ただし復元済みならスキップ） */
       if ((!this.cameraInitialized || cameraReset) && !this._restoredCameraOnce) {
         /* ① モデル中心から “斜め前上” 方向へ伸ばす距離を計算  */
@@ -179,9 +182,9 @@ export default class extends Controller {
         this.controls.target.copy(center);    // ← ② モデル中心を見る
         this.controls.update();               // ← ③ 行列を同期
         this.cameraInitialized = true;        // フラグを立てる
-        this.lastL = boardJSON.length_mm
-        this.lastW = boardJSON.width_mm
-        this.lastT = boardJSON.thickness_mm
+        this.lastL = lumberJSON.length_mm
+        this.lastW = lumberJSON.width_mm
+        this.lastT = lumberJSON.thickness_mm
       }
       this._buildAxesAndLabels(box);
 
@@ -341,7 +344,7 @@ export default class extends Controller {
   _getCameraStateInput() {
     return (
       document.getElementById("camera_state_json") ||
-      document.querySelector('input[name="part[board_part_attributes][camera_state_json]"]') ||
+      document.querySelector('input[name="part[lumber_part_attributes][camera_state_json]"]') ||
       document.querySelector('input[name$="[camera_state_json]"]')
     );
   }

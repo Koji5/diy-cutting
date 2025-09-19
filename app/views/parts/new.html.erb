@@ -1,0 +1,33 @@
+<%= render "parts/link_part" %>
+<section class="px-3">
+  <div class="card flex-grow-1 mb-3 p-3">
+    <div class="flex-grow-1">
+      <%= link_to "板材新規作成", 
+          new_board_part_path, 
+          data: { turbo_frame: "main" }, 
+          class: "btn btn-primary d-flex flex-grow-1 justify-content-center" %>
+    </div>
+    <div class="callout callout-info">
+      <div class="callout-title">
+        <i class="bi bi-lightbulb me-1"></i> ヒント
+      </div>
+      <p class="mb-0">板材を作成するには、こちらをクリックしてください。</p>
+    </div>
+
+  </div>
+  <div class="card flex-grow-1 p-3">
+    <div class="flex-grow-1">
+      <%= link_to "角材新規作成", 
+          new_lumber_part_path, 
+          data: { turbo_frame: "main" }, 
+          class: "btn btn-primary d-flex flex-grow-1 justify-content-center" %>
+    </div>
+    <div class="callout callout-info">
+      <div class="callout-title">
+        <i class="bi bi-lightbulb me-1"></i> ヒント
+      </div>
+      <p class="mb-0">角材を作成するには、こちらをクリックしてください。</p>
+    </div>
+
+  </div>
+</section>

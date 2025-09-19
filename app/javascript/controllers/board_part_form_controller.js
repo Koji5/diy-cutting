@@ -151,7 +151,7 @@ export default class extends Controller {
       const disable = (procVal === "NONE");
       this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
     }
-    const surfaceNames = this._collectSurfaceNames(this.form);;
+    const surfaceNames = this._collectSurfaceNames(this.form);
     for (const surfaceName of surfaceNames) {
       const rawPath = this._parseName(surfaceName);
       const baseRaw = rawPath.slice(0, -1);

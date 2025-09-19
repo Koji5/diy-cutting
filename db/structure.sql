@@ -1802,6 +1802,54 @@ ALTER SEQUENCE public.h_payout_events_id_seq OWNED BY public.h_payout_events.id;
 
 
 --
+-- Name: lumber_parts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lumber_parts (
+    id bigint NOT NULL,
+    part_id bigint NOT NULL,
+    material_code character varying(16) NOT NULL,
+    paint_type_code character varying(16) NOT NULL,
+    paint_color_code character varying(16),
+    paint_finish_code character varying(16),
+    paint_gloss_code character varying(16),
+    lumber_size_code character varying(16) NOT NULL,
+    length_mm numeric(8,2) NOT NULL,
+    side_json jsonb DEFAULT '{}'::jsonb,
+    hole_json jsonb DEFAULT '{}'::jsonb,
+    sqhole_json jsonb DEFAULT '{}'::jsonb,
+    camera_state_json jsonb DEFAULT '{}'::jsonb,
+    deleted_flag boolean DEFAULT false NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    deleted_by_id bigint,
+    created_by_id bigint,
+    updated_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT chk_lumber_parts_length_positive CHECK ((length_mm > (0)::numeric))
+);
+
+
+--
+-- Name: lumber_parts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.lumber_parts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lumber_parts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.lumber_parts_id_seq OWNED BY public.lumber_parts.id;
+
+
+--
 -- Name: m_authorities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3881,6 +3929,13 @@ ALTER TABLE ONLY public.h_payout_events ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: lumber_parts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts ALTER COLUMN id SET DEFAULT nextval('public.lumber_parts_id_seq'::regclass);
+
+
+--
 -- Name: m_banks id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4236,6 +4291,14 @@ ALTER TABLE ONLY public.h_affiliate_clicks
 
 ALTER TABLE ONLY public.h_payout_events
     ADD CONSTRAINT h_payout_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lumber_parts lumber_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT lumber_parts_pkey PRIMARY KEY (id);
 
 
 --
@@ -6359,6 +6422,48 @@ CREATE INDEX index_h_payout_events_on_occurred_at ON public.h_payout_events USIN
 --
 
 CREATE INDEX index_h_payout_events_on_payout_id ON public.h_payout_events USING btree (payout_id);
+
+
+--
+-- Name: index_lumber_parts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lumber_parts_on_created_by_id ON public.lumber_parts USING btree (created_by_id);
+
+
+--
+-- Name: index_lumber_parts_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lumber_parts_on_deleted_by_id ON public.lumber_parts USING btree (deleted_by_id);
+
+
+--
+-- Name: index_lumber_parts_on_lumber_size_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lumber_parts_on_lumber_size_code ON public.lumber_parts USING btree (lumber_size_code);
+
+
+--
+-- Name: index_lumber_parts_on_material_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lumber_parts_on_material_code ON public.lumber_parts USING btree (material_code);
+
+
+--
+-- Name: index_lumber_parts_on_part_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_lumber_parts_on_part_id ON public.lumber_parts USING btree (part_id);
+
+
+--
+-- Name: index_lumber_parts_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lumber_parts_on_updated_by_id ON public.lumber_parts USING btree (updated_by_id);
 
 
 --
@@ -8960,11 +9065,35 @@ ALTER TABLE ONLY public.member_details
 
 
 --
+-- Name: lumber_parts fk_rails_092146c4e0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_092146c4e0 FOREIGN KEY (lumber_size_code) REFERENCES public.m_lumber_sizes(code);
+
+
+--
+-- Name: lumber_parts fk_rails_0947bcc53a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_0947bcc53a FOREIGN KEY (paint_type_code) REFERENCES public.m_paint_types(code);
+
+
+--
 -- Name: recipe_snapshot_parts fk_rails_0989e6ad85; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.recipe_snapshot_parts
     ADD CONSTRAINT fk_rails_0989e6ad85 FOREIGN KEY (recipe_snapshot_id) REFERENCES public.recipe_snapshots(id);
+
+
+--
+-- Name: lumber_parts fk_rails_0ab350745e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_0ab350745e FOREIGN KEY (paint_color_code) REFERENCES public.m_paint_colors(code);
 
 
 --
@@ -9029,6 +9158,14 @@ ALTER TABLE ONLY public.part_snapshots
 
 ALTER TABLE ONLY public.affiliate_details
     ADD CONSTRAINT fk_rails_1250f45d05 FOREIGN KEY (prefecture_code) REFERENCES public.m_prefectures(code);
+
+
+--
+-- Name: lumber_parts fk_rails_12990021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_12990021ad FOREIGN KEY (updated_by_id) REFERENCES public.accounts(id);
 
 
 --
@@ -9141,6 +9278,14 @@ ALTER TABLE ONLY public.m_paint_glosses
 
 ALTER TABLE ONLY public.stripe_refunds
     ADD CONSTRAINT fk_rails_27113da1c6 FOREIGN KEY (created_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: lumber_parts fk_rails_276548234c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_276548234c FOREIGN KEY (material_code) REFERENCES public.m_materials(code);
 
 
 --
@@ -9840,6 +9985,14 @@ ALTER TABLE ONLY public.account_coverage_areas
 
 
 --
+-- Name: lumber_parts fk_rails_8993087488; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_8993087488 FOREIGN KEY (part_id) REFERENCES public.parts(id);
+
+
+--
 -- Name: m_paint_glosses fk_rails_89b44b593f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10168,11 +10321,35 @@ ALTER TABLE ONLY public.member_shipping_addresses
 
 
 --
+-- Name: lumber_parts fk_rails_ac1e264cbf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_ac1e264cbf FOREIGN KEY (created_by_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: member_details fk_rails_aeb287d4a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.member_details
     ADD CONSTRAINT fk_rails_aeb287d4a2 FOREIGN KEY (billing_city_code) REFERENCES public.m_cities(code);
+
+
+--
+-- Name: lumber_parts fk_rails_b09a4e5fed; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_b09a4e5fed FOREIGN KEY (deleted_by_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: lumber_parts fk_rails_b19cf8ee0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_b19cf8ee0c FOREIGN KEY (paint_gloss_code) REFERENCES public.m_paint_glosses(code);
 
 
 --
@@ -10325,6 +10502,14 @@ ALTER TABLE ONLY public.affiliate_signups
 
 ALTER TABLE ONLY public.board_parts
     ADD CONSTRAINT fk_rails_c814c4e1bc FOREIGN KEY (paint_color_code) REFERENCES public.m_paint_colors(code);
+
+
+--
+-- Name: lumber_parts fk_rails_cae064fcc3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lumber_parts
+    ADD CONSTRAINT fk_rails_cae064fcc3 FOREIGN KEY (paint_finish_code) REFERENCES public.m_paint_finishes(code);
 
 
 --
@@ -10806,6 +10991,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250919044106'),
 ('20250917071415'),
 ('20250917070611'),
 ('20250914050240'),

@@ -1,14 +1,14 @@
 <% menu = [
   {
-    path:  -> { edit_part_board_part_path(@part) if @part },
-    match: -> { assigns[:current_view] == "board_parts/edit" },
+    path:  -> { edit_part_lumber_part_path(@part) if @part },
+    match: -> { assigns[:current_view] == "lumber_parts/edit" },
     icon:  "pencil",
     label: "編集",
     link:  false                # 編集画面ではリンクを出さない
   },
   {
-    path:  -> { part_board_part_path(@part) if @part },
-    match: -> { assigns[:current_view] == "board_parts/show" },
+    path:  -> { part_lumber_part_path(@part) if @part },
+    match: -> { assigns[:current_view] == "lumber_parts/show" },
     icon:  "eye",
     label: "詳細",
     link:  false                # 詳細画面へのリンクは出さない
@@ -29,7 +29,7 @@
   },
   {
     path:  -> { new_part_path },
-    match: -> { assigns[:current_view] == "board_parts/new" },
+    match: -> { assigns[:current_view] == "lumber_parts/new" },
     icon:  "plus-lg",
     label: "新規作成",
     link:  true
@@ -55,6 +55,6 @@
   </div>
   <h3 class="d-flex px-3 flex-nowrap">
     <i class="bi bi-puzzle me-2"></i>
-    マイパーツ － 板材 － <%= title_tag %>
+    マイパーツ － 角材 － <%= title_tag %>
   </h3>
 </header>

@@ -23,7 +23,7 @@ class MLumberSize < ApplicationRecord
   # 表示用ラベル
   def label
     names = [industry_name, hc_name].compact_blank
-    "#{width_mm.to_i}×#{thickness_mm.to_i} (#{names.join(' / ')})"
+    "【#{thickness_mm.to_i}mm x #{width_mm.to_i}mm】 #{names.join(' - ')}"
   end
 
   private
