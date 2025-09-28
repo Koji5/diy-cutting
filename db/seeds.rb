@@ -332,63 +332,81 @@ MEdgeProcess.upsert_all([
     name_ja: "加工なし",
     name_en: "None",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 0,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "CHAMF_BTH",
-    name_ja: "上下糸面",
+    name_ja: "糸面",
     name_en: "Chamfer",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 10,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "BULLNOSE",
     name_ja: "ボーズ面",
     name_en: "Bullnose",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 60,
+    allow_types: { "board" => true, "lumber" => false}
   },
   {
     code:  "CHM5MM",
-    name_ja: "上下5mm面",
+    name_ja: "5mm面",
     name_en: "Chamf 5mm",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 20,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "CHM10MM",
-    name_ja: "上下10mm面",
+    name_ja: "10mm面",
     name_en: "Chamf10mm",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 30,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "R5ROUND",
-    name_ja: "上下5R面",
+    name_ja: "5R面",
     name_en: "R5Round",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 40,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "R10ROUND",
-    name_ja: "上下10R面",
+    name_ja: "10R面",
     name_en: "R10Round",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 50,
+    allow_types: { "board" => true, "lumber" => true}
   },
   {
     code:  "COVE",
     name_ja: "ギンナン面",
     name_en: "Cove",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 70,
+    allow_types: { "board" => true, "lumber" => false}
   },
   {
     code:  "OGEE",
     name_ja: "船底面",
     name_en: "Ogee",
     description_ja: nil,
-    description_en: nil
+    description_en: nil,
+    sort_order: 80,
+    allow_types: { "board" => true, "lumber" => false}
   }
 ])
 # === 辺加工マスタ ==================================================

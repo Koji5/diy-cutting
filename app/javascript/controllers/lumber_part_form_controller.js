@@ -20,15 +20,15 @@ export default class extends Controller {
   }
 
   _initForm() {
-    const procNames = this._collectProcNames(this.form);
-    for (const procName of procNames) {
-      const rawPath = this._parseName(procName);
-      const baseRaw = rawPath.slice(0, -1);
-      const procEl = this._getElement(baseRaw, "proc");
-      const procVal = procEl.value;
-      const disable = (procVal === "NONE");
-      this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
-    }
+//    const procNames = this._collectProcNames(this.form);
+//    for (const procName of procNames) {
+//      const rawPath = this._parseName(procName);
+//      const baseRaw = rawPath.slice(0, -1);
+//      const procEl = this._getElement(baseRaw, "proc");
+//      const procVal = procEl.value;
+//      const disable = (procVal === "NONE");
+//      this._changeDisabled(rawPath[2], baseRaw, "proc", disable);
+//    }
 
     if (!this.lumberPart3dCtrl && this.lumberEl) {
       this.lumberPart3dCtrl =
@@ -48,52 +48,52 @@ export default class extends Controller {
     if (!el.name) return;
 
     let formJSON = formToJSON(this.form);
-    const rawPath = this._parseName(el.name);
-    const baseRaw = rawPath.slice(0, -1);
-    const path = this._normalizePathForFoldAttributes(rawPath);
-    const basePath = path.slice(0, -1);
-    const ignoreList = ["material_code", "paint_type_code", "paint_color_code", "paint_gloss_code", "name", "note"];
-    if (ignoreList.includes(path.at(-1))){
-      return;
-    } else if (path.at(-1) === "disp") {
-      const dispVal = this._getAtPath(formJSON, [...basePath, "disp"]);
-      this.lumberPart3dCtrl?.setMeshVisibilityAtPath?.(path.slice(2, 4), dispVal);
-      return;
-    }
-    const type = path[2];
-    switch(type) {
-      case "side_json":
-        {
-          const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
-          const disable = (procVal === "NONE");
-          this._changeDisabled(type, baseRaw, path.at(-1), disable);
-          // formJSON更新
-          formJSON = formToJSON(this.form);
-          const edgeVal = this._getAtPath(formJSON, [...basePath, "edge"]);
-          const sdVal = this._getAtPath(formJSON, [...basePath, "sd"]);
-          const swVal = this._getAtPath(formJSON, [...basePath, "sw"]);
-          const spVal = this._getAtPath(formJSON, [...basePath, "sp"]);
-          if ((procVal !== "NONE" && (!sdVal || !swVal || !spVal)) && (edgeVal === "NONE")) return;
-        }
-        break;
-      case "hole_json":
-        {
-          const surfaceVal = this._getAtPath(formJSON, [...basePath, "surface"]);
-          const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
-          const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
-          const depthVal = this._getAtPath(formJSON, [...basePath, "depth"]);
-          this._changeDisabled(type, baseRaw, path.at(-1), true, surfaceVal);
-          if (surfaceVal === "FRONT" || surfaceVal === "BACK") {
-            if (!dxVal || !dyVal ||!depthVal) return;
-          } else if (surfaceVal === "LEFT" || surfaceVal === "RIGHT") {
-            if (!dyVal ||!depthVal) return;
-          } else if (surfaceVal === "TOP" || surfaceVal === "BOTTOM") {
-            if (!dxVal ||!depthVal) return;
-          }
-        }
-        break;
-      default:
-    }
+//    const rawPath = this._parseName(el.name);
+//    const baseRaw = rawPath.slice(0, -1);
+//    const path = this._normalizePathForFoldAttributes(rawPath);
+//    const basePath = path.slice(0, -1);
+//    const ignoreList = ["material_code", "paint_type_code", "paint_color_code", "paint_gloss_code", "name", "note"];
+//    if (ignoreList.includes(path.at(-1))){
+//      return;
+//    } else if (path.at(-1) === "disp") {
+//      const dispVal = this._getAtPath(formJSON, [...basePath, "disp"]);
+//      this.lumberPart3dCtrl?.setMeshVisibilityAtPath?.(path.slice(2, 4), dispVal);
+//      return;
+//    }
+//    const type = path[2];
+//    switch(type) {
+//      case "side_json":
+//        {
+//          const procVal = this._getAtPath(formJSON, [...basePath, "proc"]);
+//          const disable = (procVal === "NONE");
+//          this._changeDisabled(type, baseRaw, path.at(-1), disable);
+//          // formJSON更新
+//          formJSON = formToJSON(this.form);
+//          const edgeVal = this._getAtPath(formJSON, [...basePath, "edge"]);
+//          const sdVal = this._getAtPath(formJSON, [...basePath, "sd"]);
+//          const swVal = this._getAtPath(formJSON, [...basePath, "sw"]);
+//          const spVal = this._getAtPath(formJSON, [...basePath, "sp"]);
+//          if ((procVal !== "NONE" && (!sdVal || !swVal || !spVal)) && (edgeVal === "NONE")) return;
+//        }
+//        break;
+//      case "hole_json":
+//        {
+//          const surfaceVal = this._getAtPath(formJSON, [...basePath, "surface"]);
+//          const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
+//          const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
+//          const depthVal = this._getAtPath(formJSON, [...basePath, "depth"]);
+//          this._changeDisabled(type, baseRaw, path.at(-1), true, surfaceVal);
+//          if (surfaceVal === "FRONT" || surfaceVal === "BACK") {
+//            if (!dxVal || !dyVal ||!depthVal) return;
+//          } else if (surfaceVal === "LEFT" || surfaceVal === "RIGHT") {
+//            if (!dyVal ||!depthVal) return;
+//          } else if (surfaceVal === "TOP" || surfaceVal === "BOTTOM") {
+//            if (!dxVal ||!depthVal) return;
+//          }
+//        }
+//        break;
+//      default:
+//    }
     this.lumberPart3dCtrl?.updateModel?.(formJSON)
   }
 

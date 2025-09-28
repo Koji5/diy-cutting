@@ -59,6 +59,11 @@ export default class extends Controller {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xecfeff);
 
+    /* グループ */
+    this.group = new THREE.Group();
+    this.group.name = "side_json";
+    this.scene.add(this.group);
+
     /* カメラ */
     this.camera = new THREE.PerspectiveCamera(45, 1, 1, 5000);
     this.camera.position.set(4, 4, 6);
@@ -147,27 +152,40 @@ export default class extends Controller {
   updateModel (formJSON) {
     if (!this.camera) return
     const lumberJSON = formJSON.part.lumber_part
+    if(lumberJSON.lumber_size_code){
+      const [w, t] = lumberJSON.lumber_size_code.split(/[x×]/).map(s => Number(s.trim()));
+      lumberJSON.width_mm     = w
+      lumberJSON.thickness_mm = t
+      this._replaceMesh(null);
+    }
     lumberJSON.length_mm    = Number(lumberJSON.length_mm)
-    const [w, t] = lumberJSON.length_mm.split(/[x×]/).map(s => Number(s.trim()));
-    lumberJSON.width_mm     = w
-    lumberJSON.thickness_mm = t
 
     /* 入力不足 → メッシュを消して終わり */
     if (!lumberJSON.length_mm || !lumberJSON.thickness_mm || !lumberJSON.width_mm) {
       this._replaceMesh(null);
       return;
     }
+    console.log(lumberJSON)
     /* Geometry 生成 */
     this.lumberMeshes = buildMeshesFromCtx(lumberJSON);
     this._replaceMesh(this.lumberMeshes.lumber);
-    this.lumberMeshes.lumber.material = this.lumberMat;
+    this.lumberMeshes.lumber.material = this.lumberMat.clone();
+    let sideDisp = false;
     this._forEachMesh(this.lumberMeshes, (mesh, path) => {
-      const dispPath = [...path, "disp"]
-      const isBoardTop = (path.length === 1 && path[0] === "lumber") || this._getValueByPath(lumberJSON, dispPath) === true;
-      mesh.visible = isBoardTop;   // lumber だけ true、他は false
-      this.scene.add(mesh)
+      if (path[path.length - 2] === "side_json") {
+        const dispPath = [...path.slice(0, -1), "disp"]
+        sideDisp = this._getValueByPath(lumberJSON, dispPath) === true;
+        this.group.attach(mesh);
+      } else {
+        const dispPath = [...path, "disp"]
+        const isLumberTop = (path.length === 1 && path[0] === "lumber") || this._getValueByPath(lumberJSON, dispPath) === true;
+        mesh.visible = isLumberTop;   // lumber だけ true、他は false
+        this.scene.add(mesh)
+      }
     });
+    this.group.visible = sideDisp;
     const box = new THREE.Box3().setFromObject(this.lumberMeshes.lumber);
+    console.log("cameraInside?", box.containsPoint(this.camera.position));
     if (isFinite(box.max.x)) {
       const center = box.getCenter(new THREE.Vector3());
       const cameraReset = this.lastL !== lumberJSON.length_mm || this.lastW !== lumberJSON.width_mm || this.lastT !== lumberJSON.thickness_mm
@@ -187,7 +205,9 @@ export default class extends Controller {
         this.lastT = lumberJSON.thickness_mm
       }
       this._buildAxesAndLabels(box);
-
+console.log("box center:", center);
+console.log("camera pos:", this.camera.position);
+console.log("controls target:", this.controls.target);
       /* --- クリップ面は毎回更新（大型モデル対策） --- */
       const radius = box.getSize(new THREE.Vector3()).length() * 0.5;
       this.camera.near = 0.1;
@@ -222,6 +242,9 @@ export default class extends Controller {
       targets.forEach(me => {
         me.parent?.remove(me)                   // シーンから外す
         try { me.geometry?.dispose?.() } catch (e) {}
+        console.log("DISPOSE CHECK:",
+          "lumberMat", this.lumberMat?.uuid
+        );
         const mat = me.material
         if (Array.isArray(mat)) mat.forEach(m => m?.dispose?.())
         else mat?.dispose?.()
@@ -299,7 +322,7 @@ export default class extends Controller {
       return sp;
     };
 
-    const lx = makeLabelSprite("横巾 (x)");
+    const lx = makeLabelSprite("長さ(x)");
     lx.position.set(X * 1.1, 0, 0);
 
     const ly = makeLabelSprite("縦巾 (y)");

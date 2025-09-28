@@ -36,10 +36,9 @@ class LumberPartsController < ApplicationController
       paint_colors:     MPaintColor.order(:sort_order),
       paint_glosses:    MPaintGloss.order(:sort_order),
       paint_finishes:   MPaintFinish.order(:sort_order),
-      edge_processes:   MEdgeProcess.order(Arel.sql("CASE WHEN code = 'NONE' THEN 0 ELSE 1 END"), :code),
+      edge_processes:   MEdgeProcess.where("allow_types @> ?", { lumber: true }.to_json).order(:sort_order),
       hole_surfaces:    MHoleSurface.order(:sort_order),
       hole_specs:       MHoleSpec.order(:sort_order),
-      #lumber_edges:     MLumberEdge.order(:sort_order),   # TODO
       lumber_sizes:     MLumberSize.order(:sort_order)
     }
   end

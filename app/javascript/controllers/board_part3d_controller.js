@@ -157,7 +157,7 @@ export default class extends Controller {
     /* Geometry 生成 */
     this.boardMeshes = buildMeshesFromCtx(boardJSON);
     this._replaceMesh(this.boardMeshes.board);
-    this.boardMeshes.board.material = this.boardMat;
+    this.boardMeshes.board.material = this.boardMat.clone();
     this._forEachMesh(this.boardMeshes, (mesh, path) => {
       const dispPath = [...path, "disp"]
       const isBoardTop = (path.length === 1 && path[0] === "board") || this._getValueByPath(boardJSON, dispPath) === true;

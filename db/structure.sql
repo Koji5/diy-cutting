@@ -2033,8 +2033,25 @@ CREATE TABLE public.m_edge_processes (
     deleted_at timestamp(6) without time zone,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    allow_types jsonb DEFAULT '{}'::jsonb NOT NULL,
+    CONSTRAINT m_edge_processes_allow_types_is_object CHECK ((jsonb_typeof(allow_types) = 'object'::text))
 );
+
+
+--
+-- Name: COLUMN m_edge_processes.sort_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.m_edge_processes.sort_order IS '表示順（昇順）';
+
+
+--
+-- Name: COLUMN m_edge_processes.allow_types; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.m_edge_processes.allow_types IS '許可タイプ（JSONオブジェクト）';
 
 
 --
@@ -6649,6 +6666,13 @@ CREATE INDEX index_m_corner_processes_on_updated_by_id ON public.m_corner_proces
 
 
 --
+-- Name: index_m_edge_processes_on_allow_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_edge_processes_on_allow_types ON public.m_edge_processes USING gin (allow_types);
+
+
+--
 -- Name: index_m_edge_processes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6660,6 +6684,13 @@ CREATE INDEX index_m_edge_processes_on_created_by_id ON public.m_edge_processes 
 --
 
 CREATE INDEX index_m_edge_processes_on_deleted_by_id ON public.m_edge_processes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_m_edge_processes_on_sort_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_m_edge_processes_on_sort_order ON public.m_edge_processes USING btree (sort_order);
 
 
 --
@@ -10991,6 +11022,7 @@ ALTER TABLE public.h_payment_webhooks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250926052144'),
 ('20250919044106'),
 ('20250917071415'),
 ('20250917070611'),
