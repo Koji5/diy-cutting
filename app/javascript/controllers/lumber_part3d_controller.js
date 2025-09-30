@@ -134,6 +134,11 @@ export default class extends Controller {
   }
 
   setMeshVisibilityAtPath(path, visible) {
+    console.log("path:", path)
+    if (path[path.length - 1] === "c") {
+      this.group.visible = !!visible;
+      return true;
+    }
     const mesh = this._getAtPath(this.lumberMeshes, path);
     if (mesh?.isMesh || mesh instanceof THREE.Mesh) {
       mesh.visible = !!visible;
@@ -172,7 +177,7 @@ export default class extends Controller {
     this.lumberMeshes.lumber.material = this.lumberMat.clone();
     let sideDisp = false;
     this._forEachMesh(this.lumberMeshes, (mesh, path) => {
-      if (path[path.length - 2] === "side_json") {
+      if (path[path.length - 2] === "c") {
         const dispPath = [...path.slice(0, -1), "disp"]
         sideDisp = this._getValueByPath(lumberJSON, dispPath) === true;
         this.group.attach(mesh);
@@ -205,9 +210,6 @@ export default class extends Controller {
         this.lastT = lumberJSON.thickness_mm
       }
       this._buildAxesAndLabels(box);
-console.log("box center:", center);
-console.log("camera pos:", this.camera.position);
-console.log("controls target:", this.controls.target);
       /* --- クリップ面は毎回更新（大型モデル対策） --- */
       const radius = box.getSize(new THREE.Vector3()).length() * 0.5;
       this.camera.near = 0.1;
