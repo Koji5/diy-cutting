@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { createEdgeGeo } from "helpers/lumber_edge_builders";
 import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 import { lumberBuildCtx } from "helpers/lumber_build_ctx";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 // ===== 材質キャッシュ（色や共通質感をまとめる） =====
 const materialCache = new Map();
@@ -110,28 +111,29 @@ export function buildMeshesFromCtx(lumberJSON) {
   ["l","r"].forEach(pos=>{
     const sideJSON = ctx.sideJSON[pos];
     if (!sideJSON || sideJSON.proc === "NONE") return;
-    let resultMesh = null;
+    // 可視化用（赤メッシュ）に使う結合候補
+    const geosForMerge = [];
     const cutOutGeos = createEdgeGeo(sideJSON.proc, edgePath);
-    cutOutGeos.forEach(geo=>{
+    cutOutGeos.forEach((geo, idx) => {
+      // 位置合わせ（同一座標系にしてから結合/減算）
       if (pos === "l") {
         geo.rotateY(Math.PI/2);
       } else {
         geo.rotateY(-Math.PI/2);
         geo.translate(ctx.L, 0, -ctx.T);
       }
-      const mesh = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
-      const subMesh = mesh.clone();
-      if (resultMesh) {
-        unionMesh(resultMesh, mesh);
-      } else {
-        resultMesh = mesh;
-      }
-      const debug = ":edge:" + pos + ":";
-      subtractionMesh(lumberMesh, subMesh, debug);
+      // 可視化用には merge 用に複製して取っておく
+      geosForMerge.push(geo.clone());  // ← ここは clone 推奨（後のCSGで触るので）
+      const cutter = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
+      const debug  = `:edge:${pos}:${idx}`;
+      subtractionMesh(lumberMesh, cutter, debug);
     });
-    if (!resultMesh) return;
+    if (geosForMerge.length === 0) return;
+    const mergedGeo = BufferGeometryUtils.mergeGeometries(geosForMerge, /*useGroups=*/ false);
+    geosForMerge.forEach(g => g.dispose());
+    // 表示用メッシュ作成（キャッシュ材質は dispose しない）
     const material = mat("cutOut", getMeshStandardMaterial(0xff0000, 0.8))
-    const cutOutMesh = new THREE.Mesh(resultMesh.geometry, material);
+    const cutOutMesh = new THREE.Mesh(mergedGeo, material);
     cutOutMesh.name = makeName("side_json", pos);
     meshes.side_json[pos] = cutOutMesh;
   });

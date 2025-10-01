@@ -6,7 +6,7 @@ export function createEdgeGeo(proc, edgePath){
 
 function buildCavityGeometry(code, edgePath){
   // マージン
-  const m = -0.3;
+  const m = -0.2;
   const s = new THREE.Shape();
   s.moveTo(-m, m);
   switch (code) {

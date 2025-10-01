@@ -43,7 +43,7 @@ function csgReplaceGeometry(meshA, meshB, OP, debug) {
     // meshA.geometry.computeVertexNormals();
 
     // BVH再構築（acceleratedRaycast使用時）
-    meshA.geometry.computeBoundsTree?.();
+    //meshA.geometry.computeBoundsTree?.();
 
     // out側のmaterialは不要
     out.material?.dispose?.();
