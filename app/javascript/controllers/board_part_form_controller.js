@@ -220,10 +220,12 @@ export default class extends Controller {
       case "hole_json":
         {
           const surfaceVal = this._getAtPath(formJSON, [...basePath, "surface"]);
+          this._changeDisabled(type, baseRaw, path.at(-1), true, surfaceVal);
+          // formJSON更新
+          formJSON = formToJSON(this.form);
           const dxVal = this._getAtPath(formJSON, [...basePath, "dx"]);
           const dyVal = this._getAtPath(formJSON, [...basePath, "dy"]);
           const depthVal = this._getAtPath(formJSON, [...basePath, "depth"]);
-          this._changeDisabled(type, baseRaw, path.at(-1), true, surfaceVal);
           if (surfaceVal === "FRONT" || surfaceVal === "BACK") {
             if (!dxVal || !dyVal ||!depthVal) return;
           } else if (surfaceVal === "LEFT" || surfaceVal === "RIGHT") {

@@ -18,12 +18,19 @@ class Part < ApplicationRecord
   private
 
   def only_one_subtype
-    # テーブルが無い間はスキップ（本番でも冗長ではない程度のコスト）
-    return unless BoardPart.table_exists?
+    return unless defined?(BoardPart)  && BoardPart.table_exists?
     return unless defined?(LumberPart) && LumberPart.table_exists?
 
-    bp = association(:board_part).loaded? ? association(:board_part).target.present? : association(:board_part).exists?
-    lp = association(:lumber_part).loaded? ? association(:lumber_part).target.present? : association(:lumber_part).exists?
+    # メモリ上（nested attributes で build された場合は target に入る）
+    bp_target = association(:board_part).target
+    lp_target = association(:lumber_part).target
+
+    # 永続化済みなら DB にも存在確認（Relation.exists? を使う）
+    bp_db = persisted? ? BoardPart.where(part_id: id).exists?  : false
+    lp_db = persisted? ? LumberPart.where(part_id: id).exists? : false
+
+    bp = bp_target.present? || bp_db
+    lp = lp_target.present? || lp_db
 
     if bp && lp
       errors.add(:base, "板材か角材のどちらか一方のみを指定してください")

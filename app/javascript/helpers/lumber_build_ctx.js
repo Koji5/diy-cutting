@@ -1,11 +1,10 @@
 export function lumberBuildCtx(lumberJSON){
   const ctx = { L: lumberJSON.length_mm, W: lumberJSON.width_mm, T: lumberJSON.thickness_mm };
-  const { W, T } = ctx;
+  const { L, W, T } = ctx;
   ctx.moveTo = [0, 0];
   const sideJSON   = lumberJSON.side_json || {};
   const holeJSON   = lumberJSON.hole_json || {};
   ctx.sideJSON = sideJSON;
-  ctx.holeJSON = holeJSON;
   const proc = sideJSON["c"]?.proc ?? "NONE";
   if (proc === "NONE") {
     ctx.moveTo = [0, 0];
@@ -13,7 +12,6 @@ export function lumberBuildCtx(lumberJSON){
     ctx["r"] = { type: "side", start: [T, 0], end: [T, W] }
     ctx["t"] = { type: "side", start: [T, W], end: [0, W] }
     ctx["l"] = { type: "side", start: [0, W], end: [0, 0] }
-    return ctx;
   } else {
     switch(proc){
       case "CHAMF_BTH":
@@ -109,6 +107,34 @@ export function lumberBuildCtx(lumberJSON){
         break;
       default:
     }
-    return ctx;
   }
+
+  // ネジ・ダボ穴
+  ctx["hole"] = {};
+  Object.keys(holeJSON).forEach(key => {
+    const hole = holeJSON[key];
+    const surface =  hole?.surface ?? "";
+    const dx = Number(hole?.dx ?? 0);
+    const dy = Number(hole?.dy ?? 0);
+    let rad = [0, 0, 0], trans = [0, 0, 0];
+    switch(surface) {
+      case "LEFT": rad = [0, -Math.PI / 2, 0]; trans = [0, dy, -T / 2]; break;
+      case "RIGHT": rad = [0, Math.PI / 2, 0]; trans = [L, dy, -T / 2]; break;
+      case "TOP": rad = [-Math.PI / 2, 0, 0]; trans = [dx, W, -T / 2]; break;
+      case "BOTTOM": rad = [Math.PI / 2, 0, 0]; trans = [dx, 0, -T / 2]; break;
+      case "FRONT": rad = [0, 0, 0]; trans = [dx, dy, 0]; break;
+      case "BACK": rad = [Math.PI, 0, 0]; trans = [dx, dy, -T]; break;
+      default:
+    }
+    ctx["hole"][key] = {
+      surface: surface,
+      dx: dx, dy: dy,
+      spec_code: hole?.spec_code ?? "",
+      countersink: hole?.countersink ?? false,
+      depth: Number(hole?.depth ?? 0),
+      rad: rad, trans: trans
+    };
+  });
+
+  return ctx;
 }

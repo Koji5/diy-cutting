@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 import { createEdgeGeo } from "helpers/lumber_edge_builders";
+import { createHoleMesh } from "helpers/hole_builders";
 import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 import { lumberBuildCtx } from "helpers/lumber_build_ctx";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -51,6 +52,7 @@ export function buildMeshesFromCtx(lumberJSON) {
   const meshes = {};
   meshes.side_json = {};
   meshes.side_json["c"] = {};
+  meshes.hole_json = {};
   const c = meshes.side_json["c"];
   const lumberShape = new THREE.Shape();
   lumberShape.moveTo(...ctx.moveTo);
@@ -138,11 +140,36 @@ export function buildMeshesFromCtx(lumberJSON) {
     meshes.side_json[pos] = cutOutMesh;
   });
 
+  // ネジ・ダボ穴
+  const holeCtx = ctx["hole"];
+  Object.keys(holeCtx).forEach(key => {
+    const hole = holeCtx[key];
+    if (hole.depth === 0) return;
+    const geos = createHoleMesh(hole, ctx.T);
+    const holeGeo = geos[0];
+    const countersinkGeo = geos[1];
+
+    //if (!holeCutter) {
+    //  console.warn("ネジ・ダボ穴作成失敗 skip key:", key);
+    //  return;
+    //} 
+    const m = mat("cutOut", getMeshStandardMaterial(0xff0000, 0.8));
+    const holeMesh = new THREE.Mesh(holeGeo, m);
+    if (countersinkGeo) {
+      const countersinkMesh = new THREE.Mesh(countersinkGeo, m);
+      unionMesh(holeMesh, countersinkMesh);
+    }
+    holeMesh.name = makeName("hole_json", key);
+    if (holeMesh) meshes.hole_json[key] = holeMesh;
+    const debug = ":hole: key:" + key;
+    subtractionMesh(lumberMesh, holeMesh, debug);
+  });
+
   // 最終的な lumber.geometry が確定した後に
   lumberMesh.geometry.computeVertexNormals()
   lumberMesh.geometry.computeBoundingSphere()
   lumberMesh.geometry.computeBoundingBox()
-
+  logGeoJsonSize(lumberMesh.geometry, 'lumberMesh');
   meshes.lumber = lumberMesh
   meshes.lumber.name = makeName("lumber")
 
@@ -194,4 +221,48 @@ class ArcCurve3 extends THREE.Curve {
     target.set(dx, dy, 0);
     return target.normalize();
   }
+}
+
+// == DEBUG==
+// 人間向け表記
+function humanSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ['KB','MB','GB'];
+  let i = -1; do { bytes /= 1024; i++; } while (bytes >= 1024 && i < units.length-1);
+  return `${bytes.toFixed(bytes < 10 ? 2 : 1)} ${units[i]}`;
+}
+
+// 三角形数の推定
+function triCount(geo) {
+  const pos = geo.getAttribute('position')?.count ?? 0;
+  return geo.index ? (geo.index.count / 3) : (pos / 3);
+}
+
+// JSONサイズを同期で測る（gzipはオプションで別関数）
+function logGeoJsonSize(geo, label = '') {
+  console.time(`toJSON${label}`);
+  const jsonObj = geo.toJSON();
+  console.timeEnd(`toJSON${label}`);
+
+  console.time(`stringify${label}`);
+  const jsonStr = JSON.stringify(jsonObj);
+  console.timeEnd(`stringify${label}`);
+
+  // 正確なバイト数
+  const bytes = (typeof Blob !== 'undefined')
+    ? new Blob([jsonStr]).size
+    : (new TextEncoder()).encode(jsonStr).length;
+
+  const verts = geo.getAttribute('position')?.count ?? 0;
+  const tris  = triCount(geo);
+
+  console.log(
+    `[${label}] JSON size: ${humanSize(bytes)} (${bytes.toLocaleString()} B),` +
+    ` verts: ${verts.toLocaleString()}, tris: ${Math.floor(tris).toLocaleString()}`
+  );
+
+  // もう不要ならメモリ解放（必要なら残してOK）
+  // jsonStr = null; // constなら省略
+  // jsonObj = null;
+  return bytes;
 }

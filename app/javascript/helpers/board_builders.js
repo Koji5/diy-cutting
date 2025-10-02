@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { createEdgeMesh } from "helpers/board_edge_builders";
-import { createHoleMesh } from "helpers/board_hole_builders";
+import { createHoleMesh } from "helpers/hole_builders";
 import { unionMesh, subtractionMesh } from "helpers/bvh_csg_utils";
 import { boardBuildCtx } from "helpers/board_build_ctx";
 
@@ -186,7 +186,7 @@ export function buildMeshesFromCtx(boardJSON) {
   boardMesh.geometry.computeVertexNormals()
   boardMesh.geometry.computeBoundingSphere()
   boardMesh.geometry.computeBoundingBox()
-
+  logGeoJsonSize(boardMesh.geometry, 'boardMesh');
   meshes.board = boardMesh
   meshes.board.name = makeName("board")
 
@@ -217,3 +217,48 @@ class ArcCurve3 extends THREE.Curve {
     return target;
   }
 }
+
+// == DEBUG==
+// 人間向け表記
+function humanSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ['KB','MB','GB'];
+  let i = -1; do { bytes /= 1024; i++; } while (bytes >= 1024 && i < units.length-1);
+  return `${bytes.toFixed(bytes < 10 ? 2 : 1)} ${units[i]}`;
+}
+
+// 三角形数の推定
+function triCount(geo) {
+  const pos = geo.getAttribute('position')?.count ?? 0;
+  return geo.index ? (geo.index.count / 3) : (pos / 3);
+}
+
+// JSONサイズを同期で測る（gzipはオプションで別関数）
+function logGeoJsonSize(geo, label = '') {
+  console.time(`toJSON${label}`);
+  const jsonObj = geo.toJSON();
+  console.timeEnd(`toJSON${label}`);
+
+  console.time(`stringify${label}`);
+  const jsonStr = JSON.stringify(jsonObj);
+  console.timeEnd(`stringify${label}`);
+
+  // 正確なバイト数
+  const bytes = (typeof Blob !== 'undefined')
+    ? new Blob([jsonStr]).size
+    : (new TextEncoder()).encode(jsonStr).length;
+
+  const verts = geo.getAttribute('position')?.count ?? 0;
+  const tris  = triCount(geo);
+
+  console.log(
+    `[${label}] JSON size: ${humanSize(bytes)} (${bytes.toLocaleString()} B),` +
+    ` verts: ${verts.toLocaleString()}, tris: ${Math.floor(tris).toLocaleString()}`
+  );
+
+  // もう不要ならメモリ解放（必要なら残してOK）
+  // jsonStr = null; // constなら省略
+  // jsonObj = null;
+  return bytes;
+}
+

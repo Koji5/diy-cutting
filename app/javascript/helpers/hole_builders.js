@@ -16,6 +16,7 @@ export function createHoleMesh(hole, T){
 
 function buildHoleGeometry(spec_code, depth, countersink, m) {
   let r = 0, R = 0, d = 0, geoB = null;
+  const mg = 0.03;
   switch(spec_code){
     case "M3": r = 3; R = 6; d = 1.5; break;
     case "M4": r = 4; R = 8; d = 2; break;
@@ -31,17 +32,18 @@ function buildHoleGeometry(spec_code, depth, countersink, m) {
   if (!countersink) d = 0;
   const shape = new THREE.Shape();
   shape.absarc(0, 0, r, 0, Math.PI * 2, false);
-  const geoA = new THREE.ExtrudeGeometry(shape, { depth: depth - d, bevelEnabled: false });
-  geoA.translate(0, 0, -depth); // 上面Z=0（Z ∈ [-T,0]）
+  const geoA = new THREE.ExtrudeGeometry(shape, { depth: depth - d + mg, bevelEnabled: false });
+  geoA.translate(0, 0, -(depth + mg)); // 上面Z=0（Z ∈ [-T,0]）
   if (!geoA.attributes.normal) {
     geoA.computeVertexNormals();
   }
   geoA.applyMatrix4(m);
+  // 皿部分
   if (countersink && R !== 0) {
     const hole = new THREE.Shape();
     hole.absarc(0, 0, R, 0, Math.PI * 2, false);
-    geoB = new THREE.ExtrudeGeometry(hole, { depth: d, bevelEnabled: false });
-    geoB.translate(0, 0, -d); // 上面Z=0（Z ∈ [-T,0]）
+    geoB = new THREE.ExtrudeGeometry(hole, { depth: d + mg, bevelEnabled: false });
+    geoB.translate(0, 0, -d + mg); // 上面Z=0（Z ∈ [-T,0]）
     if (!geoB.attributes.normal) {
       geoB.computeVertexNormals();
     }

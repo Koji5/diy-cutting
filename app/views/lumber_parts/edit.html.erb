@@ -1,0 +1,25 @@
+<%= render "lumber_parts/link_lumber_part" %>
+<section class="m-0">
+  <div class="d-flex flex-grow-1" id="preview-pane">
+    <div class="bg-light square-half mx-auto" data-controller="lumber-part3d">
+        <canvas data-lumber-part3d-target="canvas" class="w-100 h-100"></canvas>
+    </div>
+  </div>
+  <%= form_with model: @part,
+                url: part_lumber_part_path(@part),
+                data: {
+                  turbo_frame: "main",
+                  controller: "form-validation",
+                  "form-validation-context-value": "lumber-part-edit"
+                },
+                html: {
+                  class: "needs-validation",
+                  novalidate: true,
+                  multipart: true
+                } do |f| %>
+    <div id="lumberPartForm" class="carousel slide mt-2">
+      <%= render "form_fields", f:, mode: :edit %>
+    </div>
+
+  <% end %>
+</section>
