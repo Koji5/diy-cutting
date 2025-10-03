@@ -26,12 +26,22 @@
           <div class="card-text">
             <div class="row justify-content-end">
               <% if part.shape_type_code == "board" %>
+                <%= link_to part_board_part_path(part),
+                      data: { turbo_frame: "main" },
+                      class: "btn btn-outline-primary btn-icon me-2" do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
                 <%= link_to edit_part_board_part_path(part),
                       data: { turbo_frame: "main" },
                       class: "btn btn-outline-primary btn-icon me-2" do %>
                   <i class="bi bi-pencil"></i>
                 <% end %>
               <% elsif part.shape_type_code == "lumber" %>
+                <%= link_to part_lumber_part_path(part),
+                      data: { turbo_frame: "main" },
+                      class: "btn btn-outline-primary btn-icon me-2" do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
                 <%= link_to edit_part_lumber_part_path(part),
                       data: { turbo_frame: "main" },
                       class: "btn btn-outline-primary btn-icon me-2" do %>

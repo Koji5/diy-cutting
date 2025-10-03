@@ -10,54 +10,30 @@ export default class extends Controller {
   static targets = ["overlay"]
   pending = new Set()
   preventHide = false  // ← hide() を一時的に抑制したいときに使う
+  _ticket = 0;
+  _graceUntil = 0;
+  _graceTimer = null;
 
   connect() {
     /* --- Turbo navigation / request start --- */
-    addEventListener("turbo:before-visit", () => this.show())
+    addEventListener("turbo:before-visit", () => this.showWithTicket())
     addEventListener("turbo:before-fetch-request", (e) => {
-      const headers = e.detail.fetchOptions.headers || {}
-      const isPrefetch =
-        headers["Purpose"] === "prefetch" ||
-        headers["Sec-Purpose"] === "prefetch" ||
-        headers["X-Sec-Purpose"] === "prefetch"
-      if (!isPrefetch) this.show()
-    })
-
-    /* --- Turbo render complete --- */
-    addEventListener("turbo:render", (e) => {
-      if (document.documentElement.hasAttribute("data-turbo-preview")) return
-      this.show()
-      requestAnimationFrame(() => {
-        if (!this.preventHide && this.pending.size === 0) this.hide()
-      })
-    })
-
-    /* --- Completed events --- */
-    addEventListener("turbo:frame-load", () => {
-      if (!this.preventHide) this.hide()
-    })
-
-    addEventListener("turbo:load", () => {
-      if (!this.preventHide) this.hide()
-    })
-
-    addEventListener("page-render:done", () => {
-      if (!this.preventHide) this.hide()
-    })
-
+      const headers = e.detail.fetchOptions?.headers;
+      const read = (k) => headers?.get?.(k) || headers?.get?.(k.toLowerCase?.()) || headers?.[k] || headers?.[k.toLowerCase?.()] || "";
+      const purpose = (read("Purpose") || read("Sec-Purpose") || read("X-Sec-Purpose")).toString().toLowerCase();
+      if (!purpose.includes("prefetch")) this.showWithTicket();
+    });
+    addEventListener("turbo:frame-load", () => this.hide());
+    addEventListener("turbo:load",       () => this.hide());
+    addEventListener("page-render:done", () => this.hide());
     addEventListener("turbo:before-fetch-response", (e) => {
-      if (e.detail.fetchResponse.response.status >= 400) {
-        if (!this.preventHide) this.hide()
-      }
-    })
-
-    /* --- Custom Promise tracker --- */
-    addEventListener("page-loading:done", ({ detail: promise }) => {
-      this.pending.delete(promise)
-      if (!this.preventHide && this.pending.size === 0) {
-        this.hide()
-      }
-    })
+      if (e.detail.fetchResponse.response.status >= 400) this.hide();
+    });
+    addEventListener("turbo:render", () => {
+      if (document.documentElement.hasAttribute("data-turbo-preview")) return;
+      const t = this.showWithTicket();       // ← 新しい世代で show
+      requestAnimationFrame(() => this.hide(t));
+    });
   }
 
   /**
@@ -65,10 +41,14 @@ export default class extends Controller {
    * The overlay will stay visible until the Promise resolves or rejects.
    */
   register(promise) {
-    this.pending.add(promise)
+    // ★ 0→1件目に入るタイミングで表示
+    if (this.pending.size === 0 && !this.preventHide) this.showWithTicket();
+    this.pending.add(promise);
     promise.finally(() => {
-      dispatchEvent(new CustomEvent("page-loading:done", { detail: promise }))
-    })
+      this.pending.delete(promise);
+      this.hide();
+    });
+    return promise;
   }
 
   /**
@@ -91,10 +71,41 @@ export default class extends Controller {
   }
 
   show() {
-    this.overlayTarget.classList.add("is-active")
+    return this.showWithTicket();
   }
 
-  hide() {
-    this.overlayTarget.classList.remove("is-active")
-  }
+  hide = (ticket = this._ticket) => {
+    if (ticket !== this._ticket) return;       // 古いhideを無効化
+    if (this.preventHide) return;
+
+    const now = performance.now();
+    if (now < this._graceUntil) {              // ← グレース中は閉じない
+      clearTimeout(this._graceTimer);
+      this._graceTimer = setTimeout(() => this.hide(ticket), this._graceUntil - now);
+      return;
+    }
+
+    if (this.pending.size > 0) return;         // ← pendingが立っていれば閉じない
+    this.hideInternal(ticket);                          // 実処理へ
+  };
+
+  hideInternal = (ticket = this._ticket) => {
+    if (ticket !== this._ticket || this.preventHide || this.pending.size > 0) {
+      return;
+    }
+    const min = 160;
+    const elapsed = performance.now() - (this._shownAt ?? 0);
+    const doHide = () => {
+      this.overlayTarget.classList.remove("is-active");
+    };
+    elapsed < min ? setTimeout(doHide, min - elapsed) : doHide();
+  };
+
+  showWithTicket = () => {
+    this._shownAt = performance.now();
+    this._ticket += 1;
+    this._graceUntil = this._shownAt + 60;
+    this.overlayTarget.classList.add("is-active");
+    return this._ticket;
+  };
 }

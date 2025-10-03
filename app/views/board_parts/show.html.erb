@@ -1,8 +1,17 @@
-<div data-controller="part3d"
-     data-part3d-part-value="<%= j @part.as_json(
-       only: [:id, :name, :shape_type_code],
-       include: {
-         board_part:  { only: [:thickness_mm, :width_mm, :length_mm, :corner_json] },
-         lumber_part: { only: [:side_a_mm, :side_b_mm, :length_mm, :corner_json] }
-       }
-     ).to_json %>"></div>
+<%= render "board_parts/link_board_part" %>
+<section class="m-0">
+  <div class="d-flex flex-grow-1" id="preview-pane">
+    <div class="bg-light square-half mx-auto" data-controller="part-show"
+      <% if @part.geometry.attached? %>
+        data-part-show-geometry-url-value="<%= url_for(@part.geometry) %>"
+      <% end %>
+    >
+      <canvas data-part-show-target="canvas" class="w-100 h-100"></canvas>
+    </div>
+  </div>
+  <%= hidden_field_tag(
+        'part[board_part_attributes][camera_state_json]',
+        (@part.board_part.camera_state_json || {}),
+        id: 'camera_state_json'
+      ) %>
+</section>

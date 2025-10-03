@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { formToJSON } from "lib/serialize_form";
+import { serializeGeometryForSubmit } from "helpers/geometry_serializers";
 
 export default class extends Controller {
 
@@ -48,7 +49,7 @@ export default class extends Controller {
   _handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 3Dからサムネを Blob で取得（なければそのまま送る）
+    // 1) 3Dからサムネを Blob で取得（なければそのまま送る）
     const blob = await this.lumberPart3dCtrl?.captureBlob?.({ maxWidth: 640, quality: 0.85, mime: "image/jpeg" });
 
     if (blob) {
@@ -66,6 +67,31 @@ export default class extends Controller {
           console.warn("DataTransfer 代入に失敗。fallbackを検討:", err);
         }
       }
+    }
+
+    // 2) 3Dジオメトリ → JSON 化してフォームへ差し込む
+    try {
+      const geometry = this.lumberPart3dCtrl?.getGeometry?.() ?? null;
+
+      if (geometry) {
+        // 最小限の JSON に整形（位置・法線・UV・index・BBox）
+        const geoJSON = serializeGeometryForSubmit(geometry);
+        const geoFileInput = this.form.querySelector("#geometry_file");
+        const geoBlob = new Blob([JSON.stringify(geoJSON)], { type: "application/json" });
+        const geoFile = new File([geoBlob], "geometry.json", { type: "application/json" });
+        try {
+          const dt2 = new DataTransfer();
+          dt2.items.add(geoFile);
+          geoFileInput.files = dt2.files;
+        } catch (err) {
+          console.warn("geometry.json の DataTransfer 失敗:", err);
+        }
+      } else {
+        console.warn("送信できる geometry が見つかりませんでした。");
+      }
+    } catch (e2) {
+      console.warn("Geometry の JSON 化に失敗:", e2);
+      // 失敗しても送信自体は続ける
     }
 
     // 再送信（once:true なのでループしない）

@@ -345,10 +345,8 @@
       </div>
 
     <% end %>
-    <%= f.file_field :thumbnail,
-      id: "thumbnail_file",
-      accept: "image/*",
-      style: "display:none" %>
+    <%= f.file_field :geometry, id: "geometry_file", direct_upload: true, class: "d-none" %>
+    <%= f.file_field :thumbnail, id: "thumbnail_file", accept: "image/*", style: "display:none" %>
     <div class="carousel-item px-4">
       <div class="container">
         <div class="row carousel-row">

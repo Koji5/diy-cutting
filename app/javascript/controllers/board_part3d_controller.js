@@ -336,6 +336,10 @@ export default class extends Controller {
     }
   }
 
+  getGeometry() {
+    return this.boardMeshes.board.geometry;
+  }
+
   // 保存済みのカメラ状態を hidden に入れておく想定
   // <input type="hidden" id="camera_state_json" ...>
   _getCameraStateInput() {

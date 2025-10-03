@@ -44,16 +44,21 @@ class LumberPartsController < ApplicationController
 
   def update
     replacing_thumb = part_params_for_lumber[:thumbnail].present?
+    replacing_geo = part_params_for_lumber[:geometry].present?
     # 旧 blob を退避（新規ファイルが来るときのみ）
-    old_blob = (replacing_thumb && @part.thumbnail.attached?) ? @part.thumbnail.blob : nil
+    old_blob_thumb = (replacing_thumb && @part.thumbnail.attached?) ? @part.thumbnail.blob : nil
+    old_blob_geo = (replacing_geo && @part.geometry.attached?) ? @part.geometry.blob : nil
 
     ActiveRecord::Base.transaction do
       # 形状種別カラムを運用しているなら保険でセット（空のときのみ）
       @part.shape_type_code = "lumber" if @part.respond_to?(:shape_type_code) && @part.shape_type_code.blank?
       @part.update!(part_params_for_lumber)
     end
-    if replacing_thumb && old_blob && old_blob != @part.thumbnail.blob
-      old_blob.purge_later   # すぐ消すなら purge、通常は purge_later 推奨
+    if replacing_thumb && old_blob_thumb && old_blob_thumb != @part.thumbnail.blob
+      old_blob_thumb.purge_later   # すぐ消すなら purge、通常は purge_later 推奨
+    end
+    if replacing_geo && old_blob_geo && old_blob_geo != @part.geometry.blob
+      old_blob_geo.purge_later   # すぐ消すなら purge、通常は purge_later 推奨
     end
     flash[:success] = "更新しました"
     render_flash_and_replace(flash: flash)
@@ -66,7 +71,7 @@ class LumberPartsController < ApplicationController
 
   def part_params_for_lumber
     p = params.require(:part).permit(
-      :name, :note, :thumbnail, # ← Part側
+      :name, :note, :thumbnail, :geometry, # ← Part側
       lumber_part_attributes: [
         :id, :material_code,
         :paint_type_code, :paint_color_code, :paint_finish_code, :paint_gloss_code,
