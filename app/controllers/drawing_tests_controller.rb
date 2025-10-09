@@ -101,10 +101,29 @@ class DrawingTestsController < ApplicationController
 
   def default_payload
     JSON.pretty_generate({
-      title: "板 100x50",
-      polylines: [{ layer: "OUTER", closed: true, points: [[0,0],[100,0],[100,50],[0,50]] }],
-      circles:   [{ layer: "DRILL", center: [20,20], r: 3 }],
-      dimensions:[{ kind: "linear", p1: [0,0], p2: [100,0], base: [50,-10], override: { "dimtxt": 3.5 } }]
+      "title": "板 100x50",
+      "polylines": [
+        { "layer": "OUTER", "closed": true, "points": [[0,0],[100,0],[100,50],[0,50]] }
+      ],
+      "circles": [
+        { "layer": "DRILL", "center": [20,20], "r": 3 }
+      ],
+      "dimensions": [
+        { "kind":"aligned", "p1":[0,0], "p2":[100,0], "base":[50,-10],
+          "override": { "dimtxt": 3.5, "dimasz": 2.0 } },
+        { "kind":"aligned", "p1":[0,0], "p2":[0,50], "base":[-10,25],
+          "override": { "dimtxt": 3.5, "dimasz": 2.0 } },
+        { "kind":"aligned", "p1":[0,20], "p2":[20,20], "base":[10,-15],
+          "override": { "dimtxt": 3.5 } },
+        { "kind":"aligned", "p1":[20,0], "p2":[20,20], "base":[-15,10],
+          "override": { "dimtxt": 3.5 } }
+      ]
     })
+#    JSON.pretty_generate({
+#      title: "板 100x50",
+#      polylines: [{ layer: "OUTER", closed: true, points: [[0,0],[100,0],[100,50],[0,50]] }],
+#      circles:   [{ layer: "DRILL", center: [20,20], r: 3 }],
+#      dimensions:[{ kind: "linear", p1: [0,0], p2: [100,0], base: [50,-10], override: { "dimtxt": 3.5 } }]
+#    })
   end
 end
