@@ -8,7 +8,7 @@ WORKDIR /srv
 COPY requirements.txt .
 RUN pip install --no-cache-dir -U pip && pip install -r requirements.txt
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-      fonts-dejavu-core fonts-noto-cjk \
+      fonts-ipafont-gothic fonts-ipafont-mincho fonts-dejavu-core fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 COPY app ./app
 EXPOSE 8000

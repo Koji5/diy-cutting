@@ -49,8 +49,7 @@
         if (!res.ok) throw new Error(text);
         const data = JSON.parse(text);
         // SVGはそのまま埋め込み（imgだとCSS効かないことがあるのでinnerHTMLで）
-        document.getElementById("preview-base").innerHTML =
-          atob(data.base_svg.split(",")[1]);
+        document.getElementById("preview-base").innerHTML = `<img src="${data.base_svg}" style="max-width:900px;height:auto">`;
         document.getElementById("preview-dim").src = data.dim_png;
         document.getElementById("preview-cam").src = data.cam_png;
       } catch (e) {

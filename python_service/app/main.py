@@ -11,6 +11,12 @@ import fitz
 
 Point = Tuple[float, float]
 
+from ezdxf.fonts import fonts
+try:
+    fonts.build_system_font_cache()  # 一度作ればOK（数秒）
+except Exception:
+    pass
+
 class Polyline(BaseModel):
     layer: str = "OUTER"
     closed: bool = True
@@ -36,6 +42,23 @@ class DXFIn(BaseModel):
     title: Optional[str] = None
 
 app = FastAPI(title="DXF Microservice")
+
+@app.get("/debug/pdf_fonts")
+def debug_pdf_fonts():
+    from app.dxf_builder import build_dimensioned_dxf
+    from app.pdf_export import dxf_to_pdf_bytes
+    import fitz
+    dummy = {
+        "title": "板 100x50",
+        "polylines": [{"layer":"OUTER","closed":True,"points":[[0,0],[100,0],[100,50],[0,50]]}],
+        "circles": [],
+        "dimensions": [],
+    }
+    doc = build_dimensioned_dxf(DXFIn(**dummy))
+    pdf = dxf_to_pdf_bytes(doc, mm_per_unit=1.0)
+    doc_pdf = fitz.open(stream=pdf, filetype="pdf")
+    fonts = set(n[3] for n in doc_pdf[0].get_fonts(full=True))
+    return {"fonts_on_page1": sorted(fonts)}
 
 @app.get("/health")
 def health():
