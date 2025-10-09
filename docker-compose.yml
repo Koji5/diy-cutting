@@ -24,11 +24,16 @@ services:
     environment:
       RAILS_ENV: development
       SECRET_KEY_BASE: changeme
+      # Python サービス接続先（Docker 内部DNSで py を引ける）
+      PY_HOST: py
+      PY_PORT: "8000"
       # DATABASE_URL は config/database.yml を優先するなら不要
     ports:
       - "3000:3000"
     depends_on:
       db:
+        condition: service_healthy
+      py:
         condition: service_healthy
     # ★ ヘルスチェック (任意) – Rails が応答するかを確認
     healthcheck:
@@ -52,6 +57,20 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
+      retries: 5
+
+  # ───────────────────────────────────
+  # Python (FastAPI) – DXF/PDF 生成
+  # ───────────────────────────────────
+  py:
+    build: ./python_service
+    # 開発中だけ外部公開。本番では消して内部専用に
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\nu='http://localhost:8000/health'\ntry:\n  urllib.request.urlopen(u, timeout=2)\n  sys.exit(0)\nexcept Exception:\n  sys.exit(1)\nPY"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
 volumes:

@@ -73,4 +73,9 @@ Rails.application.routes.draw do
       patch :confirm
     end
   end
+  resources :drawing_tests, only: [:new] do
+    post :generate_all, on: :collection   # ← 3種まとめて生成（保存だけ）
+    get  :download,    on: :collection    # ← 個別ダウンロード（pdf / dxf_dim / dxf_cam）
+    post :preview_images, on: :collection # プレビュープロキシ
+  end
 end

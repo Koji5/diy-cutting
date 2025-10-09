@@ -1,0 +1,63 @@
+<section class="m-0">
+  <div class="container py-4">
+    <h1 class="mb-3">DXF / PDF 生成テスト</h1>
+    <%= form_with url: generate_all_drawing_tests_path, method: :post, data: { turbo_frame: "main" }, class: "mb-3" do %>
+      <div class="mb-2">
+        <label class="form-label">入力 JSON（mm）</label>
+        <%= text_area_tag :payload_json, @payload_json, rows: 18, class: "form-control font-monospace", spellcheck: false %>
+      </div>
+      <%= button_tag "全部生成（PDF / DXF DIM / DXF CAM）", class: "btn btn-primary" %>
+    <% end %>
+
+    <hr class="my-4">
+
+    <h5>ダウンロード（生成済み前提／未生成なら404）</h5>
+    <div class="d-flex flex-wrap gap-2">
+      <%= link_to "PDF ダウンロード",     download_drawing_tests_path(kind: "pdf"),     class: "btn btn-success", data: { turbo: false } %>
+      <%= link_to "DXF(DIM) ダウンロード", download_drawing_tests_path(kind: "dxf_dim"), class: "btn btn-success", data: { turbo: false } %>
+      <%= link_to "DXF(CAM) ダウンロード", download_drawing_tests_path(kind: "dxf_cam"), class: "btn btn-success", data: { turbo: false } %>
+    </div>
+
+    <p class="text-muted mt-2">※ テスト用途のため、未生成でダウンロードすると 404 を返します。</p>
+
+    <hr class="my-4">
+    <h5 class="mb-2">プレビュー（正本 / DIM / CAM）</h5>
+    <div class="d-flex gap-3 align-items-start flex-wrap">
+      <div>
+        <div class="fw-bold mb-1">正本（SVG）</div>
+        <div id="preview-base" class="border" style="width:900px;height:600px;background:#fff"></div>
+      </div>
+      <div>
+        <div class="fw-bold mb-1">DIM（PNG）</div>
+        <img id="preview-dim" class="border" style="max-width:450px; height:auto; display:block;">
+        <div class="fw-bold mt-3 mb-1">CAM（PNG）</div>
+        <img id="preview-cam" class="border" style="max-width:450px; height:auto; display:block;">
+      </div>
+    </div>
+    <button id="preview-btn" class="btn btn-outline-secondary mt-3">プレビュー更新</button>
+
+    <script>
+    document.getElementById("preview-btn").addEventListener("click", async () => {
+      const ta = document.querySelector("textarea[name='payload_json']");
+      try {
+        const res = await fetch("<%= preview_images_drawing_tests_path %>", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload_json: ta.value })
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text);
+        const data = JSON.parse(text);
+        // SVGはそのまま埋め込み（imgだとCSS効かないことがあるのでinnerHTMLで）
+        document.getElementById("preview-base").innerHTML =
+          atob(data.base_svg.split(",")[1]);
+        document.getElementById("preview-dim").src = data.dim_png;
+        document.getElementById("preview-cam").src = data.cam_png;
+      } catch (e) {
+        const m = String(e.message).match(/<title>([^<]+)<\/title>/i);
+        alert("プレビュー失敗: " + (m ? m[1] : e.message.slice(0,200)));
+      }
+    });
+    </script>
+  </div>
+</section>
