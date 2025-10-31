@@ -65,7 +65,7 @@ group :development, :test do
 
   gem 'rspec-rails', '~> 8.0'
   # 任意: テストデータ生成
-  gem 'factory_bot_rails', '~> 6.2'
+  gem 'factory_bot_rails', '~> 6.5'
 end
 group :test do
   gem "shoulda-matchers", "~> 6.5"
